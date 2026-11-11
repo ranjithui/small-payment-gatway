@@ -40,15 +40,8 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
     admin = db.query(AdminUser).filter(AdminUser.email == body.email.strip().lower()).first()
     if not admin or not admin.active or not verify_password(body.password, admin.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
-    return {"access_token": issue_admin_token(admin), "token_type": "bearer", "name": admin.name}
-
-
-@router.get("/auth/me", dependencies=[admin_limit], tags=["auth"])
-def me(admin: AdminContext = Depends(require_admin), db: Session = Depends(get_db)):
-    from app.models import Tenant
-
-    t = db.get(Tenant, admin.tenant_id)
-    return {"admin_id": admin.admin_id, "name": admin.name, "centre": {"name": t.name, "logo_url": t.logo_url}}
+    return {"access_token": issue_admin_token(admin), "token_type": "bearer", "name": admin.name,
+            "has_workspace": admin.tenant_id is not None}
 
 
 # ------------------------------------------------------------------ helpers

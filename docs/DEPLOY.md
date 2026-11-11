@@ -40,24 +40,30 @@ git remote add origin https://github.com/<you>/feeflow.git && git push -u origin
 
 1. Sign up at render.com with your GitHub account.
 2. **New → Blueprint**, then pick the `feeflow` repository. Render reads `render.yaml`.
-3. Fill in the values it asks for. They are used once, to create your centre and first admin:
+3. Fill in the **only two** values it asks for:
 
-   | Key | Example |
+   | Key | What to enter |
    |---|---|
-   | `FEEFLOW_BOOTSTRAP_CENTRE_NAME` | Bright Minds Tuition Centre |
-   | `FEEFLOW_BOOTSTRAP_CENTRE_CODE` | BMTC (used in receipt numbers) |
-   | `FEEFLOW_BOOTSTRAP_UPI_VPA` | your centre's real UPI ID, e.g. `brightminds@okaxis` |
-   | `FEEFLOW_BOOTSTRAP_UPI_NAME` | name shown in UPI apps |
-   | `FEEFLOW_BOOTSTRAP_CONTACT_PHONE` | +91 98765 43210 |
-   | `FEEFLOW_BOOTSTRAP_ADMIN_EMAIL` | your email |
-   | `FEEFLOW_BOOTSTRAP_ADMIN_PASSWORD` | a strong password, 10+ characters |
+   | `FEEFLOW_ADMIN_EMAIL` | the email you'll sign in with |
+   | `FEEFLOW_ADMIN_PASSWORD` | a strong password, 10+ characters |
 
    `FEEFLOW_SECRET_KEY` is generated automatically. `DATABASE_URL` is wired to the new database.
+   Your centre name, UPI ID and the rest are **not** configured here. You enter them in the app.
 4. Click **Apply**. The first build takes a few minutes.
 5. Open `https://<service>.onrender.com/healthz`. It should show `{"status":"ok"}`.
-   Then sign in at `https://<service>.onrender.com/admin`.
-6. After the first sign-in you can delete `FEEFLOW_BOOTSTRAP_ADMIN_PASSWORD` in Render → Environment.
-   It is only read when the database is empty.
+6. Sign in at `https://<service>.onrender.com/admin`, or in the Android app. On the first sign-in you
+   see **Create your workspace**: enter the centre name, the **centre's UPI ID** (typed twice),
+   the payee name shown in UPI apps, and a contact phone. Parents pay straight to that UPI ID.
+7. Change the UPI ID or other details later under **Settings** in the web dashboard. Every UPI ID
+   change is recorded in the audit log with the old and new values.
+
+To change the admin password, edit `FEEFLOW_ADMIN_PASSWORD` in Render → Environment and redeploy.
+The configured value always wins.
+
+**Already deployed with the old `FEEFLOW_BOOTSTRAP_…` settings?** Just add `FEEFLOW_ADMIN_EMAIL` and
+`FEEFLOW_ADMIN_PASSWORD` and redeploy. The database upgrades itself on start. The old
+`FEEFLOW_BOOTSTRAP_ADMIN_EMAIL` / `_PASSWORD` names still work, and the other `FEEFLOW_BOOTSTRAP_…`
+values are ignored and can be deleted.
 
 **Plans:** the blueprint uses free plans for trying it out. Free web services sleep after 15 minutes
 idle (the next request takes about a minute), and free databases are deleted after 30 days. For real
@@ -85,7 +91,8 @@ Or just type the URL on the app's sign-in screen; any `https://` address works.
 1. Uninstall any earlier FeeFlow build signed with a different key (the debug build).
 2. Install `android/app/build/outputs/apk/release/app-release.apk`. If Play Protect warns, tap
    **More details → Install anyway**.
-3. Sign in with the bootstrap admin email and password.
+3. Sign in with `FEEFLOW_ADMIN_EMAIL` / `FEEFLOW_ADMIN_PASSWORD`. On the first sign-in, create your workspace
+   (centre name + UPI ID) if you haven't already done it on the web.
 4. **SMS phone** tab → **Use this phone as the SMS device** → allow SMS.
 5. In the web admin: **Fees → + Student**, then **+ Fee**. The parent gets the payment link by SMS
    from the phone.

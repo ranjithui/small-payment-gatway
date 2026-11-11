@@ -52,7 +52,8 @@ class AdminUser(Base):
     __tablename__ = "admin_users"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
-    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), index=True)
+    # NULL until the admin creates their workspace on first sign-in.
+    tenant_id: Mapped[Optional[str]] = mapped_column(ForeignKey("tenants.id"), index=True, nullable=True)
     email: Mapped[str] = mapped_column(String(200), unique=True)
     name: Mapped[str] = mapped_column(String(200))
     password_hash: Mapped[str] = mapped_column(String(300))

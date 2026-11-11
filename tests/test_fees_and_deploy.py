@@ -60,7 +60,7 @@ def test_production_config_validation(monkeypatch):
     assert s.database_url.startswith("postgresql+psycopg://")
 
 
-def test_bootstrap_creates_first_centre_once(monkeypatch):
+def test_bootstrap_creates_admin_only_and_env_controls_password(monkeypatch):
     from app.bootstrap import bootstrap
     from app.db import SessionLocal, create_all, init_engine
     from app.models import AdminUser, Tenant
@@ -68,17 +68,100 @@ def test_bootstrap_creates_first_centre_once(monkeypatch):
 
     init_engine("sqlite://")
     create_all()
-    values = {"CENTRE_NAME": "Sunshine Tuition", "CENTRE_CODE": "sun", "UPI_VPA": "sun@okicici",
-              "UPI_NAME": "Sunshine", "ADMIN_EMAIL": "Owner@Sunshine.in", "ADMIN_PASSWORD": "a-long-password"}
-    for k, v in values.items():
-        monkeypatch.setenv(f"FEEFLOW_BOOTSTRAP_{k}", v)
     db = SessionLocal()
+    monkeypatch.delenv("FEEFLOW_ADMIN_EMAIL", raising=False)
+    monkeypatch.delenv("FEEFLOW_ADMIN_PASSWORD", raising=False)
+    assert bootstrap(db) == "unconfigured"
+    monkeypatch.setenv("FEEFLOW_ADMIN_EMAIL", "Owner@Sunshine.in")
+    monkeypatch.setenv("FEEFLOW_ADMIN_PASSWORD", "a-long-password")
     assert bootstrap(db) == "created"
     assert bootstrap(db) == "existing"
-    assert db.query(Tenant).one().short_code == "SUN"
     admin = db.query(AdminUser).one()
-    assert admin.email == "owner@sunshine.in" and verify_password("a-long-password", admin.password_hash)
+    assert admin.email == "owner@sunshine.in" and admin.tenant_id is None
+    assert db.query(Tenant).count() == 0  # no workspace until the admin creates it
+    monkeypatch.setenv("FEEFLOW_ADMIN_PASSWORD", "a-new-long-password")
+    assert bootstrap(db) == "updated"
+    db.refresh(admin)
+    assert verify_password("a-new-long-password", admin.password_hash)
+    monkeypatch.setenv("FEEFLOW_ADMIN_PASSWORD", "short")
+    with pytest.raises(RuntimeError):
+        bootstrap(db)
     db.close()
+
+
+def _fresh_admin(env, email="founder@newcentre.in", password="founder-password-1"):
+    from app.db import SessionLocal
+    from app.models import AdminUser
+    from app.security import hash_password
+
+    db = SessionLocal()
+    db.add(AdminUser(tenant_id=None, email=email, name="Administrator", password_hash=hash_password(password)))
+    db.commit()
+    db.close()
+    r = env.c.post("/api/v1/auth/login", json={"email": email, "password": password})
+    assert r.status_code == 200 and r.json()["has_workspace"] is False
+    return {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+
+def test_admin_creates_workspace_and_edits_upi(env):
+    h = _fresh_admin(env)
+    me = env.c.get("/api/v1/auth/me", headers=h).json()
+    assert me["has_workspace"] is False and me["workspace"] is None and me["centre"] is None
+    # Everything tenant-scoped is blocked until the workspace exists
+    r = env.c.get("/api/v1/payment-verification/pending", headers=h)
+    assert r.status_code == 403 and r.headers["X-FeeFlow-Error"] == "WORKSPACE_REQUIRED"
+
+    bad = {"name": "New Centre", "upi_vpa": "not-a-upi", "upi_payee_name": "New Centre"}
+    assert env.c.post("/api/v1/workspace", headers=h, json=bad).status_code == 422
+    body = {"name": "Sri Vidya Tuition Centre", "upi_vpa": " srividya@okhdfcbank ", "upi_payee_name": "Sri Vidya",
+            "contact_phone": "+91 90000 22222"}
+    r = env.c.post("/api/v1/workspace", headers=h, json=body)
+    assert r.status_code == 201, r.text
+    ws = r.json()
+    assert ws["upi_vpa"] == "srividya@okhdfcbank" and ws["short_code"] == "SVTC"
+    assert env.c.post("/api/v1/workspace", headers=h, json=body).status_code == 409  # only one
+    me = env.c.get("/api/v1/auth/me", headers=h).json()
+    assert me["has_workspace"] and me["centre"]["name"] == "Sri Vidya Tuition Centre"
+
+    # Same session token now works for tenant-scoped endpoints; the new workspace is empty
+    assert env.c.get("/api/v1/payment-verification/pending", headers=h).json() == {"items": []}
+    assert env.c.get("/api/v1/installments", headers=h).json() == {"items": []}
+
+    # Add a student + fee; the parent page pays to THIS centre's UPI ID
+    st = env.c.post("/api/v1/students", headers=h, json={"student_code": "SV-1", "name": "Kavya",
+                                                           "parent_mobile": "9811122233"}).json()
+    fee = env.c.post("/api/v1/installments", headers={**h, "Idempotency-Key": key()},
+                     json={"student_id": st["id"], "description": "Tuition", "billing_month": "2026-12",
+                           "total_paise": 120000, "due_date": "2026-12-10"}).json()
+    token = fee["payment_link"].rsplit("/", 1)[1]
+    view = env.c.get(f"/api/v1/payment-declarations/public/{token}").json()
+    assert view["upi"]["payee_vpa"] == "srividya@okhdfcbank"
+
+    # Edit the UPI ID in Settings -> payment page follows, change is audited
+    r = env.c.patch("/api/v1/workspace", headers=h, json={"upi_vpa": "srividya.new@okicici", "reminder_frequency_hours": 48})
+    assert r.status_code == 200 and r.json()["upi_vpa"] == "srividya.new@okicici"
+    assert env.c.patch("/api/v1/workspace", headers=h, json={"upi_vpa": "bad upi"}).status_code == 422
+    view = env.c.get(f"/api/v1/payment-declarations/public/{token}").json()
+    assert view["upi"]["payee_vpa"] == "srividya.new@okicici"
+    assert "pa=srividya.new@okicici" in view["upi"]["uris"]["OTHER_UPI"]
+    logs = env.c.get("/api/v1/audit-logs", headers=h).json()["items"]
+    upi_log = [a for a in logs if a["action"] == "UPI_ID_CHANGED"][0]
+    assert "srividya@okhdfcbank" in upi_log["details"] and "srividya.new@okicici" in upi_log["details"]
+
+    # Tenant isolation: the demo centre's admin sees nothing of the new workspace
+    assert all(i["student_id"] != "SV-1" for i in env.c.get("/api/v1/installments", headers=env.admin).json()["items"])
+
+
+def test_workspace_short_code_collisions_are_resolved(env):
+    h = _fresh_admin(env)
+    # Demo centre already uses BMTC
+    r = env.c.post("/api/v1/workspace", headers=h, json={"name": "Bright Minds Tuition Centre", "upi_vpa": "bm2@okaxis",
+                                                         "upi_payee_name": "BM"})
+    assert r.status_code == 201 and r.json()["short_code"] == "BMTC2"
+    h2 = _fresh_admin(env, email="other@x.in")
+    r = env.c.post("/api/v1/workspace", headers=h2, json={"name": "Xyz Classes", "upi_vpa": "xyzclasses@ybl", "upi_payee_name": "Xyz",
+                                                          "short_code": "bmtc"})
+    assert r.status_code == 409
 
 
 def test_healthz(env):

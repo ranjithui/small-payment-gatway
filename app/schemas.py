@@ -151,3 +151,53 @@ class InstallmentCreate(BaseModel):
     send_link_sms: bool = True
     schedule_reminders: bool = True
     link_valid_days: int = Field(45, ge=1, le=120)
+
+
+UPI_VPA_PATTERN = r"^[A-Za-z0-9.\-_]{2,256}@[A-Za-z][A-Za-z0-9]{1,63}$"
+
+
+def _clean_vpa(v: Optional[str]) -> Optional[str]:
+    return v.strip() if v is not None else v
+
+
+class WorkspaceCreate(BaseModel):
+    name: str = Field(min_length=2, max_length=200, description="Tuition centre name")
+    upi_vpa: str = Field(max_length=100, description="Centre's UPI ID, e.g. brightminds@okaxis")
+    upi_payee_name: str = Field(min_length=2, max_length=100, description="Name shown in UPI apps")
+    contact_phone: Optional[str] = Field(None, max_length=20)
+    contact_email: Optional[str] = Field(None, max_length=200)
+    short_code: Optional[str] = Field(None, min_length=2, max_length=10, pattern=r"^[A-Za-z0-9]+$",
+                                      description="Receipt number prefix; generated if omitted")
+
+    _vpa_strip = field_validator("upi_vpa", mode="before")(_clean_vpa)
+
+    @field_validator("upi_vpa")
+    @classmethod
+    def _vpa(cls, v: str) -> str:
+        import re
+
+        if not re.match(UPI_VPA_PATTERN, v):
+            raise ValueError("Enter a valid UPI ID, e.g. centrename@okaxis")
+        return v
+
+
+class WorkspaceUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=2, max_length=200)
+    upi_vpa: Optional[str] = Field(None, max_length=100)
+    upi_payee_name: Optional[str] = Field(None, min_length=2, max_length=100)
+    contact_phone: Optional[str] = Field(None, max_length=20)
+    contact_email: Optional[str] = Field(None, max_length=200)
+    verification_grace_hours: Optional[int] = Field(None, ge=1, le=168)
+    reminder_frequency_hours: Optional[int] = Field(None, ge=12, le=720)
+    ack_sms_enabled: Optional[bool] = None
+
+    _vpa_strip = field_validator("upi_vpa", mode="before")(_clean_vpa)
+
+    @field_validator("upi_vpa")
+    @classmethod
+    def _vpa(cls, v: Optional[str]) -> Optional[str]:
+        import re
+
+        if v is not None and not re.match(UPI_VPA_PATTERN, v):
+            raise ValueError("Enter a valid UPI ID, e.g. centrename@okaxis")
+        return v

@@ -133,3 +133,23 @@ confirm with UTR → parent page shows PAID + receipt → receipt page renders.
   app's real client and engine with a fake SIM.
 * **Builds:** `app-debug.apk` (10.9 MB) and a minified `app-release-unsigned.apk` (1.8 MB).
   The release build needs a signing key before distribution.
+
+
+## Workspace self-setup (v2.1.1)
+
+* The host configures only `FEEFLOW_ADMIN_EMAIL` and `FEEFLOW_ADMIN_PASSWORD`. On start the server makes
+  sure that admin exists, and the configured password always wins. The admin starts **without** a
+  workspace.
+* On the first sign-in (web and Android) the admin sees **Create your workspace**: centre name, UPI ID
+  (validated as `handle@bank`, typed twice and confirmed), payee name and contact. The receipt prefix is
+  generated and made unique (e.g. `SVTC`, or `BMTC2` on a clash).
+* **Settings** (web) edits the centre name, UPI ID, payee name, contact details, reminder grace and
+  frequency, and the acknowledgement SMS. A UPI ID change is audited as `UPI_ID_CHANGED` with the old and
+  new values, and open payment pages use the new ID immediately.
+* Until the workspace exists, every tenant-scoped API returns `403` with `X-FeeFlow-Error: WORKSPACE_REQUIRED`.
+* Endpoints: `GET /api/v1/auth/me` (now includes `has_workspace` and `workspace`), `POST /api/v1/workspace`,
+  `GET /api/v1/workspace`, `PATCH /api/v1/workspace`.
+* Upgrade: on PostgreSQL, start-up drops the old `NOT NULL` on `admin_users.tenant_id`. This was tested
+  against a database created by the previous version.
+* Tests: backend 166 passed on SQLite and 168 on PostgreSQL (including concurrency). Android: 26 unit tests,
+  plus the live end-to-end test passed against the local server.

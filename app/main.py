@@ -13,7 +13,7 @@ from sqlalchemy import text
 
 from app.bootstrap import bootstrap
 from app.db import SessionLocal, create_all, get_engine, init_engine
-from app.routers import admin, devices, pages, public
+from app.routers import admin, devices, pages, public, workspace
 from app.routers.pages import STATIC
 from app.services.reminders import process_grace_expiry
 from app.states import InvalidTransition
@@ -85,6 +85,7 @@ def create_app(database_url: Optional[str] = None, run_jobs: Optional[bool] = No
         return {"status": "ok"}
 
     app.include_router(public.router)  # public routes first (path precedence)
+    app.include_router(workspace.router)
     app.include_router(admin.router)
     app.include_router(devices.router)
     app.include_router(pages.router)

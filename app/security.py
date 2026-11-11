@@ -52,7 +52,9 @@ def _unb64(data: str) -> bytes:
 
 
 def issue_admin_token(admin: AdminUser) -> str:
-    payload = {"sub": admin.id, "tid": admin.tenant_id, "exp": int(time.time()) + settings.admin_token_ttl_seconds}
+    # The workspace is looked up from the database on every request, so a token stays valid
+    # when the admin creates their workspace after signing in.
+    payload = {"sub": admin.id, "exp": int(time.time()) + settings.admin_token_ttl_seconds}
     body = _b64(json.dumps(payload, separators=(",", ":")).encode())
     sig = _b64(hmac.new(settings.secret_key.encode(), body.encode(), hashlib.sha256).digest())
     return f"{body}.{sig}"
@@ -84,16 +86,36 @@ def _unauthorized(detail: str = "Authentication required") -> HTTPException:
     return HTTPException(status.HTTP_401_UNAUTHORIZED, detail=detail, headers={"WWW-Authenticate": "Bearer"})
 
 
-def require_admin(authorization: Optional[str] = Header(None), db: Session = Depends(get_db)) -> AdminContext:
+@dataclass
+class SessionContext:
+    admin_id: str
+    tenant_id: Optional[str]
+    name: str
+    email: str
+
+
+def require_session(authorization: Optional[str] = Header(None), db: Session = Depends(get_db)) -> SessionContext:
+    """Signed-in admin, with or without a workspace yet."""
     if not authorization or not authorization.lower().startswith("bearer "):
         raise _unauthorized()
     payload = decode_admin_token(authorization[7:].strip())
     if not payload:
         raise _unauthorized("Invalid or expired session")
     admin = db.get(AdminUser, payload["sub"])
-    if not admin or not admin.active or admin.tenant_id != payload["tid"]:
+    if not admin or not admin.active:
         raise _unauthorized("Invalid or expired session")
-    return AdminContext(admin_id=admin.id, tenant_id=admin.tenant_id, name=admin.name)
+    return SessionContext(admin_id=admin.id, tenant_id=admin.tenant_id, name=admin.name, email=admin.email)
+
+
+def require_admin(session: SessionContext = Depends(require_session)) -> AdminContext:
+    """Signed-in admin of a workspace (every tenant-scoped endpoint)."""
+    if session.tenant_id is None:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            detail="Create your workspace first",
+            headers={"X-FeeFlow-Error": "WORKSPACE_REQUIRED"},
+        )
+    return AdminContext(admin_id=session.admin_id, tenant_id=session.tenant_id, name=session.name)
 
 
 @dataclass

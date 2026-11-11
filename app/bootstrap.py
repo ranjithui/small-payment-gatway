@@ -1,17 +1,16 @@
-"""First-start bootstrap for a fresh deployment (no shell needed on the host).
+"""Start-up bootstrap: make sure the configured admin can sign in.
 
-If the database has no tenants, create the first centre and its admin from env vars:
+Only two settings are needed on the host:
 
-  FEEFLOW_BOOTSTRAP_CENTRE_NAME      e.g. "Bright Minds Tuition Centre"
-  FEEFLOW_BOOTSTRAP_CENTRE_CODE      short code used in receipt numbers, e.g. "BMTC"
-  FEEFLOW_BOOTSTRAP_UPI_VPA          the centre's UPI ID, e.g. "brightminds@okaxis"
-  FEEFLOW_BOOTSTRAP_UPI_NAME         payee name shown in UPI apps
-  FEEFLOW_BOOTSTRAP_CONTACT_PHONE    optional
-  FEEFLOW_BOOTSTRAP_ADMIN_EMAIL
-  FEEFLOW_BOOTSTRAP_ADMIN_PASSWORD   at least 10 characters; change/remove after first login
+  FEEFLOW_ADMIN_EMAIL      the admin's sign-in email
+  FEEFLOW_ADMIN_PASSWORD   at least 10 characters
 
-With FEEFLOW_SEED_DEMO=1 (and an empty database) the demo data from app/seed.py is loaded instead.
-Runs only when the tenants table is empty, so it is safe on every restart.
+The admin signs in and creates the workspace (centre name, UPI ID, ...) in the app; see
+app/routers/workspace.py. These env values stay the source of truth: changing the password
+on the host and restarting changes the admin's password.
+
+(The older FEEFLOW_BOOTSTRAP_ADMIN_EMAIL / _PASSWORD names are still accepted.)
+With FEEFLOW_SEED_DEMO=1 and an empty database, the demo data from app/seed.py is loaded.
 """
 import logging
 import os
@@ -20,46 +19,49 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.models import AdminUser, Tenant
-from app.security import hash_password
+from app.security import hash_password, verify_password
 
 log = logging.getLogger("feeflow.bootstrap")
 
 
+def _env(name: str) -> str:
+    return (os.getenv(f"FEEFLOW_{name}") or os.getenv(f"FEEFLOW_BOOTSTRAP_{name}") or "").strip()
+
+
 def bootstrap(db: Session) -> str:
-    if db.query(Tenant).count() > 0:
-        return "existing"
-    if settings.seed_demo:
+    if settings.seed_demo and db.query(Tenant).count() == 0:
         from app.seed import seed
 
         seed(db)
         log.warning("Loaded DEMO data (FEEFLOW_SEED_DEMO=1). Do not use demo logins for real centres.")
         return "demo"
 
-    env = {k: os.getenv(f"FEEFLOW_BOOTSTRAP_{k}", "").strip() for k in (
-        "CENTRE_NAME", "CENTRE_CODE", "UPI_VPA", "UPI_NAME", "CONTACT_PHONE", "ADMIN_EMAIL", "ADMIN_PASSWORD")}
-    required = ["CENTRE_NAME", "CENTRE_CODE", "UPI_VPA", "UPI_NAME", "ADMIN_EMAIL", "ADMIN_PASSWORD"]
-    missing = [k for k in required if not env[k]]
-    if missing:
-        log.warning("Empty database and no bootstrap settings (missing %s); nobody can sign in yet.", missing)
-        return "empty"
-    if len(env["ADMIN_PASSWORD"]) < 10:
-        raise RuntimeError("FEEFLOW_BOOTSTRAP_ADMIN_PASSWORD must be at least 10 characters")
+    email = _env("ADMIN_EMAIL").lower()
+    password = _env("ADMIN_PASSWORD")
+    if not email or not password:
+        if db.query(AdminUser).count() == 0:
+            log.warning("No admin yet: set FEEFLOW_ADMIN_EMAIL and FEEFLOW_ADMIN_PASSWORD and restart.")
+        return "unconfigured"
+    if "@" not in email:
+        raise RuntimeError("FEEFLOW_ADMIN_EMAIL must be an email address")
+    if len(password) < 10:
+        raise RuntimeError("FEEFLOW_ADMIN_PASSWORD must be at least 10 characters")
 
-    tenant = Tenant(
-        name=env["CENTRE_NAME"],
-        short_code=env["CENTRE_CODE"].upper()[:16],
-        upi_vpa=env["UPI_VPA"],
-        upi_payee_name=env["UPI_NAME"],
-        contact_phone=env["CONTACT_PHONE"] or None,
-    )
-    db.add(tenant)
-    db.flush()
-    db.add(AdminUser(
-        tenant_id=tenant.id,
-        email=env["ADMIN_EMAIL"].lower(),
-        name="Administrator",
-        password_hash=hash_password(env["ADMIN_PASSWORD"]),
-    ))
-    db.commit()
-    log.warning("Created centre %r and admin %s", tenant.name, env["ADMIN_EMAIL"].lower())
-    return "created"
+    admin = db.query(AdminUser).filter(AdminUser.email == email).first()
+    if admin is None:
+        db.add(AdminUser(tenant_id=None, email=email, name="Administrator", password_hash=hash_password(password)))
+        db.commit()
+        log.warning("Created admin %s - sign in to create your workspace.", email)
+        return "created"
+    changed = False
+    if not verify_password(password, admin.password_hash):
+        admin.password_hash = hash_password(password)
+        changed = True
+    if not admin.active:
+        admin.active = True
+        changed = True
+    if changed:
+        db.commit()
+        log.warning("Updated admin %s from configuration.", email)
+        return "updated"
+    return "existing"

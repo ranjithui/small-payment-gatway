@@ -20,6 +20,24 @@
     </form>
   </section>
 
+  <section id="setupView" class="card hidden" style="max-width:520px;margin:40px auto">
+    <div class="brand">FeeFlow</div>
+    <h1>Create your workspace</h1>
+    <p class="muted">Set up your tuition centre. Parents pay directly to the UPI ID you enter here; you can change it later in Settings.</p>
+    <form id="setupForm">
+      <label for="wsName">Tuition centre name</label><input id="wsName" required minlength="2" maxlength="200" placeholder="e.g. Bright Minds Tuition Centre">
+      <label for="wsVpa">Centre UPI ID</label><input id="wsVpa" required maxlength="100" placeholder="e.g. brightminds@okaxis" autocomplete="off">
+      <p class="small muted" style="margin:4px 0 0">Use the UPI ID of the centre's own bank account. Double-check it: payments go straight to this ID.</p>
+      <label for="wsVpa2">Confirm UPI ID</label><input id="wsVpa2" required maxlength="100" autocomplete="off">
+      <label for="wsPayee">Payee name shown in UPI apps</label><input id="wsPayee" required minlength="2" maxlength="100">
+      <label for="wsPhone">Contact phone for parents (optional)</label><input id="wsPhone" maxlength="20" inputmode="tel">
+      <label for="wsEmail">Contact email (optional)</label><input id="wsEmail" type="email" maxlength="200">
+      <button class="btn" style="margin-top:14px">Create workspace</button>
+      <p class="err" id="setupErr"></p>
+    </form>
+    <button class="btn ghost sm" id="setupLogout" style="margin-top:6px">Sign out</button>
+  </section>
+
   <section id="mainView" class="hidden">
     <div class="topbar">
       <div><div class="brand">FeeFlow</div><h1 id="centreTitle"></h1></div>
@@ -31,6 +49,7 @@
       <button class="tab" data-tab="reports">Reports</button>
       <button class="tab" data-tab="notifications">Notifications <span class="badge hidden" id="notifBadge"></span></button>
       <button class="tab" data-tab="audit">Audit log</button>
+      <button class="tab" data-tab="settings">Settings</button>
     </nav>
 
     <div id="tab-verify" class="grid2">
@@ -70,6 +89,24 @@
     <div id="tab-notifications" class="card hidden">
       <div class="topbar"><h2>Notifications</h2><button class="btn ghost sm" id="markReadBtn">Mark all read</button></div>
       <div id="notifList"></div>
+    </div>
+
+    <div id="tab-settings" class="card hidden" style="max-width:640px">
+      <h2>Settings</h2>
+      <form id="settingsForm">
+        <label for="stName">Tuition centre name</label><input id="stName" required minlength="2" maxlength="200">
+        <label for="stVpa">Centre UPI ID</label><input id="stVpa" required maxlength="100" autocomplete="off">
+        <p class="small muted" style="margin:4px 0 0">Changing this changes where every parent pays from now on (open payment pages update immediately). The change is recorded in the audit log.</p>
+        <label for="stPayee">Payee name shown in UPI apps</label><input id="stPayee" required minlength="2" maxlength="100">
+        <label for="stPhone">Contact phone</label><input id="stPhone" maxlength="20">
+        <label for="stEmail">Contact email</label><input id="stEmail" type="email" maxlength="200">
+        <label for="stGrace">Pause reminders after "I have paid" for (hours)</label><input id="stGrace" type="number" min="1" max="168">
+        <label for="stFreq">Hours between reminders</label><input id="stFreq" type="number" min="12" max="720">
+        <label class="check"><input type="checkbox" id="stAck"> Send parents an SMS when they tap "I have paid"</label>
+        <p class="small muted">Receipt prefix: <b id="stCode"></b></p>
+        <button class="btn" style="margin-top:10px">Save settings</button>
+        <p class="err" id="stErr"></p><p id="stOk" class="small" style="color:var(--ok)"></p>
+      </form>
     </div>
 
     <div id="tab-audit" class="card hidden">

@@ -56,7 +56,15 @@ def get_engine() -> Engine:
 def create_all() -> None:
     from app import models  # noqa: F401  (register tables)
 
-    Base.metadata.create_all(get_engine())
+    engine = get_engine()
+    Base.metadata.create_all(engine)
+    # Schema upgrades for databases created by earlier versions (create_all never alters tables).
+    if engine.dialect.name == "postgresql":
+        from sqlalchemy import text
+
+        with engine.begin() as conn:
+            # v2.1.1: an admin exists before their workspace is created.
+            conn.execute(text("ALTER TABLE admin_users ALTER COLUMN tenant_id DROP NOT NULL"))
 
 
 def get_db() -> Iterator[Session]:

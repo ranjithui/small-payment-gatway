@@ -113,6 +113,27 @@ class FeeFlowClientTest {
     }
 
     @Test
+    fun meWithoutWorkspaceAndCreateWorkspace() = runTest {
+        server.enqueue(json("""{"admin_id":"a1","name":"Administrator","email":"owner@x.in","has_workspace":false,"centre":null,"workspace":null}"""))
+        val me = client.me()
+        assertEquals(false, me.hasWorkspace)
+        assertNull(me.workspace)
+        server.takeRequest()
+
+        server.enqueue(json("""{"name":"Sri Vidya","short_code":"SV","upi_vpa":"sv@okaxis","upi_payee_name":"Sri Vidya",
+            "contact_phone":null,"contact_email":null,"verification_grace_hours":24,"reminder_frequency_hours":72,"ack_sms_enabled":true}""", 201))
+        val ws = client.createWorkspace(WorkspaceCreateRequest("Sri Vidya", "sv@okaxis", "Sri Vidya"))
+        assertEquals("sv@okaxis", ws.upiVpa)
+        val req = server.takeRequest()
+        assertEquals("/api/v1/workspace", req.path)
+        assertTrue(req.body.readUtf8().contains("\"upi_vpa\":\"sv@okaxis\""))
+
+        assertTrue(UPI_VPA_REGEX.matches("bright.minds-1@okhdfcbank"))
+        assertTrue(!UPI_VPA_REGEX.matches("not-a-upi"))
+        assertTrue(!UPI_VPA_REGEX.matches("a@b"))
+    }
+
+    @Test
     fun revokedDeviceIs401() = runTest {
         server.enqueue(json("""{"detail":"Unknown or disabled device"}""", 401))
         try {

@@ -65,7 +65,34 @@ data class LoginResponse(@SerialName("access_token") val accessToken: String, va
 data class Centre(val name: String, @SerialName("logo_url") val logoUrl: String? = null)
 
 @Serializable
-data class Me(@SerialName("admin_id") val adminId: String, val name: String, val centre: Centre)
+data class Workspace(
+    val name: String,
+    @SerialName("short_code") val shortCode: String = "",
+    @SerialName("upi_vpa") val upiVpa: String,
+    @SerialName("upi_payee_name") val upiPayeeName: String,
+    @SerialName("contact_phone") val contactPhone: String? = null,
+)
+
+@Serializable
+data class Me(
+    @SerialName("admin_id") val adminId: String,
+    val name: String,
+    val email: String? = null,
+    @SerialName("has_workspace") val hasWorkspace: Boolean = true,
+    val centre: Centre? = null,
+    val workspace: Workspace? = null,
+)
+
+@Serializable
+data class WorkspaceCreateRequest(
+    val name: String,
+    @SerialName("upi_vpa") val upiVpa: String,
+    @SerialName("upi_payee_name") val upiPayeeName: String,
+    @SerialName("contact_phone") val contactPhone: String? = null,
+)
+
+/** Same rule as the server: name@bank handle. */
+val UPI_VPA_REGEX = Regex("^[A-Za-z0-9.\\-_]{2,256}@[A-Za-z][A-Za-z0-9]{1,63}$")
 
 @Serializable
 data class InstallmentInfo(

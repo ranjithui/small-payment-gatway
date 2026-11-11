@@ -29,17 +29,10 @@ services:
       # Public HTTPS URL defaults to Render's RENDER_EXTERNAL_URL. Set this only for a custom domain.
       # - key: FEEFLOW_PUBLIC_BASE_URL
       #   value: https://pay.yourcentre.in
-      - key: FEEFLOW_BOOTSTRAP_CENTRE_NAME
+      # The only settings you configure. Sign in with these, then create your workspace
+      # (centre name, UPI ID, payee name) in the app. Changing the password here + redeploying
+      # changes the admin's password.
+      - key: FEEFLOW_ADMIN_EMAIL
         sync: false
-      - key: FEEFLOW_BOOTSTRAP_CENTRE_CODE
-        sync: false
-      - key: FEEFLOW_BOOTSTRAP_UPI_VPA
-        sync: false
-      - key: FEEFLOW_BOOTSTRAP_UPI_NAME
-        sync: false
-      - key: FEEFLOW_BOOTSTRAP_CONTACT_PHONE
-        sync: false
-      - key: FEEFLOW_BOOTSTRAP_ADMIN_EMAIL
-        sync: false
-      - key: FEEFLOW_BOOTSTRAP_ADMIN_PASSWORD
+      - key: FEEFLOW_ADMIN_PASSWORD
         sync: false

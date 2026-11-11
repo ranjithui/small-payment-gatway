@@ -36,24 +36,64 @@
     if (!res.ok) { $("loginErr").textContent = data.detail || "Sign in failed"; return; }
     token = data.access_token; sessionStorage.setItem("ff-admin", token); start();
   });
-  function logout() { sessionStorage.removeItem("ff-admin"); token = null; $("mainView").classList.add("hidden"); $("loginView").classList.remove("hidden"); }
+  function logout() { sessionStorage.removeItem("ff-admin"); token = null; $("mainView").classList.add("hidden"); $("setupView").classList.add("hidden"); $("loginView").classList.remove("hidden"); }
   $("logoutBtn").addEventListener("click", logout);
 
+  let polling = null;
   async function start() {
-    try {
-      const me = await api("GET", "/api/v1/auth/me");
-      $("centreTitle").textContent = me.centre.name; $("adminName").textContent = me.name;
-      $("loginView").classList.add("hidden"); $("mainView").classList.remove("hidden");
-      loadQueue(); loadNotifBadge();
-      setInterval(() => { if (token && !document.hidden) { loadQueue(false); loadNotifBadge(); } }, 30000);
-    } catch (_) { logout(); }
+    let me;
+    try { me = await api("GET", "/api/v1/auth/me"); } catch (_) { logout(); return; }
+    $("loginView").classList.add("hidden");
+    if (!me.has_workspace) {
+      // First sign-in: the admin creates their own workspace (centre + UPI ID).
+      $("mainView").classList.add("hidden"); $("setupView").classList.remove("hidden");
+      return;
+    }
+    $("setupView").classList.add("hidden");
+    $("centreTitle").textContent = me.workspace.name; $("adminName").textContent = me.email || me.name;
+    $("mainView").classList.remove("hidden");
+    loadQueue(); loadNotifBadge();
+    if (!polling) polling = setInterval(() => { if (token && !document.hidden && !$("mainView").classList.contains("hidden")) { loadQueue(false); loadNotifBadge(); } }, 30000);
   }
+
+  $("setupLogout").addEventListener("click", logout);
+  $("setupForm").addEventListener("submit", async (e) => {
+    e.preventDefault(); $("setupErr").textContent = "";
+    const vpa = $("wsVpa").value.trim();
+    if (vpa.toLowerCase() !== $("wsVpa2").value.trim().toLowerCase()) { $("setupErr").textContent = "The two UPI IDs do not match."; return; }
+    if (!confirm(`Parents will pay to ${vpa}. Is this the centre's correct UPI ID?`)) return;
+    try {
+      await api("POST", "/api/v1/workspace", { name: $("wsName").value.trim(), upi_vpa: vpa, upi_payee_name: $("wsPayee").value.trim(),
+        contact_phone: $("wsPhone").value.trim() || null, contact_email: $("wsEmail").value.trim() || null });
+      start();
+    } catch (err) { $("setupErr").textContent = err.message; }
+  });
+
+  async function loadSettings() {
+    const w = await api("GET", "/api/v1/workspace");
+    $("stName").value = w.name; $("stVpa").value = w.upi_vpa; $("stPayee").value = w.upi_payee_name;
+    $("stPhone").value = w.contact_phone || ""; $("stEmail").value = w.contact_email || "";
+    $("stGrace").value = w.verification_grace_hours; $("stFreq").value = w.reminder_frequency_hours;
+    $("stAck").checked = w.ack_sms_enabled; $("stCode").textContent = w.short_code;
+    $("settingsForm").dataset.vpa = w.upi_vpa; $("stErr").textContent = ""; $("stOk").textContent = "";
+  }
+  $("settingsForm").addEventListener("submit", async (e) => {
+    e.preventDefault(); $("stErr").textContent = ""; $("stOk").textContent = "";
+    const vpa = $("stVpa").value.trim();
+    if (vpa !== $("settingsForm").dataset.vpa && !confirm(`Change the centre UPI ID to ${vpa}?\n\nFrom now on every parent pays to this ID.`)) return;
+    try {
+      const w = await api("PATCH", "/api/v1/workspace", { name: $("stName").value.trim(), upi_vpa: vpa, upi_payee_name: $("stPayee").value.trim(),
+        contact_phone: $("stPhone").value.trim(), contact_email: $("stEmail").value.trim(),
+        verification_grace_hours: +$("stGrace").value, reminder_frequency_hours: +$("stFreq").value, ack_sms_enabled: $("stAck").checked });
+      $("centreTitle").textContent = w.name; $("settingsForm").dataset.vpa = w.upi_vpa; $("stOk").textContent = "Saved.";
+    } catch (err) { $("stErr").textContent = err.message; }
+  });
 
   // ---------------- tabs
   document.querySelectorAll(".tab").forEach((b) => b.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("active", x === b));
-    ["verify", "installments", "reports", "notifications", "audit"].forEach((n) => $("tab-" + n).classList.toggle("hidden", n !== b.dataset.tab));
-    ({ verify: loadQueue, installments: loadInstallments, reports: loadReport, notifications: loadNotifications, audit: loadAudit })[b.dataset.tab]();
+    ["verify", "installments", "reports", "notifications", "audit", "settings"].forEach((n) => $("tab-" + n).classList.toggle("hidden", n !== b.dataset.tab));
+    ({ verify: loadQueue, installments: loadInstallments, reports: loadReport, notifications: loadNotifications, audit: loadAudit, settings: loadSettings })[b.dataset.tab]();
   }));
 
   // ---------------- verification queue

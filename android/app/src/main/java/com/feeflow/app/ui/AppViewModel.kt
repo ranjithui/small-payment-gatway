@@ -10,6 +10,8 @@ import com.feeflow.app.core.Money
 import com.feeflow.app.core.RunReport
 import com.feeflow.app.core.SmsEngine
 import com.feeflow.app.core.TransactionIn
+import com.feeflow.app.core.UPI_VPA_REGEX
+import com.feeflow.app.core.WorkspaceCreateRequest
 import com.feeflow.app.data.ApiException
 import com.feeflow.app.data.FeeFlowClient
 import com.feeflow.app.data.SecurePrefs
@@ -26,6 +28,8 @@ sealed interface Screen {
     data object Login : Screen
     data class Main(val tab: Tab = Tab.VERIFY) : Screen
     data class Detail(val id: String) : Screen
+    /** First sign-in: the admin creates their own workspace (centre + UPI ID). */
+    data object Setup : Screen
 }
 
 enum class Tab { VERIFY, SMS_DEVICE }
@@ -87,7 +91,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         refreshDeviceLocal()
-        if (prefs.adminToken != null) refreshPending()
+        if (prefs.adminToken != null) launchBusy { routeAfterSignIn() }
     }
 
     fun clearMessages() = _state.update { it.copy(error = null, message = null) }
@@ -116,11 +120,38 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val res = c.login(email, password)
         prefs.serverUrl = url
         prefs.adminToken = res.accessToken
+        _state.update { it.copy(serverUrl = url) }
+        routeAfterSignIn()
+    }
+
+    /** Workspace exists -> main screen; otherwise -> workspace setup. */
+    private suspend fun routeAfterSignIn() {
         val me = client().me()
-        prefs.adminName = me.name
-        prefs.centreName = me.centre.name
-        _state.update { it.copy(screen = Screen.Main(), serverUrl = url, adminName = me.name, centreName = me.centre.name) }
+        prefs.adminName = me.email ?: me.name
+        val ws = me.workspace
+        if (!me.hasWorkspace || ws == null) {
+            prefs.centreName = null
+            _state.update { it.copy(screen = Screen.Setup, adminName = me.email ?: me.name, centreName = null) }
+            return
+        }
+        prefs.centreName = ws.name
+        _state.update { it.copy(screen = if (it.screen is Screen.Main) it.screen else Screen.Main(), adminName = me.email ?: me.name, centreName = ws.name) }
         refreshPending()
+    }
+
+    /** Returns a validation error, or null when the request was sent. */
+    fun createWorkspace(name: String, upiVpa: String, upiVpaConfirm: String, payee: String, phone: String): String? {
+        val vpa = upiVpa.trim()
+        if (name.trim().length < 2) return "Enter the tuition centre name"
+        if (!UPI_VPA_REGEX.matches(vpa)) return "Enter a valid UPI ID, e.g. centrename@okaxis"
+        if (!vpa.equals(upiVpaConfirm.trim(), ignoreCase = true)) return "The two UPI IDs do not match"
+        if (payee.trim().length < 2) return "Enter the payee name shown in UPI apps"
+        launchBusy {
+            val ws = client().createWorkspace(WorkspaceCreateRequest(name.trim(), vpa, payee.trim(), phone.trim().ifEmpty { null }))
+            _state.update { it.copy(message = "Workspace created. Parents will pay to ${ws.upiVpa}.") }
+            routeAfterSignIn()
+        }
+        return null
     }
 
     fun logout(reason: String? = null) {

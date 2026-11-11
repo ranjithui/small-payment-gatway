@@ -17,6 +17,8 @@ import com.feeflow.app.core.Me
 import com.feeflow.app.core.PendingResponse
 import com.feeflow.app.core.RejectRequest
 import com.feeflow.app.core.SyncResponse
+import com.feeflow.app.core.Workspace
+import com.feeflow.app.core.WorkspaceCreateRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
@@ -112,6 +114,10 @@ class FeeFlowClient(
             enc(LoginRequest.serializer(), LoginRequest(email.trim().lowercase(), password)))!!
 
     suspend fun me(): Me = call("GET", "/api/v1/auth/me", Auth.ADMIN, Me.serializer())!!
+
+    suspend fun createWorkspace(req: WorkspaceCreateRequest): Workspace =
+        call("POST", "/api/v1/workspace", Auth.ADMIN, Workspace.serializer(),
+            enc(WorkspaceCreateRequest.serializer(), req))!!
 
     suspend fun pending(): List<Declaration> =
         call("GET", "/api/v1/payment-verification/pending", Auth.ADMIN, PendingResponse.serializer())!!.items

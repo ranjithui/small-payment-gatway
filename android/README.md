@@ -2,7 +2,8 @@
 
 The FeeFlow Android app is one Kotlin app (Jetpack Compose, minSdk 26, targetSdk 34) with two roles:
 
-1. **Payment Verification (admin):** sign in, see payment confirmations waiting for review,
+1. **Payment Verification (admin):** sign in (on the first sign-in, create the workspace: centre name +
+   UPI ID), see payment confirmations waiting for review,
    then **Confirm payment received** (with bank evidence), mark **Not received** (with a reason),
    or **Ask parent** (clarification by SMS). It uses the same backend rules as the web dashboard:
    idempotency keys, required "checked the bank" confirmations, and amount-difference acknowledgement.

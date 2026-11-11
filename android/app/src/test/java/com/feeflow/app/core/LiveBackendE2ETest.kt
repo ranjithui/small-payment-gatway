@@ -31,7 +31,7 @@ class LiveBackendE2ETest {
 
         // 1. Admin signs in on the phone (seeded local test account)
         adminToken = client.login("admin@brightminds.test", "feeflow-demo-123").accessToken
-        assertEquals("Bright Minds Tuition Centre", client.me().centre.name)
+        assertEquals("Bright Minds Tuition Centre", client.me().workspace!!.name)
 
         // 2. Phone becomes the SMS device
         deviceToken = client.registerDevice("E2E test phone").deviceToken
