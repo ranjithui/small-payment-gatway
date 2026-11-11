@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>FeeFlow · Payment Verification</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<div class="admin">
+  <section id="loginView" class="card" style="max-width:420px;margin:60px auto">
+    <div class="brand">FeeFlow</div>
+    <h1>Admin sign in</h1>
+    <form id="loginForm">
+      <label for="email">Email</label><input id="email" type="email" autocomplete="username" required>
+      <label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required>
+      <button class="btn" style="margin-top:14px">Sign in</button>
+      <p class="err" id="loginErr"></p>
+    </form>
+  </section>
+
+  <section id="mainView" class="hidden">
+    <div class="topbar">
+      <div><div class="brand">FeeFlow</div><h1 id="centreTitle"></h1></div>
+      <div class="actions"><span class="muted" id="adminName"></span><button class="btn ghost sm" id="logoutBtn">Sign out</button></div>
+    </div>
+    <nav class="tabs">
+      <button class="tab active" data-tab="verify">Payment Verification <span class="badge hidden" id="pendingBadge"></span></button>
+      <button class="tab" data-tab="installments">Fees</button>
+      <button class="tab" data-tab="reports">Reports</button>
+      <button class="tab" data-tab="notifications">Notifications <span class="badge hidden" id="notifBadge"></span></button>
+      <button class="tab" data-tab="audit">Audit log</button>
+    </nav>
+
+    <div id="tab-verify" class="grid2">
+      <div class="card"><h2>Awaiting verification</h2><div id="queue"></div></div>
+      <div class="card" id="detail"><p class="muted">Select a payment confirmation to review it against your bank account.</p></div>
+    </div>
+
+    <div id="tab-installments" class="card hidden">
+      <div class="topbar"><h2>Fees</h2>
+        <div class="actions">
+          <button class="btn secondary sm" id="addStudentBtn">+ Student</button>
+          <button class="btn sm" id="addFeeBtn">+ Fee</button>
+          <select id="instFilter" style="width:auto"><option value="">All</option><option>UNPAID</option><option>PARTIALLY_PAID</option><option>PAID</option></select>
+        </div>
+      </div>
+      <div id="feeForms"></div>
+      <div style="overflow:auto"><table id="instTable"></table></div>
+      <div id="instDetail"></div>
+    </div>
+
+    <div id="tab-reports" class="card hidden">
+      <div class="topbar"><h2>Reports</h2>
+        <select id="reportSel" style="width:auto">
+          <option value="payment-declarations">Payment declarations</option>
+          <option value="pending-verification">Pending verification</option>
+          <option value="verified-payments">Verified payments</option>
+          <option value="rejected-declarations">Rejected declarations</option>
+          <option value="partial-payments">Partial payments</option>
+          <option value="duplicate-payments">Duplicate payments</option>
+          <option value="excess-payments">Excess payments</option>
+          <option value="outstanding-fees">Outstanding fees</option>
+        </select>
+      </div>
+      <div style="overflow:auto"><table id="reportTable"></table></div>
+    </div>
+
+    <div id="tab-notifications" class="card hidden">
+      <div class="topbar"><h2>Notifications</h2><button class="btn ghost sm" id="markReadBtn">Mark all read</button></div>
+      <div id="notifList"></div>
+    </div>
+
+    <div id="tab-audit" class="card hidden">
+      <h2>Audit log</h2>
+      <div style="overflow:auto"><table id="auditTable"></table></div>
+    </div>
+  </section>
+</div>
+<script src="/static/js/admin.js"></script>
+</body>
+</html>

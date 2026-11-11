@@ -1,0 +1,45 @@
+# Render Blueprint: one HTTPS web service + one PostgreSQL database.
+# Render dashboard -> New -> Blueprint -> pick this repository.
+# Fields marked `sync: false` are asked for in the dashboard (never commit them).
+
+databases:
+  - name: feeflow-db
+    databaseName: feeflow
+    user: feeflow
+    plan: free            # free DBs expire after 30 days - use basic-256mb (paid) for real centres
+    region: singapore
+
+services:
+  - type: web
+    name: feeflow-api
+    runtime: docker
+    plan: free            # free services sleep after 15 min idle (first request ~1 min); use starter for real use
+    region: singapore
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: FEEFLOW_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: feeflow-db
+          property: connectionString
+      - key: FEEFLOW_SECRET_KEY
+        generateValue: true
+      # Public HTTPS URL defaults to Render's RENDER_EXTERNAL_URL. Set this only for a custom domain.
+      # - key: FEEFLOW_PUBLIC_BASE_URL
+      #   value: https://pay.yourcentre.in
+      - key: FEEFLOW_BOOTSTRAP_CENTRE_NAME
+        sync: false
+      - key: FEEFLOW_BOOTSTRAP_CENTRE_CODE
+        sync: false
+      - key: FEEFLOW_BOOTSTRAP_UPI_VPA
+        sync: false
+      - key: FEEFLOW_BOOTSTRAP_UPI_NAME
+        sync: false
+      - key: FEEFLOW_BOOTSTRAP_CONTACT_PHONE
+        sync: false
+      - key: FEEFLOW_BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: FEEFLOW_BOOTSTRAP_ADMIN_PASSWORD
+        sync: false

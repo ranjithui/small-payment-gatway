@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
+  <title>Pay fee · FeeFlow</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<main class="page" id="app">
+  <div class="card"><p class="muted">Loading your fee details…</p></div>
+</main>
+
+<template id="tpl">
+  <header class="card header">
+    <div class="logo" id="logo"></div>
+    <div>
+      <div class="brand">FeeFlow</div>
+      <h1 id="centreName"></h1>
+    </div>
+  </header>
+
+  <section class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <h2 style="margin:0" id="studentName"></h2>
+      <span class="pill" id="statusPill"></span>
+    </div>
+    <p class="muted small" style="margin:2px 0 12px">Student ID <span id="studentId"></span></p>
+    <dl class="kv">
+      <dt>Fee</dt><dd id="feeDesc"></dd>
+      <dt>Month</dt><dd id="feeMonth"></dd>
+      <dt>Total fee</dt><dd id="feeTotal"></dd>
+      <dt>Amount paid</dt><dd id="feePaid"></dd>
+      <dt>Due date</dt><dd id="feeDue"></dd>
+      <dt>Outstanding</dt><dd class="big" id="feeOutstanding"></dd>
+    </dl>
+  </section>
+
+  <section class="card hidden" id="messageCard"><div class="banner" id="messageBanner"></div></section>
+
+  <!-- Payment options -->
+  <section class="card hidden" id="paySection">
+    <h2>Pay with UPI</h2>
+    <div class="apps">
+      <button class="app" data-app="GPAY"><span class="ico" style="background:#1a73e8">G</span>Google Pay</button>
+      <button class="app" data-app="PHONEPE"><span class="ico" style="background:#5f259f">Pe</span>PhonePe</button>
+      <button class="app" data-app="PAYTM"><span class="ico" style="background:#00baf2">P</span>Paytm</button>
+      <button class="app" data-app="OTHER_UPI"><span class="ico" style="background:#374151">UPI</span>Other UPI app</button>
+    </div>
+    <details id="qrDetails" style="margin-top:12px">
+      <summary>Show UPI QR code</summary>
+      <div class="qr"><img id="qrImg" alt="UPI QR code"><p class="muted small">Scan with any UPI app. Pay to <b id="vpa"></b></p></div>
+    </details>
+    <details>
+      <summary>Paying a different amount?</summary>
+      <p class="muted small">Open your UPI app without a fixed amount:</p>
+      <button class="btn secondary" id="anyAmountBtn">Open UPI app (enter amount yourself)</button>
+    </details>
+    <p class="muted small">Never share your UPI PIN or OTP with anyone. FeeFlow will never ask for it.</p>
+  </section>
+
+  <!-- Post-payment question -->
+  <section class="card hidden" id="askSection">
+    <h2>Have you completed your payment?</h2>
+    <div class="stack">
+      <label class="check"><input type="checkbox" id="partialChk"> I paid only part of the amount</label>
+      <div id="partialBox" class="hidden">
+        <label for="partialAmt">Amount you actually paid (Rs.)</label>
+        <input id="partialAmt" type="number" inputmode="decimal" min="1" step="0.01" placeholder="e.g. 1000">
+      </div>
+      <details>
+        <summary>Add optional details</summary>
+        <label for="optApp">UPI app used</label>
+        <select id="optApp"><option value="">Not sure</option><option value="GPAY">Google Pay</option><option value="PHONEPE">PhonePe</option><option value="PAYTM">Paytm</option><option value="OTHER_UPI">Other UPI app</option><option value="QR">Scanned QR</option></select>
+        <label for="optTime">Approximate payment time</label>
+        <input id="optTime" type="time">
+        <label for="optNote">Note for the tuition centre</label>
+        <input id="optNote" maxlength="300" placeholder="e.g. paid from my husband's account">
+      </details>
+      <button class="btn ok" id="paidBtn">I have paid</button>
+      <div class="actions">
+        <button class="btn secondary" style="flex:1" id="processingBtn">Payment is processing</button>
+        <button class="btn ghost" style="flex:1" id="failedBtn">Payment failed</button>
+      </div>
+      <p class="err" id="askErr"></p>
+    </div>
+  </section>
+
+  <!-- Awaiting verification -->
+  <section class="card hidden" id="waitSection">
+    <div class="banner ok">Payment confirmation received</div>
+    <dl class="kv" style="margin-top:12px">
+      <dt>Status</dt><dd>Waiting for tuition centre verification</dd>
+      <dt>Submitted</dt><dd id="declaredAt"></dd>
+      <dt>Amount</dt><dd id="declaredAmt"></dd>
+      <dt>Reference</dt><dd id="declRef"></dd>
+    </dl>
+    <p class="banner warn" style="margin-top:12px">Please do not pay again while this confirmation is being checked.</p>
+    <div id="clarifyBox" class="hidden panel">
+      <h3 style="margin-top:0">The tuition centre asked:</h3>
+      <p id="clarifyQ"></p>
+      <label for="clarifyNote">Your reply</label>
+      <textarea id="clarifyNote" rows="3" maxlength="500"></textarea>
+      <label for="clarifyTime">Approximate payment time (optional)</label>
+      <input id="clarifyTime" type="time">
+      <label for="clarifyRef">UPI transaction ID (optional - only if easy to find)</label>
+      <input id="clarifyRef" maxlength="64" autocomplete="off">
+      <button class="btn" style="margin-top:10px" id="clarifyBtn">Send details</button>
+      <p class="err" id="clarifyErr"></p>
+    </div>
+    <details id="addInfo"><summary>Add more information</summary>
+      <textarea id="moreNote" rows="2" maxlength="500" placeholder="Anything that helps the centre find your payment"></textarea>
+      <button class="btn secondary" style="margin-top:8px" id="moreBtn">Send</button>
+      <p class="err" id="moreErr"></p>
+    </details>
+  </section>
+
+  <!-- Receipts -->
+  <section class="card hidden" id="receiptSection">
+    <h2>Receipts</h2>
+    <div id="receiptList" class="stack"></div>
+  </section>
+
+  <section class="card" id="contactCard">
+    <h3 style="margin-top:0">Need help?</h3>
+    <p class="muted" style="margin:0">Contact <b id="contactName"></b>: <a id="contactPhone"></a></p>
+  </section>
+  <p class="foot">Secured by FeeFlow · Payments are verified by your tuition centre</p>
+</template>
+
+<script src="/static/js/pay.js"></script>
+</body>
+</html>

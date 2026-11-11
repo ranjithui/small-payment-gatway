@@ -1,0 +1,14 @@
+.venv/
+.git/
+.claude/
+android/
+tests/
+docs/
+__pycache__/
+*.pyc
+.pytest_cache/
+feeflow.db
+seed_output.txt
+.env
+*.jks
+keystore.properties
