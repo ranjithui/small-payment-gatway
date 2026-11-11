@@ -45,8 +45,8 @@ android {
             signingConfig = signingConfigs.findByName("feeflow")
             // Production: HTTPS only.
             manifestPlaceholders["cleartext"] = "false"
-            // Set the deployed backend with: ./gradlew assembleRelease -PreleaseServerUrl=https://feeflow-api.onrender.com
-            val releaseUrl = providers.gradleProperty("releaseServerUrl").getOrElse("https://feeflow-api.onrender.com")
+            // Set the deployed backend with: ./gradlew assembleRelease -PreleaseServerUrl=https://feeflow-api-iy66.onrender.com
+            val releaseUrl = providers.gradleProperty("releaseServerUrl").getOrElse("https://feeflow-api-iy66.onrender.com")
             require(releaseUrl.startsWith("https://")) { "releaseServerUrl must be https://" }
             buildConfigField("String", "DEFAULT_SERVER_URL", "\"$releaseUrl\"")
         }
