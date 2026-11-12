@@ -49,11 +49,15 @@ def bootstrap(db: Session) -> str:
 
     admin = db.query(AdminUser).filter(AdminUser.email == email).first()
     if admin is None:
-        db.add(AdminUser(tenant_id=None, email=email, name="Administrator", password_hash=hash_password(password)))
+        db.add(AdminUser(tenant_id=None, email=email, name="Administrator", password_hash=hash_password(password),
+                         is_platform_admin=True))
         db.commit()
         log.warning("Created admin %s - sign in to create your workspace.", email)
         return "created"
     changed = False
+    if not admin.is_platform_admin:  # the configured admin is the platform owner (/platform)
+        admin.is_platform_admin = True
+        changed = True
     if not verify_password(password, admin.password_hash):
         admin.password_hash = hash_password(password)
         changed = True

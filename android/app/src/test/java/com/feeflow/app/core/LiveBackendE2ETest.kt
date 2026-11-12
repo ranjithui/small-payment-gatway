@@ -78,4 +78,43 @@ class LiveBackendE2ETest {
         assertEquals(0, r3.smsSent)
         println("E2E OK: ${decl.studentName} ${res.installmentStatus} receipt ${res.receipt.receiptNumber}, SMS sent by fake SIM: ${sim.sent.size}")
     }
+
+    @Test
+    fun newCentreSignsUpAddsStudentAndSendsFeeLink() = runBlocking {
+        assumeTrue("FEEFLOW_E2E_URL not set", url != null)
+        var token: String? = null
+        val client = FeeFlowClient(url!!, { token })
+        val email = "e2e-${System.currentTimeMillis()}@centre.test"
+
+        token = client.signup("E2E Owner", email, "e2e-password-123").accessToken
+        assertEquals(false, client.me().hasWorkspace)
+        client.createWorkspace(WorkspaceCreateRequest("E2E Tuition Centre", "e2etuition@okaxis", "E2E Tuition"))
+        val sub = client.me().workspace!!.subscription
+        assertEquals("TRIAL", sub.status)
+        assertEquals(30, sub.trialDaysLeft)
+
+        val st = client.createStudent(StudentRequest(name = "Kavya Raman", parentMobile = "98111 22233", classGrade = "Class 7",
+            dateOfBirth = "2014-06-02", gender = "FEMALE", monthlyFeePaise = 150000, feeDueDay = 10))
+        assertEquals(1, st.fees.size)
+        assertEquals("MONTHLY", st.fees[0].kind)
+        assertEquals("+919811122233", st.parentMobile)
+        assertTrue(client.students("kavya").any { it.id == st.id })
+
+        val sms = client.sendFeeLink(st.id, "SMS", FeeFlowClient.newIdempotencyKey())
+        assertTrue(sms.smsQueued)
+        assertEquals(false, sms.smsPhoneActive)
+        val share = client.sendFeeLink(st.id, "SHARE", FeeFlowClient.newIdempotencyKey())
+        assertTrue(share.shareText.contains(share.paymentLink))
+
+        // The link opens the parent payment page paying this centre's UPI ID
+        val tokenPart = share.paymentLink.substringAfterLast("/")
+        val body = OkHttpClient().newCall(Request.Builder().url("$url/api/v1/payment-declarations/public/$tokenPart").build())
+            .execute().use { it.body!!.string() }
+        assertTrue(body, body.contains("e2etuition@okaxis") && body.contains("Kavya Raman"))
+
+        val edited = client.updateStudent(st.id, StudentRequest(classGrade = "Class 8", active = false))
+        assertEquals("Class 8", edited.classGrade)
+        assertEquals(false, edited.active)
+        println("E2E OK: signed up $email, student ${st.studentCode}, link ${share.paymentLink}")
+    }
 }

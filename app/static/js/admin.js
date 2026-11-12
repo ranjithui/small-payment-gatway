@@ -36,7 +36,7 @@
     if (!res.ok) { $("loginErr").textContent = data.detail || "Sign in failed"; return; }
     token = data.access_token; sessionStorage.setItem("ff-admin", token); start();
   });
-  function logout() { sessionStorage.removeItem("ff-admin"); token = null; $("mainView").classList.add("hidden"); $("setupView").classList.add("hidden"); $("loginView").classList.remove("hidden"); }
+  function logout() { sessionStorage.removeItem("ff-admin"); token = null; $("mainView").classList.add("hidden"); $("setupView").classList.add("hidden"); $("signupView").classList.add("hidden"); $("loginView").classList.remove("hidden"); }
   $("logoutBtn").addEventListener("click", logout);
 
   let polling = null;
@@ -51,8 +51,9 @@
     }
     $("setupView").classList.add("hidden");
     $("centreTitle").textContent = me.workspace.name; $("adminName").textContent = me.email || me.name;
+    applySubscription(me);
     $("mainView").classList.remove("hidden");
-    loadQueue(); loadNotifBadge();
+    loadStudents(); loadQueue(); loadNotifBadge();
     if (!polling) polling = setInterval(() => { if (token && !document.hidden && !$("mainView").classList.contains("hidden")) { loadQueue(false); loadNotifBadge(); } }, 30000);
   }
 
@@ -74,7 +75,7 @@
     $("stName").value = w.name; $("stVpa").value = w.upi_vpa; $("stPayee").value = w.upi_payee_name;
     $("stPhone").value = w.contact_phone || ""; $("stEmail").value = w.contact_email || "";
     $("stGrace").value = w.verification_grace_hours; $("stFreq").value = w.reminder_frequency_hours;
-    $("stAck").checked = w.ack_sms_enabled; $("stCode").textContent = w.short_code;
+    $("stAck").checked = w.ack_sms_enabled; $("stAuto").checked = w.auto_send_links; $("stCode").textContent = w.short_code;
     $("settingsForm").dataset.vpa = w.upi_vpa; $("stErr").textContent = ""; $("stOk").textContent = "";
   }
   $("settingsForm").addEventListener("submit", async (e) => {
@@ -84,16 +85,177 @@
     try {
       const w = await api("PATCH", "/api/v1/workspace", { name: $("stName").value.trim(), upi_vpa: vpa, upi_payee_name: $("stPayee").value.trim(),
         contact_phone: $("stPhone").value.trim(), contact_email: $("stEmail").value.trim(),
-        verification_grace_hours: +$("stGrace").value, reminder_frequency_hours: +$("stFreq").value, ack_sms_enabled: $("stAck").checked });
+        verification_grace_hours: +$("stGrace").value, reminder_frequency_hours: +$("stFreq").value, ack_sms_enabled: $("stAck").checked, auto_send_links: $("stAuto").checked });
       $("centreTitle").textContent = w.name; $("settingsForm").dataset.vpa = w.upi_vpa; $("stOk").textContent = "Saved.";
     } catch (err) { $("stErr").textContent = err.message; }
   });
 
+
+  // ---------------- sign-up
+  $("toSignup").addEventListener("click", (e) => { e.preventDefault(); $("loginView").classList.add("hidden"); $("signupView").classList.remove("hidden"); });
+  $("toLogin").addEventListener("click", (e) => { e.preventDefault(); $("signupView").classList.add("hidden"); $("loginView").classList.remove("hidden"); });
+  $("signupForm").addEventListener("submit", async (e) => {
+    e.preventDefault(); $("signupErr").textContent = "";
+    if ($("suPw").value !== $("suPw2").value) { $("signupErr").textContent = "The passwords do not match."; return; }
+    const res = await fetch("/api/v1/auth/signup", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: $("suName").value.trim(), email: $("suEmail").value.trim(), password: $("suPw").value }) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      let msg = data.detail; if (Array.isArray(msg)) msg = msg.map((d) => d.msg.replace(/^Value error, /, "")).join("; ");
+      $("signupErr").textContent = msg || "Sign up failed"; return;
+    }
+    token = data.access_token; sessionStorage.setItem("ff-admin", token); $("signupView").classList.add("hidden"); start();
+  });
+
+  function applySubscription(me) {
+    const sub = me.workspace.subscription;
+    readOnly = sub.read_only;
+    document.body.classList.toggle("readonly", readOnly);
+    const b = $("subBanner");
+    if (sub.status === "TRIAL") {
+      b.className = "banner " + (sub.trial_days_left <= 5 ? "warn" : "info");
+      b.textContent = `Free trial: ${sub.trial_days_left} day${sub.trial_days_left === 1 ? "" : "s"} left.`;
+    } else if (sub.status === "EXPIRED") {
+      b.className = "banner bad";
+      b.textContent = "Your 30-day free trial has ended. Your data is safe and parents can still pay existing links, but adding students and sending fee links is paused. Contact FeeFlow to activate your workspace.";
+    } else { b.className = "banner hidden"; }
+    $("platformLink").classList.toggle("hidden", !me.is_platform_admin);
+  }
+
+  // ---------------- students
+  let readOnly = false;
+  let selectedStudent = null;
+  const GENDER = { MALE: "Male", FEMALE: "Female", OTHER: "Other" };
+  const ord = (n) => n + (["th", "st", "nd", "rd"][(n % 100 > 10 && n % 100 < 14) ? 0 : (n % 10 < 4 ? n % 10 : 0)] || "th");
+  let searchTimer = null;
+  $("stuSearch").addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(loadStudents, 250); });
+  $("stuInactive").addEventListener("change", loadStudents);
+  $("addStudent").addEventListener("click", () => studentForm(null));
+
+  async function loadStudents() {
+    const params = new URLSearchParams({ include_inactive: $("stuInactive").checked });
+    if ($("stuSearch").value.trim()) params.set("q", $("stuSearch").value.trim());
+    const { items } = await api("GET", "/api/v1/students?" + params);
+    $("stuList").innerHTML = items.length ? items.map((s) => `
+      <div class="stu ${s.id === selectedStudent ? "sel" : ""}" data-id="${esc(s.id)}">
+        <div class="row"><b>${esc(s.name)}</b>${s.latest_fee ? pill(s.latest_fee.status) : ""}</div>
+        <div class="row small muted"><span>${esc(s.student_id)}${s.class_grade ? " · " + esc(s.class_grade) : ""}${s.active ? "" : " · inactive"}</span>
+          <span>${s.monthly_fee_paise ? `${rupees(s.monthly_fee_paise)}/month · due ${ord(s.fee_due_day)}` : "No monthly plan"}</span></div>
+      </div>`).join("") : `<p class="muted">${$("stuSearch").value ? "No students match your search." : "No students yet. Add your first student."}</p>`;
+    $("stuList").querySelectorAll(".stu").forEach((el) => el.addEventListener("click", () => openStudent(el.dataset.id)));
+  }
+
+  async function openStudent(id) {
+    selectedStudent = id;
+    const s = await api("GET", "/api/v1/students/" + encodeURIComponent(id));
+    loadStudents();
+    const kv = (k, v) => v ? `<dt>${k}</dt><dd>${esc(v)}</dd>` : "";
+    $("stuDetail").innerHTML = `
+      <div class="topbar"><h2 style="margin:0">${esc(s.name)} <span class="muted small">${esc(s.student_id)}</span></h2>${s.active ? "" : pill("INACTIVE")}</div>
+      <dl class="kv" style="margin-top:10px">
+        ${kv("Class / grade", s.class_grade)}${kv("School", s.school)}${kv("Date of birth", s.date_of_birth)}${kv("Gender", GENDER[s.gender])}
+        ${kv("Joined on", s.joined_on)}${kv("Address", s.address)}
+        <dt>Parent</dt><dd>${esc(s.parent_name || "-")}</dd>
+        <dt>Parent mobile</dt><dd><a href="tel:${esc(s.parent_mobile)}">${esc(s.parent_mobile)}</a></dd>
+        ${kv("Parent email", s.parent_email)}
+        <dt>Monthly fee</dt><dd>${s.monthly_fee_paise ? `${rupees(s.monthly_fee_paise)}, due on the ${ord(s.fee_due_day)}` : "No monthly plan"}</dd>
+        <dt>Outstanding</dt><dd class="big">${rupees(s.outstanding_paise)}</dd>
+      </dl>
+      <div class="actions" style="margin-top:14px">
+        <button class="btn sm needs-write" id="sendSms" ${s.active ? "" : "disabled"}>Send fee link (SMS)</button>
+        <button class="btn secondary sm needs-write" id="shareLink" ${s.active ? "" : "disabled"}>Copy / share link</button>
+        <button class="btn ghost sm needs-write" id="editStu">Edit</button>
+        <button class="btn ghost sm needs-write" id="toggleStu">${s.active ? "Deactivate" : "Reactivate"}</button>
+      </div>
+      <div id="linkResult"></div>
+      <h3>Fee history</h3>
+      ${s.fees.length ? `<table><tr><th>Month</th><th>Fee</th><th>Due</th><th>Amount</th><th>Paid</th><th>Status</th><th>Receipt</th></tr>
+        ${s.fees.map((f) => `<tr><td>${esc(f.billing_month)}</td><td>${esc(f.description)}</td><td>${esc(f.due_date)}</td><td>${rupees(f.total_paise)}</td>
+          <td>${rupees(f.paid_paise)}</td><td>${pill(f.status)}</td><td>${f.receipts.map((r) => `<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.receipt_number)}</a>`).join(" ")}</td></tr>`).join("")}</table>`
+        : '<p class="muted small">No fees yet. Add a monthly fee plan (Edit) or a one-off fee in the Fees tab.</p>'}`;
+    $("editStu").onclick = () => studentForm(s);
+    $("toggleStu").onclick = async () => {
+      if (s.active && !confirm(`Deactivate ${s.name}? No new monthly fees will be created.`)) return;
+      try { await api("PATCH", "/api/v1/students/" + encodeURIComponent(s.id), { active: !s.active }); openStudent(s.id); }
+      catch (err) { alert(err.message); }
+    };
+    $("sendSms").onclick = () => sendLink(s, "SMS");
+    $("shareLink").onclick = () => sendLink(s, "SHARE");
+  }
+
+  async function sendLink(s, channel) {
+    const out = $("linkResult");
+    out.innerHTML = '<p class="muted small">Preparing link…</p>';
+    try {
+      const r = await api("POST", `/api/v1/students/${encodeURIComponent(s.id)}/send-fee-link`, { channel }, newKey());
+      const fee = `${esc(r.fee.description)} ${esc(r.fee.billing_month)} · ${rupees(r.fee.outstanding_paise)} due ${esc(r.fee.due_date)}`;
+      if (channel === "SMS") {
+        out.innerHTML = r.sms_phone_active
+          ? `<div class="banner ok" style="margin-top:10px">Fee link queued for ${esc(r.parent_mobile)} (${fee}). The centre's SMS phone sends it on its next sync (within 15 minutes, or tap "Sync & send now" in the app).</div>`
+          : `<div class="banner warn" style="margin-top:10px">Fee link queued for ${esc(r.parent_mobile)} (${fee}), but no SMS phone is registered yet. It will be sent once you open the FeeFlow app on the centre's phone and tap "Use this phone as the SMS device". Meanwhile you can use "Copy / share link".</div>`;
+      } else {
+        let shared = false;
+        if (navigator.share) { try { await navigator.share({ text: r.share_text }); shared = true; } catch (_) { /* cancelled */ } }
+        if (!shared && navigator.clipboard) { try { await navigator.clipboard.writeText(r.share_text); } catch (_) { /* ignore */ } }
+        out.innerHTML = `<div class="panel small">Message ${shared ? "shared" : "copied - paste it into WhatsApp or SMS"} (${fee}):<br>
+          <textarea readonly rows="3" style="margin-top:6px" onclick="this.select()">${esc(r.share_text)}</textarea>
+          <a class="btn ghost sm" style="margin-top:6px" target="_blank" rel="noopener" href="https://wa.me/${esc(r.parent_mobile.replace("+", ""))}?text=${encodeURIComponent(r.share_text)}">Open WhatsApp chat</a></div>`;
+      }
+    } catch (err) { out.innerHTML = `<p class="err">${esc(err.message)}</p>`; }
+  }
+
+  function studentForm(s) {
+    const v = (x) => esc(x == null ? "" : x);
+    $("stuDetail").innerHTML = `<form id="stuForm"><h2 style="margin-top:0">${s ? "Edit " + esc(s.name) : "Add student"}</h2>
+      <div class="formgrid">
+        <h3 class="full">Student</h3>
+        <div class="full"><label>Student name *</label><input id="fName" required minlength="2" maxlength="200" value="${v(s && s.name)}"></div>
+        <div><label>Student ID</label><input id="fCode" maxlength="40" value="${v(s && s.student_id)}" ${s ? "disabled" : 'placeholder="Generated automatically"'}></div>
+        <div><label>Class / grade</label><input id="fClass" maxlength="40" value="${v(s && s.class_grade)}" placeholder="e.g. Class 7"></div>
+        <div><label>Date of birth</label><input id="fDob" type="date" value="${v(s && s.date_of_birth)}"></div>
+        <div><label>Gender</label><select id="fGender"><option value="">-</option>${Object.entries(GENDER).map(([k, l]) => `<option value="${k}" ${s && s.gender === k ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+        <div class="full"><label>School</label><input id="fSchool" maxlength="200" value="${v(s && s.school)}"></div>
+        <div class="full"><label>Address</label><textarea id="fAddr" rows="2" maxlength="500">${v(s && s.address)}</textarea></div>
+        <div><label>Joining date</label><input id="fJoined" type="date" value="${v(s && s.joined_on)}"></div>
+        <h3 class="full">Parent</h3>
+        <div><label>Parent name</label><input id="fParent" maxlength="200" value="${v(s && s.parent_name)}"></div>
+        <div><label>Parent mobile *</label><input id="fMobile" required inputmode="tel" maxlength="20" value="${v(s && s.parent_mobile)}" placeholder="10-digit mobile"></div>
+        <div class="full"><label>Parent email</label><input id="fEmail" type="email" maxlength="200" value="${v(s && s.parent_email)}"></div>
+        <h3 class="full">Monthly fee</h3>
+        <div><label>Fee amount (Rs. per month)</label><input id="fFee" type="number" min="1" step="0.01" value="${s && s.monthly_fee_paise ? s.monthly_fee_paise / 100 : ""}"></div>
+        <div><label>Fee due day</label><select id="fDay"><option value="">-</option>${Array.from({ length: 31 }, (_, i) => i + 1).map((d) => `<option value="${d}" ${s && s.fee_due_day === d ? "selected" : ""}>${ord(d)} of every month</option>`).join("")}</select></div>
+        <p class="full small muted">With a fee plan, this month's fee is created when you save, and each new month's fee on the 1st.</p>
+      </div>
+      <div class="actions" style="margin-top:12px"><button class="btn sm">${s ? "Save changes" : "Add student"}</button><button type="button" class="btn ghost sm" id="fCancel">Cancel</button></div>
+      <p class="err" id="fErr"></p></form>`;
+    $("fCancel").onclick = () => (s ? openStudent(s.id) : ($("stuDetail").innerHTML = '<p class="muted">Select a student, or add one.</p>'));
+    $("stuForm").onsubmit = async (e) => {
+      e.preventDefault(); $("fErr").textContent = "";
+      const fee = $("fFee").value ? toPaise($("fFee").value) : null, day = $("fDay").value ? +$("fDay").value : null;
+      if ((fee === null) !== (day === null)) { $("fErr").textContent = "Enter both the monthly fee amount and the due day (or neither)."; return; }
+      const body = { name: $("fName").value.trim(), class_grade: $("fClass").value.trim() || null, date_of_birth: $("fDob").value || null,
+        gender: $("fGender").value || null, school: $("fSchool").value.trim() || null, address: $("fAddr").value.trim() || null,
+        joined_on: $("fJoined").value || null, parent_name: $("fParent").value.trim() || null, parent_mobile: $("fMobile").value,
+        parent_email: $("fEmail").value.trim() || null, monthly_fee_paise: fee, fee_due_day: day };
+      try {
+        let saved;
+        if (s) {
+          if (fee === null && s.monthly_fee_paise) body.clear_fee_plan = true;
+          saved = await api("PATCH", "/api/v1/students/" + encodeURIComponent(s.id), body);
+        } else {
+          if ($("fCode").value.trim()) body.student_code = $("fCode").value.trim();
+          saved = await api("POST", "/api/v1/students", body);
+        }
+        openStudent(saved.id);
+      } catch (err) { $("fErr").textContent = err.message; }
+    };
+  }
+
   // ---------------- tabs
   document.querySelectorAll(".tab").forEach((b) => b.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("active", x === b));
-    ["verify", "installments", "reports", "notifications", "audit", "settings"].forEach((n) => $("tab-" + n).classList.toggle("hidden", n !== b.dataset.tab));
-    ({ verify: loadQueue, installments: loadInstallments, reports: loadReport, notifications: loadNotifications, audit: loadAudit, settings: loadSettings })[b.dataset.tab]();
+    ["students", "verify", "installments", "reports", "notifications", "audit", "settings"].forEach((n) => $("tab-" + n).classList.toggle("hidden", n !== b.dataset.tab));
+    ({ students: loadStudents, verify: loadQueue, installments: loadInstallments, reports: loadReport, notifications: loadNotifications, audit: loadAudit, settings: loadSettings })[b.dataset.tab]();
   }));
 
   // ---------------- verification queue
@@ -238,24 +400,7 @@
     };
   }
 
-  // ---------------- add student / fee
-  $("addStudentBtn").addEventListener("click", () => {
-    $("feeForms").innerHTML = `<form class="panel" id="sf"><h3 style="margin-top:0">Add student</h3>
-      <label>Student ID</label><input id="sfCode" required maxlength="40" placeholder="e.g. BM-1005">
-      <label>Student name</label><input id="sfName" required maxlength="200">
-      <label>Parent name (optional)</label><input id="sfParent" maxlength="200">
-      <label>Parent mobile</label><input id="sfMobile" required inputmode="tel" placeholder="10-digit mobile">
-      <button class="btn" style="margin-top:10px">Save student</button><p class="err" id="sfErr"></p></form>`;
-    $("sf").onsubmit = async (e) => {
-      e.preventDefault(); $("sfErr").textContent = "";
-      try {
-        const s = await api("POST", "/api/v1/students", { student_code: $("sfCode").value.trim(), name: $("sfName").value.trim(),
-          parent_name: $("sfParent").value.trim() || null, parent_mobile: $("sfMobile").value });
-        $("feeForms").innerHTML = `<div class="banner ok">Added ${esc(s.name)} (${esc(s.student_id)}). Parent mobile ${esc(s.parent_mobile)}.</div>`;
-      } catch (err) { $("sfErr").textContent = err.message; }
-    };
-  });
-
+  // ---------------- one-off fee
   $("addFeeBtn").addEventListener("click", async () => {
     const { items } = await api("GET", "/api/v1/students");
     if (!items.length) { $("feeForms").innerHTML = '<div class="banner warn">Add a student first.</div>'; return; }

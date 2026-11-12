@@ -153,3 +153,34 @@ confirm with UTR → parent page shows PAID + receipt → receipt page renders.
   against a database created by the previous version.
 * Tests: backend 166 passed on SQLite and 168 on PostgreSQL (including concurrency). Android: 26 unit tests,
   plus the live end-to-end test passed against the local server.
+
+
+## Self sign-up, trial, students and platform console (v2.2)
+
+* **Sign-up:** `POST /api/v1/auth/signup` is rate-limited to 5 per hour per IP and needs a password of
+  10+ characters. It leads to workspace creation, which starts a **30-day trial**. Sign-up is in the
+  web login screen and the Android app.
+* **Subscription:** `TRIAL` / `ACTIVE` / `SUSPENDED` are stored and `EXPIRED` is derived
+  (`app/services/subscription.py`).
+  * **Expired:** the centre can still read its data, verify payments and receive parent payments on
+    existing links, but cannot add students or send links (`403 TRIAL_EXPIRED`).
+  * **Suspended:** the owner is locked out, payment pages return `410`, and the SMS phone gets `403`.
+* **Students:** a full profile (name, auto ID like `SVT-0001`, class, DOB, gender, school, address,
+  joining date, parent name/mobile/email) and an optional monthly fee plan (amount + due day 1-31,
+  clamped to the month's last day). Saving creates this month's fee. A background job creates each new
+  month's fee, and a unique index prevents duplicates. Search, edit and deactivate are supported.
+* **Send fee link:** `SMS` queues the link for the latest unpaid fee on the centre's SMS phone (with a
+  clear warning if none is registered). `SHARE` returns the message for WhatsApp or the share sheet. It
+  is idempotent per tap, and deliberate resends are allowed. Automatic sending when monthly fees are
+  created is built in but **off** by default (Settings → "Send the fee link by SMS automatically").
+* **Platform console** at `/platform` for `FEEFLOW_ADMIN_EMAIL` (`is_platform_admin`): every workspace
+  with owner, status, trial days, counts (students, fees, paid), SMS phone and last activity. It shows
+  counts only, never student or parent data. Actions: extend trial, activate, suspend (reason required),
+  reactivate, all audited. The platform owner cannot suspend their own workspace.
+* **Upgrade:** PostgreSQL adds the new columns and index on start. This was tested on a database from the
+  previous version, and existing workspaces get a 30-day trial counted from the upgrade.
+* **Tests:** backend 180 on SQLite and 182 on PostgreSQL. Android: 29 unit tests, plus 2 live
+  end-to-end tests that pass against the local server, including sign-up → workspace → student → fee link.
+  The website flow was walked through in a browser.
+* **Not included:** subscription billing (activate centres by hand), email verification, password
+  reset by email, and student photos.

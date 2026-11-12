@@ -16,6 +16,12 @@ import com.feeflow.app.core.LoginResponse
 import com.feeflow.app.core.Me
 import com.feeflow.app.core.PendingResponse
 import com.feeflow.app.core.RejectRequest
+import com.feeflow.app.core.SendFeeLinkRequest
+import com.feeflow.app.core.SendFeeLinkResponse
+import com.feeflow.app.core.SignupRequest
+import com.feeflow.app.core.Student
+import com.feeflow.app.core.StudentList
+import com.feeflow.app.core.StudentRequest
 import com.feeflow.app.core.SyncResponse
 import com.feeflow.app.core.Workspace
 import com.feeflow.app.core.WorkspaceCreateRequest
@@ -118,6 +124,29 @@ class FeeFlowClient(
     suspend fun createWorkspace(req: WorkspaceCreateRequest): Workspace =
         call("POST", "/api/v1/workspace", Auth.ADMIN, Workspace.serializer(),
             enc(WorkspaceCreateRequest.serializer(), req))!!
+
+    /** New centre owner account (30-day trial starts when the workspace is created). */
+    suspend fun signup(name: String, email: String, password: String): LoginResponse =
+        call("POST", "/api/v1/auth/signup", Auth.NONE, LoginResponse.serializer(),
+            enc(SignupRequest.serializer(), SignupRequest(name.trim(), email.trim().lowercase(), password)))!!
+
+    suspend fun students(query: String? = null, includeInactive: Boolean = false): List<Student> {
+        val q = query?.trim()?.takeIf { it.isNotEmpty() }?.let { "&q=" + java.net.URLEncoder.encode(it, "UTF-8") } ?: ""
+        return call("GET", "/api/v1/students?include_inactive=$includeInactive$q", Auth.ADMIN, StudentList.serializer())!!.items
+    }
+
+    suspend fun student(id: String): Student = call("GET", "/api/v1/students/$id", Auth.ADMIN, Student.serializer())!!
+
+    suspend fun createStudent(req: StudentRequest): Student =
+        call("POST", "/api/v1/students", Auth.ADMIN, Student.serializer(), enc(StudentRequest.serializer(), req))!!
+
+    suspend fun updateStudent(id: String, req: StudentRequest): Student =
+        call("PATCH", "/api/v1/students/$id", Auth.ADMIN, Student.serializer(), enc(StudentRequest.serializer(), req))!!
+
+    /** channel = "SMS" (queued on the centre's SMS phone) or "SHARE" (returns the message to share). */
+    suspend fun sendFeeLink(id: String, channel: String, idempotencyKey: String): SendFeeLinkResponse =
+        call("POST", "/api/v1/students/$id/send-fee-link", Auth.ADMIN, SendFeeLinkResponse.serializer(),
+            enc(SendFeeLinkRequest.serializer(), SendFeeLinkRequest(channel)), idempotencyKey)!!
 
     suspend fun pending(): List<Declaration> =
         call("GET", "/api/v1/payment-verification/pending", Auth.ADMIN, PendingResponse.serializer())!!.items

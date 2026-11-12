@@ -24,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Refresh
@@ -89,9 +90,12 @@ fun FeeFlowRoot(vm: AppViewModel) {
     }
     when (val s = state.screen) {
         Screen.Login -> LoginScreen(state, vm, snackbar)
+        Screen.SignUp -> SignUpScreen(state, vm, snackbar)
         Screen.Setup -> SetupScreen(state, vm, snackbar)
         is Screen.Main -> MainScreen(state, s.tab, vm, snackbar)
         is Screen.Detail -> DetailScreen(state, vm, snackbar)
+        is Screen.StudentDetail -> StudentDetailScreen(state, vm, snackbar)
+        is Screen.StudentForm -> StudentFormScreen(state, s.id, vm, snackbar)
     }
 }
 
@@ -125,6 +129,7 @@ private fun LoginScreen(state: UiState, vm: AppViewModel, snackbar: SnackbarHost
                 enabled = !state.busy && email.isNotBlank() && password.isNotBlank(),
                 modifier = Modifier.fillMaxWidth().height(50.dp),
             ) { if (state.busy) CircularProgressIndicator(Modifier.width(20.dp), color = Color.White) else Text("Sign in") }
+            TextButton({ vm.goToSignUp() }, Modifier.fillMaxWidth()) { Text("New tuition centre? Create a free account") }
         }
     }
 }
@@ -193,7 +198,13 @@ private fun MainScreen(state: UiState, tab: Tab, vm: AppViewModel, snackbar: Sna
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Brand, titleContentColor = Color.White, actionIconContentColor = Color.White),
                 actions = {
-                    IconButton(onClick = { if (tab == Tab.VERIFY) vm.refreshPending() else vm.refreshDevice() }) {
+                    IconButton(onClick = {
+                        when (tab) {
+                            Tab.STUDENTS -> vm.refreshStudents()
+                            Tab.VERIFY -> vm.refreshPending()
+                            Tab.SMS_DEVICE -> vm.refreshDevice()
+                        }
+                    }) {
                         Icon(Icons.Default.Refresh, "Refresh")
                     }
                     IconButton(onClick = { vm.logout() }) { Icon(Icons.AutoMirrored.Filled.ExitToApp, "Sign out") }
@@ -202,6 +213,11 @@ private fun MainScreen(state: UiState, tab: Tab, vm: AppViewModel, snackbar: Sna
         },
         bottomBar = {
             NavigationBar {
+                NavigationBarItem(
+                    selected = tab == Tab.STUDENTS, onClick = { vm.selectTab(Tab.STUDENTS) },
+                    icon = { Icon(Icons.Default.Person, null) },
+                    label = { Text("Students") },
+                )
                 NavigationBarItem(
                     selected = tab == Tab.VERIFY, onClick = { vm.selectTab(Tab.VERIFY) },
                     icon = { Icon(Icons.AutoMirrored.Filled.List, null) },
@@ -217,7 +233,9 @@ private fun MainScreen(state: UiState, tab: Tab, vm: AppViewModel, snackbar: Sna
     ) { pad ->
         Column(Modifier.padding(pad)) {
             if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
+            TrialBanner(state.subscription)
             when (tab) {
+                Tab.STUDENTS -> StudentsTab(state, vm)
                 Tab.VERIFY -> PendingList(state, vm)
                 Tab.SMS_DEVICE -> DeviceScreen(state, vm)
             }
@@ -371,7 +389,7 @@ private fun DetailScreen(state: UiState, vm: AppViewModel, snackbar: SnackbarHos
 }
 
 @Composable
-private fun Kv(label: String, value: String, big: Boolean = false) {
+internal fun Kv(label: String, value: String, big: Boolean = false) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(label, color = Color.Gray, fontSize = 14.sp, modifier = Modifier.weight(1f))
         Text(value, fontWeight = FontWeight.SemiBold, fontSize = if (big) 20.sp else 14.sp)

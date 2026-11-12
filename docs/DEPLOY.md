@@ -51,11 +51,19 @@ git remote add origin https://github.com/<you>/feeflow.git && git push -u origin
    Your centre name, UPI ID and the rest are **not** configured here. You enter them in the app.
 4. Click **Apply**. The first build takes a few minutes.
 5. Open `https://<service>.onrender.com/healthz`. It should show `{"status":"ok"}`.
-6. Sign in at `https://<service>.onrender.com/admin`, or in the Android app. On the first sign-in you
+6. Sign in at `https://<service>.onrender.com/admin`, or in the Android app. This account is the
+   **platform owner**: it can open `https://<service>.onrender.com/platform` to manage every
+   workspace (extend trial, activate, suspend). It can also run its own centre. On the first sign-in you
    see **Create your workspace**: enter the centre name, the **centre's UPI ID** (typed twice),
    the payee name shown in UPI apps, and a contact phone. Parents pay straight to that UPI ID.
 7. Change the UPI ID or other details later under **Settings** in the web dashboard. Every UPI ID
    change is recorded in the audit log with the old and new values.
+
+**Other centres sign up themselves:** on the login screen (web or app) they tap **Create a free account**,
+then create their workspace and get a **30-day free trial**. When it ends, their workspace becomes
+read-only until you **Activate** it (or extend the trial) at `/platform`. Parents' existing payment
+links keep working throughout. **Suspend** immediately locks a centre out, closes its payment pages
+and stops its SMS phone. Use it if a centre misuses the service.
 
 To change the admin password, edit `FEEFLOW_ADMIN_PASSWORD` in Render → Environment and redeploy.
 The configured value always wins.

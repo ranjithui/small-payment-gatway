@@ -2,7 +2,7 @@
 from datetime import date, datetime
 from typing import List, Literal, Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 # Hard ceiling on any single amount (Rs. 10,00,000) to catch typos.
 MAX_PAISE = 100_000_000
@@ -133,13 +133,72 @@ def _normalize_mobile(v: str) -> str:
     return "+" + digits
 
 
-class StudentCreate(BaseModel):
-    student_code: str = Field(min_length=1, max_length=40, pattern=r"^[A-Za-z0-9._/-]+$")
-    name: str = Field(min_length=2, max_length=200)
+GENDERS = ("MALE", "FEMALE", "OTHER")
+
+
+class _StudentFields(BaseModel):
+    date_of_birth: Optional[date] = None
+    gender: Optional[Literal["MALE", "FEMALE", "OTHER"]] = None
+    class_grade: Optional[str] = Field(None, max_length=40)
+    school: Optional[str] = Field(None, max_length=200)
+    address: Optional[str] = Field(None, max_length=500)
     parent_name: Optional[str] = Field(None, max_length=200)
+    parent_email: Optional[str] = Field(None, max_length=200, pattern=r"^$|^[^@\s]+@[^@\s]+\.[^@\s]+$")
+    joined_on: Optional[date] = None
+    monthly_fee_paise: Optional[int] = Field(None, gt=0, le=MAX_PAISE, description="Monthly fee in paise")
+    fee_due_day: Optional[int] = Field(None, ge=1, le=31, description="Day of month the fee is due")
+
+    @field_validator("date_of_birth")
+    @classmethod
+    def _dob(cls, v: Optional[date]) -> Optional[date]:
+        if v is not None and (v > date.today() or v.year < 1900):
+            raise ValueError("Enter a valid date of birth")
+        return v
+
+
+class StudentCreate(_StudentFields):
+    student_code: Optional[str] = Field(None, min_length=1, max_length=40, pattern=r"^[A-Za-z0-9._/-]+$",
+                                        description="Generated if omitted")
+    name: str = Field(min_length=2, max_length=200)
     parent_mobile: str = Field(max_length=20)
 
     _mobile = field_validator("parent_mobile")(_normalize_mobile)
+
+    @model_validator(mode="after")
+    def _plan(self):
+        if (self.monthly_fee_paise is None) != (self.fee_due_day is None):
+            raise ValueError("Enter both the monthly fee amount and the fee due day (or neither)")
+        return self
+
+
+class StudentUpdate(_StudentFields):
+    name: Optional[str] = Field(None, min_length=2, max_length=200)
+    parent_mobile: Optional[str] = Field(None, max_length=20)
+    active: Optional[bool] = None
+    clear_fee_plan: bool = False
+
+    @field_validator("parent_mobile")
+    @classmethod
+    def _mobile(cls, v: Optional[str]) -> Optional[str]:
+        return None if v is None else _normalize_mobile(v)
+
+
+class SendFeeLink(BaseModel):
+    channel: Literal["SMS", "SHARE"] = "SMS"
+
+
+class SignupRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=200)
+    email: str = Field(max_length=200, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+    password: str = Field(min_length=10, max_length=200)
+
+
+class PlatformExtendTrial(BaseModel):
+    days: int = Field(30, ge=1, le=365)
+
+
+class PlatformSuspend(BaseModel):
+    reason: str = Field(min_length=3, max_length=500)
 
 
 class InstallmentCreate(BaseModel):
@@ -190,6 +249,7 @@ class WorkspaceUpdate(BaseModel):
     verification_grace_hours: Optional[int] = Field(None, ge=1, le=168)
     reminder_frequency_hours: Optional[int] = Field(None, ge=12, le=720)
     ack_sms_enabled: Optional[bool] = None
+    auto_send_links: Optional[bool] = None
 
     _vpa_strip = field_validator("upi_vpa", mode="before")(_clean_vpa)
 

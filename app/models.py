@@ -3,7 +3,7 @@
 All money is stored as integer paise to avoid floating point errors.
 """
 import uuid
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Optional
 
 from sqlalchemy import (
@@ -31,6 +31,13 @@ def new_id() -> str:
     return str(uuid.uuid4())
 
 
+TRIAL_DAYS = 30
+
+
+def default_trial_end() -> datetime:
+    return utcnow() + timedelta(days=TRIAL_DAYS)
+
+
 class Tenant(Base):
     __tablename__ = "tenants"
 
@@ -45,6 +52,12 @@ class Tenant(Base):
     verification_grace_hours: Mapped[int] = mapped_column(Integer, default=24)
     reminder_frequency_hours: Mapped[int] = mapped_column(Integer, default=72)
     ack_sms_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Subscription: TRIAL (until trial_ends_at) / ACTIVE / SUSPENDED. "EXPIRED" is derived.
+    status: Mapped[str] = mapped_column(String(20), default="TRIAL")
+    trial_ends_at: Mapped[Optional[datetime]] = mapped_column(DateTime, default=default_trial_end)
+    suspended_reason: Mapped[Optional[str]] = mapped_column(Text)
+    # Send the fee link by SMS automatically when a monthly fee is created (off = manual button).
+    auto_send_links: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
@@ -58,6 +71,8 @@ class AdminUser(Base):
     name: Mapped[str] = mapped_column(String(200))
     password_hash: Mapped[str] = mapped_column(String(300))
     active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Platform owner (FEEFLOW_ADMIN_EMAIL): manages all workspaces at /platform.
+    is_platform_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
@@ -71,6 +86,18 @@ class Student(Base):
     name: Mapped[str] = mapped_column(String(200))
     parent_name: Mapped[Optional[str]] = mapped_column(String(200))
     parent_mobile: Mapped[str] = mapped_column(String(20))
+    parent_email: Mapped[Optional[str]] = mapped_column(String(200))
+    date_of_birth: Mapped[Optional[date]] = mapped_column(Date)
+    gender: Mapped[Optional[str]] = mapped_column(String(20))
+    class_grade: Mapped[Optional[str]] = mapped_column(String(40))
+    school: Mapped[Optional[str]] = mapped_column(String(200))
+    address: Mapped[Optional[str]] = mapped_column(Text)
+    joined_on: Mapped[Optional[date]] = mapped_column(Date)
+    # Monthly fee plan: amount + day of month it is due (1-31, clamped to the month's last day).
+    monthly_fee_paise: Mapped[Optional[int]] = mapped_column(Integer)
+    fee_due_day: Mapped[Optional[int]] = mapped_column(Integer)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[Optional[datetime]] = mapped_column(DateTime, default=utcnow)
 
 
 class Installment(Base):
@@ -80,6 +107,9 @@ class Installment(Base):
         CheckConstraint("paid_paise >= 0", name="ck_installment_paid_nonneg"),
         CheckConstraint("excess_paise >= 0", name="ck_installment_excess_nonneg"),
         CheckConstraint("status IN ('UNPAID','PARTIALLY_PAID','PAID')", name="ck_installment_status"),
+        # One automatically generated monthly fee per student per month.
+        Index("uq_monthly_fee_per_student_month", "student_id", "billing_month", unique=True,
+              sqlite_where=text("kind = 'MONTHLY'"), postgresql_where=text("kind = 'MONTHLY'")),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
@@ -87,6 +117,7 @@ class Installment(Base):
     student_id: Mapped[str] = mapped_column(ForeignKey("students.id"), index=True)
     description: Mapped[str] = mapped_column(String(200))
     billing_month: Mapped[str] = mapped_column(String(7))  # YYYY-MM
+    kind: Mapped[str] = mapped_column(String(10), default="ONE_OFF")  # MONTHLY (auto) / ONE_OFF
     total_paise: Mapped[int] = mapped_column(Integer)
     paid_paise: Mapped[int] = mapped_column(Integer, default=0)  # verified, applied to this installment
     excess_paise: Mapped[int] = mapped_column(Integer, default=0)  # verified money above the total

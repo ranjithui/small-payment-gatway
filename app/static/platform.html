@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>FeeFlow · Platform admin</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<div class="admin">
+  <section id="pLogin" class="card" style="max-width:420px;margin:60px auto">
+    <div class="brand">FeeFlow</div>
+    <h1>Platform admin</h1>
+    <p class="muted">Manage every tuition centre workspace.</p>
+    <form id="pLoginForm">
+      <label for="pEmail">Email</label><input id="pEmail" type="email" autocomplete="username" required>
+      <label for="pPw">Password</label><input id="pPw" type="password" autocomplete="current-password" required>
+      <button class="btn" style="margin-top:14px">Sign in</button>
+      <p class="err" id="pErr"></p>
+    </form>
+  </section>
+
+  <section id="pMain" class="hidden">
+    <div class="topbar">
+      <div><div class="brand">FeeFlow</div><h1>Platform admin</h1></div>
+      <div class="actions"><a class="btn ghost sm" href="/admin">My workspace</a><span class="muted" id="pWho"></span><button class="btn ghost sm" id="pLogout">Sign out</button></div>
+    </div>
+    <div class="cards" id="pCards"></div>
+    <div class="card">
+      <div class="topbar"><h2 style="margin:0">Workspaces</h2>
+        <div class="actions">
+          <input id="pSearch" placeholder="Search centre or owner email" style="width:240px">
+          <select id="pFilter" style="width:auto"><option value="">All</option><option>TRIAL</option><option>ACTIVE</option><option>EXPIRED</option><option>SUSPENDED</option></select>
+          <button class="btn ghost sm" id="pRefresh">Refresh</button>
+        </div>
+      </div>
+      <p class="small muted">Only counts are shown here. Students' and parents' personal details stay private to each centre.</p>
+      <div style="overflow:auto"><table id="pTable"></table></div>
+    </div>
+  </section>
+</div>
+<script src="/static/js/platform.js"></script>
+</body>
+</html>

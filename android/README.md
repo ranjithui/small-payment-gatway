@@ -1,6 +1,10 @@
 # FeeFlow Android app
 
-The FeeFlow Android app is one Kotlin app (Jetpack Compose, minSdk 26, targetSdk 34) with two roles:
+The FeeFlow Android app is one Kotlin app (Jetpack Compose, minSdk 26, targetSdk 34). New centres
+**create an account** from the sign-in screen, set up their workspace (centre name + UPI ID) and get a
+30-day free trial. The **Students** tab adds and edits student profiles (personal details, parent, monthly
+fee and due day), shows each student's fee history, and has **Send fee link (SMS)**, **Share link**
+(Android share sheet, so WhatsApp etc.) and **WhatsApp parent**. The app also has these two roles:
 
 1. **Payment Verification (admin):** sign in (on the first sign-in, create the workspace: centre name +
    UPI ID), see payment confirmations waiting for review,

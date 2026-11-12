@@ -13,8 +13,9 @@ from sqlalchemy import text
 
 from app.bootstrap import bootstrap
 from app.db import SessionLocal, create_all, get_engine, init_engine
-from app.routers import admin, devices, pages, public, workspace
+from app.routers import admin, devices, pages, platform, public, students, workspace
 from app.routers.pages import STATIC
+from app.services.fees import generate_monthly_fees
 from app.services.reminders import process_grace_expiry
 from app.states import InvalidTransition
 
@@ -28,6 +29,7 @@ async def _jobs_loop() -> None:
             db = SessionLocal()
             try:
                 process_grace_expiry(db)
+                generate_monthly_fees(db)
             finally:
                 db.close()
         except Exception:  # pragma: no cover - keep the loop alive
@@ -86,6 +88,8 @@ def create_app(database_url: Optional[str] = None, run_jobs: Optional[bool] = No
 
     app.include_router(public.router)  # public routes first (path precedence)
     app.include_router(workspace.router)
+    app.include_router(students.router)
+    app.include_router(platform.router)
     app.include_router(admin.router)
     app.include_router(devices.router)
     app.include_router(pages.router)

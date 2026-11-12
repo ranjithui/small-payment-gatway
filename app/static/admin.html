@@ -18,6 +18,22 @@
       <button class="btn" style="margin-top:14px">Sign in</button>
       <p class="err" id="loginErr"></p>
     </form>
+    <p class="muted" style="margin-top:14px">New tuition centre? <a href="#" id="toSignup">Create a free account</a> &middot; 30-day free trial</p>
+  </section>
+
+  <section id="signupView" class="card hidden" style="max-width:440px;margin:60px auto">
+    <div class="brand">FeeFlow</div>
+    <h1>Create your account</h1>
+    <p class="muted">Start a 30-day free trial. Next you'll set up your centre and its UPI ID.</p>
+    <form id="signupForm">
+      <label for="suName">Your name</label><input id="suName" required minlength="2" maxlength="200" autocomplete="name">
+      <label for="suEmail">Email</label><input id="suEmail" type="email" required maxlength="200" autocomplete="username">
+      <label for="suPw">Password (10+ characters)</label><input id="suPw" type="password" required minlength="10" autocomplete="new-password">
+      <label for="suPw2">Confirm password</label><input id="suPw2" type="password" required minlength="10" autocomplete="new-password">
+      <button class="btn" style="margin-top:14px">Create account</button>
+      <p class="err" id="signupErr"></p>
+    </form>
+    <p class="muted" style="margin-top:14px">Already have an account? <a href="#" id="toLogin">Sign in</a></p>
   </section>
 
   <section id="setupView" class="card hidden" style="max-width:520px;margin:40px auto">
@@ -41,10 +57,12 @@
   <section id="mainView" class="hidden">
     <div class="topbar">
       <div><div class="brand">FeeFlow</div><h1 id="centreTitle"></h1></div>
-      <div class="actions"><span class="muted" id="adminName"></span><button class="btn ghost sm" id="logoutBtn">Sign out</button></div>
+      <div class="actions"><a class="btn ghost sm hidden" id="platformLink" href="/platform">Platform admin</a><span class="muted" id="adminName"></span><button class="btn ghost sm" id="logoutBtn">Sign out</button></div>
     </div>
+    <div id="subBanner" class="banner hidden" style="margin-top:10px"></div>
     <nav class="tabs">
-      <button class="tab active" data-tab="verify">Payment Verification <span class="badge hidden" id="pendingBadge"></span></button>
+      <button class="tab active" data-tab="students">Students</button>
+      <button class="tab" data-tab="verify">Payment Verification <span class="badge hidden" id="pendingBadge"></span></button>
       <button class="tab" data-tab="installments">Fees</button>
       <button class="tab" data-tab="reports">Reports</button>
       <button class="tab" data-tab="notifications">Notifications <span class="badge hidden" id="notifBadge"></span></button>
@@ -52,7 +70,17 @@
       <button class="tab" data-tab="settings">Settings</button>
     </nav>
 
-    <div id="tab-verify" class="grid2">
+    <div id="tab-students" class="grid2">
+      <div class="card">
+        <div class="topbar"><h2 style="margin:0">Students</h2><button class="btn sm needs-write" id="addStudent">+ Add student</button></div>
+        <input id="stuSearch" placeholder="Search name, ID, class or mobile" style="margin-top:10px">
+        <label class="check small" style="font-weight:500"><input type="checkbox" id="stuInactive"> Show inactive students</label>
+        <div id="stuList" style="margin-top:8px"></div>
+      </div>
+      <div class="card" id="stuDetail"><p class="muted">Select a student, or add one. Students on a monthly fee plan get each month's fee automatically.</p></div>
+    </div>
+
+    <div id="tab-verify" class="grid2 hidden">
       <div class="card"><h2>Awaiting verification</h2><div id="queue"></div></div>
       <div class="card" id="detail"><p class="muted">Select a payment confirmation to review it against your bank account.</p></div>
     </div>
@@ -60,8 +88,7 @@
     <div id="tab-installments" class="card hidden">
       <div class="topbar"><h2>Fees</h2>
         <div class="actions">
-          <button class="btn secondary sm" id="addStudentBtn">+ Student</button>
-          <button class="btn sm" id="addFeeBtn">+ Fee</button>
+          <button class="btn sm needs-write" id="addFeeBtn">+ One-off fee</button>
           <select id="instFilter" style="width:auto"><option value="">All</option><option>UNPAID</option><option>PARTIALLY_PAID</option><option>PAID</option></select>
         </div>
       </div>
@@ -103,6 +130,8 @@
         <label for="stGrace">Pause reminders after "I have paid" for (hours)</label><input id="stGrace" type="number" min="1" max="168">
         <label for="stFreq">Hours between reminders</label><input id="stFreq" type="number" min="12" max="720">
         <label class="check"><input type="checkbox" id="stAck"> Send parents an SMS when they tap "I have paid"</label>
+        <label class="check"><input type="checkbox" id="stAuto"> Send the fee link by SMS automatically when each month's fee is created (and schedule reminders)</label>
+        <p class="small muted" style="margin:0 0 0 30px">Off = use the "Send fee link" button on each student (recommended while testing).</p>
         <p class="small muted">Receipt prefix: <b id="stCode"></b></p>
         <button class="btn" style="margin-top:10px">Save settings</button>
         <p class="err" id="stErr"></p><p id="stOk" class="small" style="color:var(--ok)"></p>

@@ -1,5 +1,4 @@
 """Authenticated administrator endpoints (tenant-scoped)."""
-from datetime import datetime, time, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
@@ -9,11 +8,10 @@ from sqlalchemy.orm import Session
 from app import idempotency
 from app.audit import audit
 from app.db import get_db, utcnow
-from app.models import AdminNotification, AdminUser, AuditLog, Installment, PaymentAdjustment, Student
+from app.models import AdminNotification, AdminUser, AuditLog, Installment, PaymentAdjustment, Student, Tenant
 from app.ratelimit import rate_limit
 from app.schemas import (
     InstallmentCreate,
-    StudentCreate,
     BankImport,
     ClarificationRequest,
     ConfirmPayment,
@@ -23,12 +21,10 @@ from app.schemas import (
     ReopenDeclaration,
     ResolveAdjustment,
 )
-from app.security import AdminContext, issue_admin_token, require_admin, verify_password
-from app.services import reconciliation, reports, verification
+from app.security import AdminContext, issue_admin_token, require_admin, require_writable_admin, verify_password
+from app.services import fees, reconciliation, reports, verification
 from app.services.declarations import _iso
 from app.services.links import create_payment_link, link_url
-from app.services.reminders import schedule_initial_reminders
-from app.services.sms import enqueue_sms, format_rupees
 
 router = APIRouter(prefix="/api/v1", tags=["admin"])
 admin_limit = Depends(rate_limit("admin", 240))
@@ -40,8 +36,15 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
     admin = db.query(AdminUser).filter(AdminUser.email == body.email.strip().lower()).first()
     if not admin or not admin.active or not verify_password(body.password, admin.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+    if admin.tenant_id and not admin.is_platform_admin:
+        from app.models import Tenant
+
+        t = db.get(Tenant, admin.tenant_id)
+        if t is not None and t.status == "SUSPENDED":
+            raise HTTPException(status.HTTP_403_FORBIDDEN,
+                                detail="This workspace has been suspended. Contact FeeFlow support.")
     return {"access_token": issue_admin_token(admin), "token_type": "bearer", "name": admin.name,
-            "has_workspace": admin.tenant_id is not None}
+            "has_workspace": admin.tenant_id is not None, "is_platform_admin": bool(admin.is_platform_admin)}
 
 
 # ------------------------------------------------------------------ helpers
@@ -123,67 +126,26 @@ def reopen(
     )
 
 
-# ------------------------------------------------------------------ students & fees (minimal fee management)
-def _student_out(st: Student) -> dict:
-    return {"id": st.id, "student_id": st.student_code, "name": st.name, "parent_name": st.parent_name,
-            "parent_mobile": st.parent_mobile}
-
-
-@router.get("/students", dependencies=[admin_limit])
-def list_students(admin: AdminContext = Depends(require_admin), db: Session = Depends(get_db)):
-    rows = db.query(Student).filter(Student.tenant_id == admin.tenant_id).order_by(Student.name).all()
-    return {"items": [_student_out(s) for s in rows]}
-
-
-@router.post("/students", dependencies=[admin_limit], status_code=201)
-def create_student(body: StudentCreate, admin: AdminContext = Depends(require_admin), db: Session = Depends(get_db)):
-    code = body.student_code.strip()
-    if db.query(Student).filter(Student.tenant_id == admin.tenant_id, Student.student_code == code).first():
-        raise HTTPException(status.HTTP_409_CONFLICT, detail=f"Student ID {code} already exists")
-    st = Student(tenant_id=admin.tenant_id, student_code=code, name=body.name.strip(),
-                 parent_name=(body.parent_name or "").strip() or None, parent_mobile=body.parent_mobile)
-    db.add(st)
-    db.flush()
-    audit(db, tenant_id=admin.tenant_id, actor_type="ADMIN", actor_id=admin.admin_id, action="STUDENT_CREATED",
-          source="admin", details={"student_id": st.id, "student_code": code})
-    db.commit()
-    return _student_out(st)
-
-
+# ------------------------------------------------------------------ one-off fees (student profiles: app/routers/students.py)
 @router.post("/installments", dependencies=[admin_limit], status_code=201)
 def create_installment(
     body: InstallmentCreate,
     idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
-    admin: AdminContext = Depends(require_admin),
+    admin: AdminContext = Depends(require_writable_admin),
     db: Session = Depends(get_db),
 ):
-    """Create a fee, its secure payment link, the reminder schedule and (optionally) the link SMS."""
+    """Create a one-off fee, its secure payment link, the reminder schedule and (optionally) the link SMS."""
 
     def op():
         st = db.query(Student).filter(Student.id == body.student_id, Student.tenant_id == admin.tenant_id).first()
         if st is None:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Student not found")
-        inst = Installment(tenant_id=admin.tenant_id, student_id=st.id, description=body.description.strip(),
-                           billing_month=body.billing_month, total_paise=body.total_paise, due_date=body.due_date,
-                           status="UNPAID")
-        db.add(inst)
-        db.flush()
-        _, token = create_payment_link(db, inst, valid_days=body.link_valid_days)
-        url = link_url(token)
-        tenant = inst.tenant
-        if body.schedule_reminders:
-            # First reminder at 9:00 IST (03:30 UTC) the day before the due date, but never in the past.
-            first = datetime.combine(body.due_date - timedelta(days=1), time(3, 30))
-            schedule_initial_reminders(db, inst, tenant, start=max(first, utcnow() + timedelta(hours=1)))
-        if body.send_link_sms:
-            enqueue_sms(db, tenant=tenant, to_mobile=st.parent_mobile, kind="FEE_REMINDER",
-                        dedupe_key=f"fee-link:{inst.id}", installment_id=inst.id,
-                        amount=format_rupees(inst.total_paise), student_name=st.name,
-                        description=inst.description, due_date=inst.due_date.strftime("%d %b %Y"),
-                        payment_link=url)
-        audit(db, tenant_id=admin.tenant_id, actor_type="ADMIN", actor_id=admin.admin_id,
-              action="INSTALLMENT_CREATED", source="admin", installment_id=inst.id,
-              details={"total_paise": inst.total_paise, "due_date": inst.due_date, "link_sms": body.send_link_sms})
+        inst, url = fees.create_fee(
+            db, tenant=db.get(Tenant, admin.tenant_id), student=st, actor_id=admin.admin_id, description=body.description.strip(),
+            billing_month=body.billing_month, total_paise=body.total_paise, due_date=body.due_date, kind="ONE_OFF",
+            send_link_sms=body.send_link_sms, schedule_reminders=body.schedule_reminders,
+            link_valid_days=body.link_valid_days,
+        )
         db.flush()
         return 201, {"id": inst.id, "payment_link": url, "status": inst.status,
                      "link_sms_queued": body.send_link_sms}

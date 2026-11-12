@@ -13,7 +13,8 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.db import get_db, utcnow
-from app.models import AdminUser, Device, PaymentLink
+from app.models import AdminUser, Device, PaymentLink, Tenant
+from app.services.subscription import ensure_writable, suspended_error
 
 PBKDF2_ROUNDS = 200_000
 
@@ -92,6 +93,7 @@ class SessionContext:
     tenant_id: Optional[str]
     name: str
     email: str
+    is_platform_admin: bool = False
 
 
 def require_session(authorization: Optional[str] = Header(None), db: Session = Depends(get_db)) -> SessionContext:
@@ -104,18 +106,34 @@ def require_session(authorization: Optional[str] = Header(None), db: Session = D
     admin = db.get(AdminUser, payload["sub"])
     if not admin or not admin.active:
         raise _unauthorized("Invalid or expired session")
-    return SessionContext(admin_id=admin.id, tenant_id=admin.tenant_id, name=admin.name, email=admin.email)
+    return SessionContext(admin_id=admin.id, tenant_id=admin.tenant_id, name=admin.name, email=admin.email,
+                          is_platform_admin=bool(admin.is_platform_admin))
 
 
-def require_admin(session: SessionContext = Depends(require_session)) -> AdminContext:
-    """Signed-in admin of a workspace (every tenant-scoped endpoint)."""
+def require_admin(session: SessionContext = Depends(require_session), db: Session = Depends(get_db)) -> AdminContext:
+    """Signed-in admin of a workspace (every tenant-scoped endpoint). Read access survives trial expiry."""
     if session.tenant_id is None:
         raise HTTPException(
             status.HTTP_403_FORBIDDEN,
             detail="Create your workspace first",
             headers={"X-FeeFlow-Error": "WORKSPACE_REQUIRED"},
         )
+    tenant = db.get(Tenant, session.tenant_id)
+    if tenant is not None and tenant.status == "SUSPENDED":
+        raise suspended_error()
     return AdminContext(admin_id=session.admin_id, tenant_id=session.tenant_id, name=session.name)
+
+
+def require_writable_admin(admin: AdminContext = Depends(require_admin), db: Session = Depends(get_db)) -> AdminContext:
+    """Creating students / fees / sending links needs an active trial or an activated workspace."""
+    ensure_writable(db.get(Tenant, admin.tenant_id))
+    return admin
+
+
+def require_platform_admin(session: SessionContext = Depends(require_session)) -> SessionContext:
+    if not session.is_platform_admin:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Platform admin only")
+    return session
 
 
 @dataclass
@@ -130,6 +148,9 @@ def require_device(x_device_token: Optional[str] = Header(None), db: Session = D
     device = db.query(Device).filter(Device.token_hash == sha256_hex(x_device_token)).first()
     if not device or not device.active:
         raise _unauthorized("Unknown or disabled device")
+    tenant = db.get(Tenant, device.tenant_id)
+    if tenant is not None and tenant.status == "SUSPENDED":
+        raise suspended_error()
     device.last_seen_at = utcnow()
     db.commit()
     return DeviceContext(device_id=device.id, tenant_id=device.tenant_id)
@@ -146,6 +167,9 @@ def resolve_payment_link(db: Session, token: str, *, allow_expired: bool = True)
     link = db.query(PaymentLink).filter(PaymentLink.token_hash == sha256_hex(token)).first()
     if not link or link.revoked_at is not None:
         raise LinkError(status.HTTP_404_NOT_FOUND, detail="Payment link not found")
+    tenant = db.get(Tenant, link.tenant_id)
+    if tenant is not None and tenant.status == "SUSPENDED":
+        raise LinkError(status.HTTP_410_GONE, detail="This payment page is not available. Please contact your tuition centre.")
     if not allow_expired and link.expires_at <= utcnow():
         raise LinkError(status.HTTP_410_GONE, detail="This payment link has expired. Please contact your tuition centre.")
     return link

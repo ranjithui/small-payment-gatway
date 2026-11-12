@@ -53,6 +53,34 @@ def get_engine() -> Engine:
     return _engine
 
 
+# Idempotent PostgreSQL upgrades for databases created by earlier versions.
+UPGRADES = [
+    # v2.1.1: an admin exists before their workspace is created.
+    "ALTER TABLE admin_users ALTER COLUMN tenant_id DROP NOT NULL",
+    # v2.2: self sign-up, 30-day trial, platform owner, student profiles, monthly fees.
+    "ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS is_platform_admin BOOLEAN NOT NULL DEFAULT FALSE",
+    "ALTER TABLE tenants ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'TRIAL'",
+    "ALTER TABLE tenants ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMP",
+    "UPDATE tenants SET trial_ends_at = (now() AT TIME ZONE 'utc') + INTERVAL '30 days' WHERE trial_ends_at IS NULL",
+    "ALTER TABLE tenants ADD COLUMN IF NOT EXISTS suspended_reason TEXT",
+    "ALTER TABLE tenants ADD COLUMN IF NOT EXISTS auto_send_links BOOLEAN NOT NULL DEFAULT FALSE",
+    "ALTER TABLE students ADD COLUMN IF NOT EXISTS parent_email VARCHAR(200)",
+    "ALTER TABLE students ADD COLUMN IF NOT EXISTS date_of_birth DATE",
+    "ALTER TABLE students ADD COLUMN IF NOT EXISTS gender VARCHAR(20)",
+    "ALTER TABLE students ADD COLUMN IF NOT EXISTS class_grade VARCHAR(40)",
+    "ALTER TABLE students ADD COLUMN IF NOT EXISTS school VARCHAR(200)",
+    "ALTER TABLE students ADD COLUMN IF NOT EXISTS address TEXT",
+    "ALTER TABLE students ADD COLUMN IF NOT EXISTS joined_on DATE",
+    "ALTER TABLE students ADD COLUMN IF NOT EXISTS monthly_fee_paise INTEGER",
+    "ALTER TABLE students ADD COLUMN IF NOT EXISTS fee_due_day INTEGER",
+    "ALTER TABLE students ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT TRUE",
+    "ALTER TABLE students ADD COLUMN IF NOT EXISTS created_at TIMESTAMP",
+    "ALTER TABLE installments ADD COLUMN IF NOT EXISTS kind VARCHAR(10) NOT NULL DEFAULT 'ONE_OFF'",
+    "CREATE UNIQUE INDEX IF NOT EXISTS uq_monthly_fee_per_student_month ON installments (student_id, billing_month) "
+    "WHERE kind = 'MONTHLY'",
+]
+
+
 def create_all() -> None:
     from app import models  # noqa: F401  (register tables)
 
@@ -63,8 +91,8 @@ def create_all() -> None:
         from sqlalchemy import text
 
         with engine.begin() as conn:
-            # v2.1.1: an admin exists before their workspace is created.
-            conn.execute(text("ALTER TABLE admin_users ALTER COLUMN tenant_id DROP NOT NULL"))
+            for stmt in UPGRADES:
+                conn.execute(text(stmt))
 
 
 def get_db() -> Iterator[Session]:

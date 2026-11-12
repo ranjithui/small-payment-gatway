@@ -71,6 +71,8 @@ data class Workspace(
     @SerialName("upi_vpa") val upiVpa: String,
     @SerialName("upi_payee_name") val upiPayeeName: String,
     @SerialName("contact_phone") val contactPhone: String? = null,
+    @SerialName("auto_send_links") val autoSendLinks: Boolean = false,
+    val subscription: Subscription = Subscription(),
 )
 
 @Serializable
@@ -79,6 +81,7 @@ data class Me(
     val name: String,
     val email: String? = null,
     @SerialName("has_workspace") val hasWorkspace: Boolean = true,
+    @SerialName("is_platform_admin") val isPlatformAdmin: Boolean = false,
     val centre: Centre? = null,
     val workspace: Workspace? = null,
 )

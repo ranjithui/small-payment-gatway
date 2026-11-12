@@ -8,6 +8,9 @@ paid. This keeps the parent experience simple and the financial records accurate
 |---|---|
 | FastAPI backend | `app/` (`app/main.py` factory) |
 | State engine | `app/states.py` |
+| Self sign-up, 30-day trial, workspaces | `app/routers/workspace.py`, `app/services/subscription.py` |
+| Student profiles, monthly fees, "Send fee link" | `app/routers/students.py`, `app/services/fees.py` |
+| Platform owner console (`/platform`) | `app/routers/platform.py`, `app/static/platform.html` |
 | Parent payment page (mobile-first) | `/pay/{token}` → `app/static/pay.html`, `js/pay.js` |
 | Admin **Payment Verification** dashboard | `/admin` → `app/static/admin.html`, `js/admin.js` |
 | Supabase / Postgres migration | `migrations/001_feeflow_payment_workflow.sql` |
@@ -65,6 +68,11 @@ Per-centre settings are on `tenants`: `verification_grace_hours` (default 24),
 | `GET /api/v1/payment-declarations/public/{secure_token}` | parent (link token) | Fee + current status (survives refresh) |
 | `POST /api/v1/payment-declarations` | parent (link token) | `action`: `INITIATED` / `PROCESSING` / `PAID` / `FAILED`; optional partial amount, app, time, note |
 | `POST /api/v1/payment-declarations/{reference}/clarification` | parent (link token) | Add information when asked |
+| `POST /api/v1/auth/signup` | anyone (rate-limited) | New centre owner account |
+| `GET/POST/PATCH /api/v1/workspace` | admin | Create (30-day trial starts) / view / edit centre + UPI ID |
+| `GET/POST /api/v1/students`, `GET/PATCH /api/v1/students/{id}` | admin | Student profiles + monthly fee plan |
+| `POST /api/v1/students/{id}/send-fee-link` | admin | `SMS` (via the SMS phone) or `SHARE` (link + message) |
+| `GET /api/v1/platform/workspaces`, `POST .../{id}/extend-trial`, `activate`, `suspend`, `reactivate` | platform owner | Manage all workspaces |
 | `GET /api/v1/payment-declarations/{declaration_id}` | admin | Full review detail (moves REPORTED → PENDING_VERIFICATION) |
 | `GET /api/v1/payment-verification/pending` | admin | Verification queue |
 | `POST /api/v1/payment-verification/{id}/confirm` | admin | Record verified bank transaction(s), receipt, SMS |

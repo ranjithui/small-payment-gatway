@@ -13,14 +13,15 @@ from app.audit import audit
 from app.db import get_db
 from app.models import AdminUser, Tenant
 from app.ratelimit import rate_limit
-from app.schemas import WorkspaceCreate, WorkspaceUpdate
-from app.security import AdminContext, SessionContext, require_admin, require_session
+from app.schemas import SignupRequest, WorkspaceCreate, WorkspaceUpdate
+from app.security import AdminContext, SessionContext, hash_password, issue_admin_token, require_admin, require_session
+from app.services.subscription import subscription_out
 
 router = APIRouter(prefix="/api/v1", tags=["workspace"])
 limit = Depends(rate_limit("admin", 240))
 
 EDITABLE = ("name", "upi_vpa", "upi_payee_name", "contact_phone", "contact_email",
-            "verification_grace_hours", "reminder_frequency_hours", "ack_sms_enabled")
+            "verification_grace_hours", "reminder_frequency_hours", "ack_sms_enabled", "auto_send_links")
 
 
 def workspace_out(t: Optional[Tenant]) -> Optional[dict]:
@@ -37,6 +38,8 @@ def workspace_out(t: Optional[Tenant]) -> Optional[dict]:
         "verification_grace_hours": t.verification_grace_hours,
         "reminder_frequency_hours": t.reminder_frequency_hours,
         "ack_sms_enabled": t.ack_sms_enabled,
+        "auto_send_links": bool(t.auto_send_links),
+        "subscription": subscription_out(t),
     }
 
 
@@ -57,6 +60,19 @@ def _unique_code(db: Session, wanted: Optional[str], name: str) -> str:
     return code
 
 
+@router.post("/auth/signup", dependencies=[Depends(rate_limit("signup", 5, 3600))], status_code=201, tags=["auth"])
+def signup(body: SignupRequest, db: Session = Depends(get_db)):
+    """New centre owner creates an account; next step is creating their workspace (30-day trial)."""
+    email = body.email.strip().lower()
+    if db.query(AdminUser.id).filter(AdminUser.email == email).first():
+        raise HTTPException(status.HTTP_409_CONFLICT, detail="An account with this email already exists. Please sign in.")
+    admin = AdminUser(tenant_id=None, email=email, name=body.name.strip(), password_hash=hash_password(body.password))
+    db.add(admin)
+    db.commit()
+    return {"access_token": issue_admin_token(admin), "token_type": "bearer", "name": admin.name,
+            "has_workspace": False, "is_platform_admin": False}
+
+
 @router.get("/auth/me", dependencies=[limit], tags=["auth"])
 def me(session: SessionContext = Depends(require_session), db: Session = Depends(get_db)):
     t = db.get(Tenant, session.tenant_id) if session.tenant_id else None
@@ -65,6 +81,7 @@ def me(session: SessionContext = Depends(require_session), db: Session = Depends
         "name": session.name,
         "email": session.email,
         "has_workspace": t is not None,
+        "is_platform_admin": session.is_platform_admin,
         # `centre` kept for older app builds
         "centre": {"name": t.name, "logo_url": t.logo_url} if t else None,
         "workspace": workspace_out(t),

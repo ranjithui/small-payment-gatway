@@ -21,6 +21,9 @@ OTHER_ADMIN_PASSWORD = "feeflow-demo-456"
 # An admin with no workspace yet, to try the "Create your workspace" first sign-in locally.
 NEW_ADMIN_EMAIL = "founder@newcentre.test"
 NEW_ADMIN_PASSWORD = "feeflow-demo-789"
+# Platform owner (manages all workspaces at /platform), like FEEFLOW_ADMIN_EMAIL in production.
+PLATFORM_ADMIN_EMAIL = "platform@feeflow.test"
+PLATFORM_ADMIN_PASSWORD = "feeflow-demo-000"
 
 def _tenant(db: Session, **kw) -> Tenant:
     t = Tenant(**kw)
@@ -56,7 +59,9 @@ def seed(db: Session) -> Dict[str, Any]:
     a1 = AdminUser(tenant_id=t1.id, email=DEMO_ADMIN_EMAIL, name="Priya (Admin)", password_hash=hash_password(DEMO_ADMIN_PASSWORD))
     a2 = AdminUser(tenant_id=t2.id, email=OTHER_ADMIN_EMAIL, name="Sunrise Admin", password_hash=hash_password(OTHER_ADMIN_PASSWORD))
     a3 = AdminUser(tenant_id=None, email=NEW_ADMIN_EMAIL, name="New Centre Founder", password_hash=hash_password(NEW_ADMIN_PASSWORD))
-    db.add_all([a1, a2, a3])
+    a4 = AdminUser(tenant_id=None, email=PLATFORM_ADMIN_EMAIL, name="Platform Owner", is_platform_admin=True,
+                   password_hash=hash_password(PLATFORM_ADMIN_PASSWORD))
+    db.add_all([a1, a2, a3, a4])
     db.add(Device(tenant_id=t1.id, name="Office Android phone", token_hash=sha256_hex(DEMO_DEVICE_TOKEN)))
 
     students = [
@@ -127,6 +132,8 @@ if __name__ == "__main__":  # pragma: no cover
     print(f"Admin dashboard : {settings.public_base_url}/admin")
     print(f"  login         : {DEMO_ADMIN_EMAIL} / {DEMO_ADMIN_PASSWORD}")
     print(f"  no workspace  : {NEW_ADMIN_EMAIL} / {NEW_ADMIN_PASSWORD}  (try the workspace setup)")
+    print(f"Platform admin  : {settings.public_base_url}/platform")
+    print(f"  login         : {PLATFORM_ADMIN_EMAIL} / {PLATFORM_ADMIN_PASSWORD}")
     print(f"Device token    : {DEMO_DEVICE_TOKEN}\n")
     print("Parent payment links:")
     for code, token in data["links"].items():

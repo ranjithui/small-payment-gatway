@@ -56,3 +56,20 @@ class MoneyAndStoreTest {
         dir.deleteRecursively()
     }
 }
+
+class StudentInputTest {
+    @Test
+    fun validatesFormInput() {
+        assertEquals(null, StudentInput.date("").getOrNull())
+        assertEquals("2014-06-02", StudentInput.date(" 2014-06-02 ").getOrNull())
+        org.junit.Assert.assertTrue(StudentInput.date("02/06/2014").isFailure)
+        org.junit.Assert.assertTrue(StudentInput.date("2014-02-30").isFailure)
+        org.junit.Assert.assertTrue(StudentInput.mobileOk("98111 22233"))
+        org.junit.Assert.assertTrue(StudentInput.mobileOk("+91 98111 22233"))
+        org.junit.Assert.assertTrue(StudentInput.mobileOk("098111 22233"))
+        org.junit.Assert.assertFalse(StudentInput.mobileOk("12345"))
+        org.junit.Assert.assertFalse(StudentInput.mobileOk("5811122233"))
+        assertEquals(listOf("1st", "2nd", "3rd", "4th", "11th", "12th", "13th", "21st", "22nd", "31st"),
+            listOf(1, 2, 3, 4, 11, 12, 13, 21, 22, 31).map { StudentInput.ordinal(it) })
+    }
+}

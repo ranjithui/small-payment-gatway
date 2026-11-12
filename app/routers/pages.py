@@ -33,6 +33,11 @@ def admin_page():
     return FileResponse(STATIC / "admin.html", headers=_NO_STORE)
 
 
+@router.get("/platform")
+def platform_page():
+    return FileResponse(STATIC / "platform.html", headers=_NO_STORE)
+
+
 @router.get("/receipt/{receipt_token}", response_class=HTMLResponse, dependencies=[Depends(rate_limit("public_read", 60))])
 def receipt_page(receipt_token: str, db: Session = Depends(get_db)):
     r = receipt_payload(db, receipt_token)
