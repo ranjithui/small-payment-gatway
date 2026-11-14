@@ -78,6 +78,9 @@ UPGRADES = [
     "ALTER TABLE installments ADD COLUMN IF NOT EXISTS kind VARCHAR(10) NOT NULL DEFAULT 'ONE_OFF'",
     "CREATE UNIQUE INDEX IF NOT EXISTS uq_monthly_fee_per_student_month ON installments (student_id, billing_month) "
     "WHERE kind = 'MONTHLY'",
+    # v2.3: business (merchant) UPI IDs.
+    "ALTER TABLE tenants ADD COLUMN IF NOT EXISTS upi_is_merchant BOOLEAN NOT NULL DEFAULT FALSE",
+    "ALTER TABLE tenants ADD COLUMN IF NOT EXISTS merchant_code VARCHAR(4)",
 ]
 
 

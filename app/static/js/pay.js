@@ -87,7 +87,19 @@
     // Payment controls
     show($("paySection"), s.can_pay);
     if (s.can_pay) {
-      $("vpa").textContent = s.upi.payee_vpa;
+      const u = s.upi;
+      $("vpa").textContent = u.payee_vpa;
+      $("mPayee").textContent = u.payee_name; $("mPayee2").textContent = u.payee_name;
+      $("mVpa").textContent = u.payee_vpa; $("mAmt").textContent = "Rs. " + u.amount_text; $("mNote").textContent = u.note;
+      $("qrSave").href = `/api/v1/pay/${encodeURIComponent(token)}/qr.png?download=1`;
+      // Personal UPI IDs: apps often block pre-filled links, so lead with the ways that always work.
+      const personal = !u.is_merchant;
+      show($("personalTip"), personal); show($("appsTitle"), personal);
+      const ways = $("payWays");
+      if (personal && ways.firstElementChild !== $("manualBlock")) {
+        ways.insertBefore($("manualBlock"), ways.firstElementChild);
+        ways.insertBefore($("qrDetails"), $("appsBlock"));
+      }
       if ($("qrDetails").open) loadQr();
     }
     const launched = sessionStorage.getItem(RETURN_FLAG) === "1";
@@ -126,7 +138,23 @@
 
   function loadQr() {
     const img = $("qrImg");
-    if (!img.src) img.src = `/api/v1/pay/${encodeURIComponent(token)}/qr.svg`;
+    if (!img.src) img.src = `/api/v1/pay/${encodeURIComponent(token)}/qr.png`;
+  }
+
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); return true; } catch (_) { /* fall back below */ }
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand("copy"); } catch (_) { ok = false; }
+    ta.remove(); return ok;
+  }
+
+  let manualStarted = false;
+  function startedManually(app) {
+    // The parent is about to pay from their UPI app: record the intent (not proof) and show "Have you paid?".
+    sessionStorage.setItem(RETURN_FLAG, "1"); show($("askSection"), true);
+    if (!manualStarted) { manualStarted = true; api("POST", API, { token, action: "INITIATED", upi_app: app }, newKey()).catch(() => {}); }
   }
 
   async function launchApp(app, anyAmount) {
@@ -181,6 +209,20 @@
   function bind() {
     document.querySelectorAll(".app[data-app]").forEach((b) => b.addEventListener("click", () => launchApp(b.dataset.app, false)));
     $("anyAmountBtn").addEventListener("click", () => { $("partialChk").checked = true; show($("partialBox"), true); launchApp("OTHER_UPI", true); });
+    document.querySelectorAll(".copy[data-copy]").forEach((b) => b.addEventListener("click", async () => {
+      const u = state.upi, what = b.dataset.copy;
+      const text = what === "vpa" ? u.payee_vpa : what === "amount" ? u.amount_text : u.note;
+      const ok = await copyText(text);
+      if (!ok) {
+        // Some in-app browsers block the clipboard: select the value so the parent can long-press -> Copy.
+        const el = b.previousElementSibling, range = document.createRange();
+        range.selectNodeContents(el); const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+      }
+      b.textContent = ok ? "Copied" : "Press and hold the text to copy"; b.classList.toggle("done", ok);
+      setTimeout(() => { b.textContent = "Copy"; b.classList.remove("done"); }, ok ? 1800 : 4000);
+      startedManually("OTHER_UPI");
+    }));
+    $("qrSave").addEventListener("click", () => startedManually("QR"));
     $("qrDetails").addEventListener("toggle", () => {
       if ($("qrDetails").open) {
         loadQr(); sessionStorage.setItem(RETURN_FLAG, "1"); show($("askSection"), true);

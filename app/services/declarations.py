@@ -13,7 +13,7 @@ from app.security import new_secret_token
 from app.services import reminders
 from app.services.receipts import receipt_url
 from app.services.sms import enqueue_sms, format_rupees
-from app.services.upi import UPI_APPS, build_uris
+from app.services.upi import DEFAULT_MERCHANT_CODE, UPI_APPS, amount_str, build_uris
 from app.states import (
     ACTIVE_STATUS_VALUES,
     DeclarationStatus as D,
@@ -156,14 +156,19 @@ def public_view(db: Session, link: PaymentLink) -> Dict[str, Any]:
 
     note = f"{student.student_code} {inst.billing_month} fee"
     upi = None
+    mc = (tenant.merchant_code or DEFAULT_MERCHANT_CODE) if tenant.upi_is_merchant else None
+    txn_ref = "FF" + inst.id.replace("-", "")[:24].upper()  # stable per fee, alphanumeric, <= 35 chars
     if can_pay:
         upi = {
             "payee_vpa": tenant.upi_vpa,
             "payee_name": tenant.upi_payee_name,
             "amount_paise": inst.outstanding_paise,
             "note": note,
-            "uris": build_uris(tenant.upi_vpa, tenant.upi_payee_name, inst.outstanding_paise, note),
-            "uris_any_amount": build_uris(tenant.upi_vpa, tenant.upi_payee_name, None, note),
+            "uris": build_uris(tenant.upi_vpa, tenant.upi_payee_name, inst.outstanding_paise, note, mc, txn_ref),
+            "uris_any_amount": build_uris(tenant.upi_vpa, tenant.upi_payee_name, None, note, mc, txn_ref),
+            # Pay-by-UPI-ID fallback (works even when an app blocks pre-filled links to personal UPI IDs)
+            "is_merchant": bool(tenant.upi_is_merchant),
+            "amount_text": amount_str(inst.outstanding_paise),
         }
 
     if disp.value in PARENT_MESSAGES:

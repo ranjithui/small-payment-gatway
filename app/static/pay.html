@@ -43,16 +43,44 @@
   <!-- Payment options -->
   <section class="card hidden" id="paySection">
     <h2>Pay with UPI</h2>
-    <div class="apps">
-      <button class="app" data-app="GPAY"><span class="ico" style="background:#1a73e8">G</span>Google Pay</button>
-      <button class="app" data-app="PHONEPE"><span class="ico" style="background:#5f259f">Pe</span>PhonePe</button>
-      <button class="app" data-app="PAYTM"><span class="ico" style="background:#00baf2">P</span>Paytm</button>
-      <button class="app" data-app="OTHER_UPI"><span class="ico" style="background:#374151">UPI</span>Other UPI app</button>
+    <p class="banner info hidden" id="personalTip">If your UPI app shows an error such as "bank limit" or
+      "server issues", use <b>Pay using UPI ID</b> or <b>Save QR to gallery</b> below. They work in every UPI app.</p>
+    <div id="payWays">
+      <div id="appsBlock">
+        <h3 id="appsTitle" class="hidden">One-tap (may not work in some apps)</h3>
+        <div class="apps">
+          <button class="app" data-app="GPAY"><span class="ico" style="background:#1a73e8">G</span>Google Pay</button>
+          <button class="app" data-app="PHONEPE"><span class="ico" style="background:#5f259f">Pe</span>PhonePe</button>
+          <button class="app" data-app="PAYTM"><span class="ico" style="background:#00baf2">P</span>Paytm</button>
+          <button class="app" data-app="OTHER_UPI"><span class="ico" style="background:#374151">UPI</span>Other UPI app</button>
+        </div>
+      </div>
+
+      <div id="manualBlock" class="panel">
+        <h3 style="margin-top:0">Pay using UPI ID</h3>
+        <div class="copyrow"><span class="muted small">Pay to</span><b id="mPayee"></b></div>
+        <div class="copyrow"><span class="muted small">UPI ID</span><b id="mVpa"></b><button class="btn secondary sm copy" data-copy="vpa">Copy</button></div>
+        <div class="copyrow"><span class="muted small">Amount</span><b id="mAmt"></b><button class="btn secondary sm copy" data-copy="amount">Copy</button></div>
+        <div class="copyrow"><span class="muted small">Note</span><b id="mNote"></b><button class="btn secondary sm copy" data-copy="note">Copy</button></div>
+        <ol class="small steps">
+          <li>Open Google Pay, PhonePe, Paytm or any UPI app.</li>
+          <li>Tap <b>Pay UPI ID or number</b> (PhonePe: <b>To Mobile / UPI ID</b>) and paste the UPI ID.</li>
+          <li>Check the name shown is <b id="mPayee2"></b>, enter the amount, add the note, and pay.</li>
+          <li>Come back here and tap <b>I have paid</b>.</li>
+        </ol>
+      </div>
+
+      <details id="qrDetails" class="panel">
+        <summary>UPI QR code &middot; save it to your gallery</summary>
+        <div class="qr"><img id="qrImg" alt="UPI QR code">
+          <p class="muted small">Pay to <b id="vpa"></b></p>
+          <a class="btn secondary" id="qrSave" download>Save QR to gallery</a>
+          <p class="muted small" style="margin-top:8px">Then open your UPI app &rarr; <b>Scan QR</b> &rarr; tap the gallery/photo
+            icon &rarr; choose the saved image. The amount is already filled in.<br>
+            If the image opens instead of downloading, press and hold it and choose <b>Download / Save image</b>.</p>
+        </div>
+      </details>
     </div>
-    <details id="qrDetails" style="margin-top:12px">
-      <summary>Show UPI QR code</summary>
-      <div class="qr"><img id="qrImg" alt="UPI QR code"><p class="muted small">Scan with any UPI app. Pay to <b id="vpa"></b></p></div>
-    </details>
     <details>
       <summary>Paying a different amount?</summary>
       <p class="muted small">Open your UPI app without a fixed amount:</p>

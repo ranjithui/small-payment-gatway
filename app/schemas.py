@@ -227,6 +227,8 @@ class WorkspaceCreate(BaseModel):
     contact_email: Optional[str] = Field(None, max_length=200)
     short_code: Optional[str] = Field(None, min_length=2, max_length=10, pattern=r"^[A-Za-z0-9]+$",
                                       description="Receipt number prefix; generated if omitted")
+    upi_is_merchant: bool = Field(False, description="UPI ID is a business (merchant) UPI ID")
+    merchant_code: Optional[str] = Field(None, pattern=r"^\d{4}$", description="Merchant category code, e.g. 8299")
 
     _vpa_strip = field_validator("upi_vpa", mode="before")(_clean_vpa)
 
@@ -250,6 +252,8 @@ class WorkspaceUpdate(BaseModel):
     reminder_frequency_hours: Optional[int] = Field(None, ge=12, le=720)
     ack_sms_enabled: Optional[bool] = None
     auto_send_links: Optional[bool] = None
+    upi_is_merchant: Optional[bool] = None
+    merchant_code: Optional[str] = Field(None, pattern=r"^\d{4}$")
 
     _vpa_strip = field_validator("upi_vpa", mode="before")(_clean_vpa)
 

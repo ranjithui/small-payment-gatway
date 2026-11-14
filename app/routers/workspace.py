@@ -16,12 +16,14 @@ from app.ratelimit import rate_limit
 from app.schemas import SignupRequest, WorkspaceCreate, WorkspaceUpdate
 from app.security import AdminContext, SessionContext, hash_password, issue_admin_token, require_admin, require_session
 from app.services.subscription import subscription_out
+from app.services.upi import DEFAULT_MERCHANT_CODE
 
 router = APIRouter(prefix="/api/v1", tags=["workspace"])
 limit = Depends(rate_limit("admin", 240))
 
 EDITABLE = ("name", "upi_vpa", "upi_payee_name", "contact_phone", "contact_email",
-            "verification_grace_hours", "reminder_frequency_hours", "ack_sms_enabled", "auto_send_links")
+            "verification_grace_hours", "reminder_frequency_hours", "ack_sms_enabled", "auto_send_links",
+            "upi_is_merchant", "merchant_code")
 
 
 def workspace_out(t: Optional[Tenant]) -> Optional[dict]:
@@ -39,6 +41,8 @@ def workspace_out(t: Optional[Tenant]) -> Optional[dict]:
         "reminder_frequency_hours": t.reminder_frequency_hours,
         "ack_sms_enabled": t.ack_sms_enabled,
         "auto_send_links": bool(t.auto_send_links),
+        "upi_is_merchant": bool(t.upi_is_merchant),
+        "merchant_code": t.merchant_code,
         "subscription": subscription_out(t),
     }
 
@@ -101,6 +105,8 @@ def create_workspace(body: WorkspaceCreate, session: SessionContext = Depends(re
         upi_payee_name=body.upi_payee_name.strip(),
         contact_phone=(body.contact_phone or "").strip() or None,
         contact_email=(body.contact_email or "").strip() or None,
+        upi_is_merchant=body.upi_is_merchant,
+        merchant_code=(body.merchant_code or DEFAULT_MERCHANT_CODE) if body.upi_is_merchant else None,
     )
     db.add(t)
     db.flush()
@@ -133,6 +139,9 @@ def update_workspace(body: WorkspaceUpdate, admin: AdminContext = Depends(requir
         if old != value:
             changes[field] = {"from": old, "to": value}
             setattr(t, field, value)
+    if t.upi_is_merchant and not t.merchant_code:
+        t.merchant_code = DEFAULT_MERCHANT_CODE
+        changes.setdefault("merchant_code", {"from": None, "to": DEFAULT_MERCHANT_CODE})
     if changes:
         # The UPI ID decides where parents' money goes: always audited with old and new values.
         audit(db, tenant_id=t.id, actor_type="ADMIN", actor_id=admin.admin_id,

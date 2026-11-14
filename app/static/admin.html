@@ -45,6 +45,8 @@
       <label for="wsVpa">Centre UPI ID</label><input id="wsVpa" required maxlength="100" placeholder="e.g. brightminds@okaxis" autocomplete="off">
       <p class="small muted" style="margin:4px 0 0">Use the UPI ID of the centre's own bank account. Double-check it: payments go straight to this ID.</p>
       <label for="wsVpa2">Confirm UPI ID</label><input id="wsVpa2" required maxlength="100" autocomplete="off">
+      <label class="check"><input type="checkbox" id="wsMerchant"> This is a business (merchant) UPI ID</label>
+      <p class="small muted" style="margin:2px 0 0 30px">Turn on if this UPI ID comes from Google Pay for Business, PhonePe Business, Paytm for Business, BharatPe or your bank's merchant service. Personal UPI IDs: leave off. Google Pay and PhonePe often block one-tap pre-filled payments to personal UPI IDs, so parents are shown "Pay using UPI ID" and the QR code first.</p>
       <label for="wsPayee">Payee name shown in UPI apps</label><input id="wsPayee" required minlength="2" maxlength="100">
       <label for="wsPhone">Contact phone for parents (optional)</label><input id="wsPhone" maxlength="20" inputmode="tel">
       <label for="wsEmail">Contact email (optional)</label><input id="wsEmail" type="email" maxlength="200">
@@ -124,6 +126,13 @@
         <label for="stName">Tuition centre name</label><input id="stName" required minlength="2" maxlength="200">
         <label for="stVpa">Centre UPI ID</label><input id="stVpa" required maxlength="100" autocomplete="off">
         <p class="small muted" style="margin:4px 0 0">Changing this changes where every parent pays from now on (open payment pages update immediately). The change is recorded in the audit log.</p>
+        <label class="check"><input type="checkbox" id="stMerchant"> This is a business (merchant) UPI ID</label>
+        <p class="small muted" style="margin:2px 0 0 30px">Turn on if this UPI ID comes from Google Pay for Business, PhonePe Business, Paytm for Business, BharatPe or your bank's merchant service. Personal UPI IDs: leave off. Google Pay and PhonePe often block one-tap pre-filled payments to personal UPI IDs, so parents are shown "Pay using UPI ID" and the QR code first.</p>
+        <div id="stMcWrap" class="hidden" style="margin-left:30px">
+          <label for="stMc">Merchant category code</label>
+          <input id="stMc" maxlength="4" inputmode="numeric" pattern="\d{4}" style="width:120px" placeholder="8299">
+          <p class="small muted" style="margin:2px 0 0">8299 = Schools &amp; educational services (the usual code for tuition centres).</p>
+        </div>
         <label for="stPayee">Payee name shown in UPI apps</label><input id="stPayee" required minlength="2" maxlength="100">
         <label for="stPhone">Contact phone</label><input id="stPhone" maxlength="20">
         <label for="stEmail">Contact email</label><input id="stEmail" type="email" maxlength="200">

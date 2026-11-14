@@ -73,6 +73,12 @@ The configured value always wins.
 `FEEFLOW_BOOTSTRAP_ADMIN_EMAIL` / `_PASSWORD` names still work, and the other `FEEFLOW_BOOTSTRAP_…`
 values are ignored and can be deleted.
 
+**Parents get "bank limit" / "server issues" errors in Google Pay?** That happens with **personal**
+UPI IDs: UPI apps block pre-filled payment links to them. Get a free business UPI ID (Google Pay for
+Business, PhonePe Business, Paytm for Business, BharatPe), enter it in **Settings**, and tick **This is a
+business (merchant) UPI ID**. Until then, parents can use **Pay using UPI ID** or **Save QR to gallery**
+on the payment page. Both work with personal UPI IDs.
+
 **Plans:** the blueprint uses free plans for trying it out. Free web services sleep after 15 minutes
 idle (the next request takes about a minute), and free databases are deleted after 30 days. For real
 centres switch to **Starter** (web) and **Basic** (database) in `render.yaml` or the dashboard.

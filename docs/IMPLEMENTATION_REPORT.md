@@ -184,3 +184,24 @@ confirm with UTR → parent page shows PAID + receipt → receipt page renders.
   The website flow was walked through in a browser.
 * **Not included:** subscription billing (activate centres by hand), email verification, password
   reset by email, and student photos.
+
+
+## Payments to personal UPI IDs (v2.3)
+
+Google Pay and PhonePe often block **pre-filled payment links to personal UPI IDs** (anti-fraud). They
+show misleading errors such as "exceeded the bank limit" or "receiver's bank is facing server issues",
+even for Rs. 1. No money is debited.
+
+* **Business (merchant) UPI IDs:** Settings → "This is a business (merchant) UPI ID" plus a merchant
+  category code (default `8299`, schools and education). Payment links then include `mc` and a stable,
+  unique `tr` reference per fee, as UPI apps expect for merchant payments. Get a free merchant UPI ID from
+  Google Pay for Business, PhonePe Business, Paytm for Business or BharatPe.
+* **Fallbacks on the parent page:**
+  * **Pay using UPI ID:** payee name, UPI ID, amount and note, each with a Copy button, plus steps. If an
+    in-app browser blocks copying, the value is selected for long-press copy.
+  * **Save QR to gallery:** `GET /api/v1/pay/{token}/qr.png?download=1`, a PNG with the amount, for
+    "Scan QR → upload from gallery".
+* **Order on the page:** for personal UPI IDs, a short tip is shown and these two ways come first, with the
+  one-tap app buttons last. For merchant IDs, the one-tap buttons come first.
+* **Tests:** backend 185 on SQLite and 187 on PostgreSQL. The browser check covered both page orders,
+  Copy, the QR download and the Settings switch.

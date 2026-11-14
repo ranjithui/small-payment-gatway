@@ -111,6 +111,23 @@ def upi_qr(secure_token: str, any_amount: bool = False, db: Session = Depends(ge
     return Response(buf.getvalue(), media_type="image/svg+xml", headers={"Cache-Control": "no-store"})
 
 
+@router.get("/pay/{secure_token}/qr.png", dependencies=[Depends(rate_limit("public_read", 60))])
+def upi_qr_png(secure_token: str, download: bool = False, db: Session = Depends(get_db)):
+    """PNG so parents can save it to the gallery and use 'Scan QR -> upload from gallery' in any UPI app."""
+    link = resolve_payment_link(db, secure_token, allow_expired=False)
+    view = svc.public_view(db, link)
+    db.commit()
+    if not view["can_pay"] or not view["upi"]:
+        raise HTTPException(status.HTTP_409_CONFLICT, detail="Payment is not available for this link")
+    buf = io.BytesIO()
+    segno.make(view["upi"]["uris"]["QR"], error="m").save(buf, kind="png", scale=10, border=4)
+    headers = {"Cache-Control": "no-store"}
+    if download:
+        safe = "".join(c for c in f"{view['student']['student_id']}-{view['fee']['billing_month']}" if c.isalnum() or c in "-_")
+        headers["Content-Disposition"] = f'attachment; filename="FeeFlow-UPI-QR-{safe}.png"'
+    return Response(buf.getvalue(), media_type="image/png", headers=headers)
+
+
 @router.get("/receipts/public/{receipt_token}", dependencies=[Depends(rate_limit("public_read", 60))])
 def public_receipt(receipt_token: str, db: Session = Depends(get_db)):
     return receipt_payload(db, receipt_token)

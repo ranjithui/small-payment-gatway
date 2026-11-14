@@ -60,6 +60,15 @@ pre.notes { white-space: pre-wrap; background: #f9fafb; padding: 8px; border-rad
 .tx { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: end; }
 @media print { .btn { display: none; } body { background: #fff; } }
 
+/* payment page: pay by UPI ID */
+.copyrow { display: grid; grid-template-columns: 70px 1fr auto; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+.copyrow b { word-break: break-all; user-select: all; -webkit-user-select: all; }
+.copyrow .copy.done { background: var(--ok-bg); color: var(--ok); }
+.steps { margin: 10px 0 0; padding-left: 20px; color: var(--ink); }
+.steps li + li { margin-top: 4px; }
+#payWays > * + * { margin-top: 12px; }
+#qrDetails summary { margin: 0; }
+
 /* read-only workspace (trial ended) */
 .readonly .needs-write { opacity: .45; pointer-events: none; }
 .stu { padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px; cursor: pointer; background: #fff; }

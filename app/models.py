@@ -49,6 +49,9 @@ class Tenant(Base):
     contact_email: Mapped[Optional[str]] = mapped_column(String(200))
     upi_vpa: Mapped[str] = mapped_column(String(100))
     upi_payee_name: Mapped[str] = mapped_column(String(100))
+    # Business (merchant) UPI ID: payment links then include the merchant code + a transaction reference.
+    upi_is_merchant: Mapped[bool] = mapped_column(Boolean, default=False)
+    merchant_code: Mapped[Optional[str]] = mapped_column(String(4))
     verification_grace_hours: Mapped[int] = mapped_column(Integer, default=24)
     reminder_frequency_hours: Mapped[int] = mapped_column(Integer, default=72)
     ack_sms_enabled: Mapped[bool] = mapped_column(Boolean, default=True)

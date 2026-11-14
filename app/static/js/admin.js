@@ -65,6 +65,7 @@
     if (!confirm(`Parents will pay to ${vpa}. Is this the centre's correct UPI ID?`)) return;
     try {
       await api("POST", "/api/v1/workspace", { name: $("wsName").value.trim(), upi_vpa: vpa, upi_payee_name: $("wsPayee").value.trim(),
+        upi_is_merchant: $("wsMerchant").checked,
         contact_phone: $("wsPhone").value.trim() || null, contact_email: $("wsEmail").value.trim() || null });
       start();
     } catch (err) { $("setupErr").textContent = err.message; }
@@ -76,8 +77,11 @@
     $("stPhone").value = w.contact_phone || ""; $("stEmail").value = w.contact_email || "";
     $("stGrace").value = w.verification_grace_hours; $("stFreq").value = w.reminder_frequency_hours;
     $("stAck").checked = w.ack_sms_enabled; $("stAuto").checked = w.auto_send_links; $("stCode").textContent = w.short_code;
+    $("stMerchant").checked = w.upi_is_merchant; $("stMc").value = w.merchant_code || "8299";
+    $("stMcWrap").classList.toggle("hidden", !w.upi_is_merchant);
     $("settingsForm").dataset.vpa = w.upi_vpa; $("stErr").textContent = ""; $("stOk").textContent = "";
   }
+  $("stMerchant").addEventListener("change", () => $("stMcWrap").classList.toggle("hidden", !$("stMerchant").checked));
   $("settingsForm").addEventListener("submit", async (e) => {
     e.preventDefault(); $("stErr").textContent = ""; $("stOk").textContent = "";
     const vpa = $("stVpa").value.trim();
@@ -85,7 +89,8 @@
     try {
       const w = await api("PATCH", "/api/v1/workspace", { name: $("stName").value.trim(), upi_vpa: vpa, upi_payee_name: $("stPayee").value.trim(),
         contact_phone: $("stPhone").value.trim(), contact_email: $("stEmail").value.trim(),
-        verification_grace_hours: +$("stGrace").value, reminder_frequency_hours: +$("stFreq").value, ack_sms_enabled: $("stAck").checked, auto_send_links: $("stAuto").checked });
+        verification_grace_hours: +$("stGrace").value, reminder_frequency_hours: +$("stFreq").value, ack_sms_enabled: $("stAck").checked, auto_send_links: $("stAuto").checked,
+        upi_is_merchant: $("stMerchant").checked, merchant_code: $("stMerchant").checked ? ($("stMc").value.trim() || "8299") : undefined });
       $("centreTitle").textContent = w.name; $("settingsForm").dataset.vpa = w.upi_vpa; $("stOk").textContent = "Saved.";
     } catch (err) { $("stErr").textContent = err.message; }
   });
