@@ -1,0 +1,3131 @@
+{
+ "layout": {
+  "navLinks": [
+   {
+    "label": "Classic Cakes",
+    "url": "/products"
+   },
+   {
+    "label": "Customised cakes",
+    "url": "/custom-cakes"
+   }
+  ],
+  "cakeNav": [
+   {
+    "name": "Birthday Cakes",
+    "slug": "birthday-cakes",
+    "children": [
+     {
+      "name": "Kids Birthday",
+      "slug": "kids-birthday"
+     },
+     {
+      "name": "Age-Specific",
+      "slug": "age-specific"
+     },
+     {
+      "name": "1st Birthday",
+      "slug": "1st-birthday"
+     },
+     {
+      "name": "Adult Birthday",
+      "slug": "adult-birthday"
+     },
+     {
+      "name": "Milestone Birthday",
+      "slug": "milestone-birthday"
+     }
+    ]
+   },
+   {
+    "name": "Theme Cakes",
+    "slug": "theme-cakes",
+    "children": [
+     {
+      "name": "Number & Alphabet",
+      "slug": "number-alphabet"
+     },
+     {
+      "name": "Kids",
+      "slug": "kids"
+     },
+     {
+      "name": "Photo Cakes",
+      "slug": "photo-cakes"
+     },
+     {
+      "name": "Cartoon",
+      "slug": "cartoon"
+     },
+     {
+      "name": "Designer",
+      "slug": "designer"
+     },
+     {
+      "name": "Floral",
+      "slug": "floral"
+     },
+     {
+      "name": "Character",
+      "slug": "character"
+     },
+     {
+      "name": "Sports",
+      "slug": "sports"
+     }
+    ]
+   },
+   {
+    "name": "Anniversary Cakes",
+    "slug": "anniversary-cakes",
+    "children": [
+     {
+      "name": "Couple Anniversary",
+      "slug": "couple-anniversary"
+     }
+    ]
+   },
+   {
+    "name": "Occasion Cakes",
+    "slug": "occasion-cakes",
+    "children": [
+     {
+      "name": "Festivals",
+      "slug": "festivals"
+     },
+     {
+      "name": "Designer",
+      "slug": "designer"
+     },
+     {
+      "name": "Farewell",
+      "slug": "farewell"
+     },
+     {
+      "name": "Special Days",
+      "slug": "special-days"
+     },
+     {
+      "name": "Baby Shower",
+      "slug": "baby-shower"
+     }
+    ]
+   },
+   {
+    "name": "Gifting",
+    "slug": "gifting",
+    "children": [
+     {
+      "name": "Hampers",
+      "slug": "hampers",
+      "href": "$undefined"
+     }
+    ]
+   }
+  ],
+  "announcements": [
+   "Free delivery on orders above ₹999",
+   "Opening on 13th november 2026 at Beeramguda!",
+   "Get a chance to win a PlayStation 5 on orders of ₹1,499 or more"
+  ],
+  "footer": {
+   "about_text": "KS Bakers is a brand built on passion, devotion, and an unwavering commitment to creating the best baked foods. What started as a small business in 1999 has grown into a beloved brand with a reputation for taste & trust.",
+   "link_columns": [
+    {
+     "links": [
+      {
+       "url": "/about",
+       "label": "Our Story"
+      },
+      {
+       "url": "/stores",
+       "label": "Locate Us"
+      },
+      {
+       "url": "/blog",
+       "label": "Blog"
+      },
+      {
+       "url": "https://ksbakers.greythr.com/hire/jobs/",
+       "label": "Careers"
+      }
+     ],
+     "heading": "Know us"
+    },
+    {
+     "links": [
+      {
+       "url": "/queries",
+       "label": "Contact Us"
+      },
+      {
+       "url": "/faq",
+       "label": "FAQ"
+      },
+      {
+       "url": "/privacy-policy",
+       "label": "Privacy Policy"
+      },
+      {
+       "url": "/terms-and-conditions",
+       "label": "Terms and Conditions"
+      },
+      {
+       "url": "/cancellation-and-refund-policy",
+       "label": "Cancellation and Refund"
+      }
+     ],
+     "heading": "Need help"
+    },
+    {
+     "links": [
+      {
+       "url": "/corporate-orders",
+       "label": "Corporate Orders"
+      },
+      {
+       "url": "/gifting",
+       "label": "Gifting"
+      },
+      {
+       "url": "/custom-cakes",
+       "label": "Custom Cakes"
+      }
+     ],
+     "heading": "More info"
+    }
+   ],
+   "phone": "+91 90101 11144",
+   "email": "online@ksbakers.com",
+   "social_links": [
+    {
+     "url": "https://www.instagram.com/ks_bakers/",
+     "icon": "instagram"
+    },
+    {
+     "url": "https://www.facebook.com/KSBakersofficial/",
+     "icon": "facebook"
+    },
+    {
+     "url": "https://x.com/KSBAKERS",
+     "icon": "x"
+    },
+    {
+     "url": "https://youtube.com/@ksbakersofficial?si=-Yb-qHhU0odvTCca",
+     "icon": "youtube"
+    },
+    {
+     "url": "wa.cheerio.in/ZPuNyI",
+     "icon": "whatsapp"
+    }
+   ],
+   "copyright_text": "Copyright {year}. KS Bakers Pvt. Ltd. Hyderabad, Telangana.",
+   "id": "1486cf72-af9a-4549-84e6-b437697e3840",
+   "updated_at": "2026-11-09T08:15:28.302Z"
+  }
+ },
+ "home": {
+  "heroBanners": [
+   {
+    "id": "e6e7cc73-6093-4627-a003-aa92aa2056b2",
+    "image_url": "http://127.0.0.1:9000/ksbakers/uploads/f32ed415-e58d-4151-93b1-b660ef398a54.jpg",
+    "image_url_hd": "http://127.0.0.1:9000/ksbakers/uploads/ed129cf6-63e6-4b53-a853-63102fc5af35.jpg",
+    "mobile_image_url": "http://127.0.0.1:9000/ksbakers/uploads/f0f43f3b-6948-4463-a355-cf889205478b.jpg",
+    "mobile_image_url_hd": "http://127.0.0.1:9000/ksbakers/uploads/7118bded-ad88-4752-a57d-7e3c7a438dd2.jpg",
+    "alt_text": null,
+    "link_url": "https://ksbakers.com/birthday-cakes"
+   },
+   {
+    "id": "652df676-1c26-4d79-b34a-8fd5f44bf87b",
+    "image_url": "http://127.0.0.1:9000/ksbakers/uploads/739815be-1d57-4342-a1fe-4accdb27a041.jpg",
+    "image_url_hd": "http://127.0.0.1:9000/ksbakers/uploads/9820d32f-36b5-42a9-bab9-0d97626b47ea.jpg",
+    "mobile_image_url": "http://127.0.0.1:9000/ksbakers/uploads/546c6be5-1fab-4c37-a3aa-2e40303a175e.jpg",
+    "mobile_image_url_hd": "http://127.0.0.1:9000/ksbakers/uploads/58c14c3e-9a83-4530-ae35-5babd7d42ff3.jpg",
+    "alt_text": null,
+    "link_url": "https://ksbakers.com/birthday-cakes"
+   }
+  ],
+  "promoBanners": [
+   {
+    "id": "cdce47ae-7b9c-4a1f-be5a-87f9a7dccb8b",
+    "image_url": "http://127.0.0.1:9000/ksbakers/uploads/e74a6105-4dd7-4d56-98df-22de4fc966dc.jpg",
+    "image_url_hd": null,
+    "mobile_image_url": "http://127.0.0.1:9000/ksbakers/uploads/19c11390-afaf-41d6-b6b2-063a015bb88a.jpg",
+    "mobile_image_url_hd": "http://127.0.0.1:9000/ksbakers/uploads/e212a41b-570c-499b-b66b-1e5a5e8097f6.jpg",
+    "alt_text": "Gifting",
+    "link_url": "/gifting"
+   }
+  ],
+  "homeStats": [
+   {
+    "id": "0cb7e02b-6f4b-4bad-9eb8-de7812ca6810",
+    "icon": "Award",
+    "count_text": "26+",
+    "label": "Years of Excellence"
+   },
+   {
+    "id": "2d6c4850-03cc-48b6-a6fa-797ea6e2405b",
+    "icon": "Store",
+    "count_text": "25+",
+    "label": "Outlets"
+   },
+   {
+    "id": "eca420ed-d54e-4996-af3d-1105a7e77c8b",
+    "icon": "Factory",
+    "count_text": "100%",
+    "label": "In-house Production"
+   },
+   {
+    "id": "43b36a0a-7c71-4a2a-9c9a-fa0b7a0f9216",
+    "icon": "Users",
+    "count_text": "10M+",
+    "label": "Happy Customers"
+   }
+  ],
+  "categoryTiles": [
+   {
+    "id": "08f29a79-457d-4296-99d0-563f5cdbbfec",
+    "image_url": "http://127.0.0.1:9000/ksbakers/uploads/b9fbf741-4114-4fea-b8f3-c58cca5ef5b7.jpg",
+    "label": "Classic cakes",
+    "link": "/products#cakes"
+   },
+   {
+    "id": "e1219cf7-3cac-481e-a040-14bee64c5d6b",
+    "image_url": "http://127.0.0.1:9000/ksbakers/uploads/98a2ffdb-9f55-40e0-8047-31b4b7887969.jpg",
+    "label": "Birthday",
+    "link": "https://ksbakers.com/birthday-cakes"
+   },
+   {
+    "id": "ea8ef904-0119-4bbc-a672-5eea478315c8",
+    "image_url": "http://127.0.0.1:9000/ksbakers/uploads/aeb79620-ffdf-4caf-89db-0cf07ff6b86c.jpg",
+    "label": "Anniversary",
+    "link": "https://ksbakers.com/anniversary-cakes"
+   },
+   {
+    "id": "ccd7dc63-3305-4526-b6ae-ad8d0019c381",
+    "image_url": "http://127.0.0.1:9000/ksbakers/uploads/5dd9d00e-263c-43cf-94a1-bd70cec5897e.jpg",
+    "label": "Theme Cakes",
+    "link": "https://ksbakers.com/theme-cakes"
+   },
+   {
+    "id": "9ea25949-048f-489b-8c8e-faba9dca5494",
+    "image_url": "http://127.0.0.1:9000/ksbakers/uploads/930113c8-0547-4367-8927-3dc1b95d2402.jpg",
+    "label": "Occasion",
+    "link": "https://ksbakers.com/occasion-cakes"
+   },
+   {
+    "id": "f3eafa7f-0923-4de5-b30b-c23ca8cea79d",
+    "image_url": "http://127.0.0.1:9000/ksbakers/uploads/ce06bf0f-50fb-4a71-a064-7b8686a1d731.jpg",
+    "label": "Gifting",
+    "link": "/gifting"
+   }
+  ],
+  "testimonials": [
+   {
+    "id": "de5cac6c-fa70-4ddc-abda-24304a23cc0c",
+    "quote": "Cakes! We've been getting cakes and other items from here since my childhood. Very hygienic and tasty. Fresh. Please open branches across AP.",
+    "name": "Kavya Reddy",
+    "rating": 5,
+    "link_url": "https://maps.app.goo.gl/4NGCjQYurgbpY4g28"
+   },
+   {
+    "id": "1c79d703-69f7-440d-a725-9735dbe6e6a1",
+    "quote": "The food was fresh and delicious. The taste was really good, and the quality was excellent. The packaging was neat and the order arrived in good condition. Overall, I had a very good experience with KS Bakers. Definitely worth trying!",
+    "name": "Srija",
+    "rating": 5,
+    "link_url": "https://maps.app.goo.gl/NFYsvtc6s2gSyMFXA"
+   },
+   {
+    "id": "ec30ef76-d0fa-4ab9-90c1-448b52324b10",
+    "quote": "Tasty food with good service, very polite staff and good ambience.",
+    "name": "Deepak Bansal",
+    "rating": 5,
+    "link_url": "https://maps.app.goo.gl/pHY1vrovaEpFwJsaA"
+   }
+  ],
+  "blogPosts": [],
+  "homeCta": {
+   "id": "c7c514aa-13c1-4abd-8970-81df6216a7b2",
+   "heading": "Corporate gifting starts here.",
+   "subheading": "Personalised hampers and goodie boxes for your whole Team.",
+   "cta_text": "Enquire Now",
+   "cta_url": "/queries",
+   "updated_at": "2026-09-18T05:59:34.723Z"
+  }
+ },
+ "listings": {
+  "/birthday-cakes/adult-birthday": {
+   "category": {
+    "name": "Birthday Cakes",
+    "slug": "birthday-cakes"
+   },
+   "sub": {
+    "name": "Adult Birthday",
+    "slug": "adult-birthday"
+   },
+   "children": [
+    {
+     "name": "Kids Birthday",
+     "slug": "kids-birthday"
+    },
+    {
+     "name": "Age-Specific",
+     "slug": "age-specific"
+    },
+    {
+     "name": "1st Birthday",
+     "slug": "1st-birthday"
+    },
+    {
+     "name": "Adult Birthday",
+     "slug": "adult-birthday"
+    },
+    {
+     "name": "Milestone Birthday",
+     "slug": "milestone-birthday"
+    }
+   ],
+   "cakes": [
+    "pink-butterfly-birthday-cake-cc045",
+    "pink-rose-birthday-cake",
+    "elegant-blue-and-gold-birthday-cake",
+    "lavender-daisy-birthday-cake",
+    "gentleman-face-cake",
+    "super-duper-thatha-cake",
+    "blue-white-floral-cake",
+    "pink-butterfly-birthday-cake",
+    "romantic-teddy-bear-birthday-cake",
+    "lavender-gold-balloon-cake",
+    "happy-birthday-husband-cake",
+    "squid-game-18th-birthday-cake",
+    "pink-floral-celebration-cake-cc226",
+    "classic-floral-tiered-cake",
+    "red-velvet-celebration-cake",
+    "pink-rose-birthday-cake-cc232",
+    "whiskey-label-birthday-cake",
+    "music-notes-birthday-cake",
+    "fitness-theme-birthday-cake",
+    "shirt-cap-birthday-cake"
+   ]
+  },
+  "/occasion-cakes/festivals": {
+   "category": {
+    "name": "Occasion Cakes",
+    "slug": "occasion-cakes"
+   },
+   "sub": {
+    "name": "Festivals",
+    "slug": "festivals"
+   },
+   "children": [
+    {
+     "name": "Festivals",
+     "slug": "festivals"
+    },
+    {
+     "name": "Designer",
+     "slug": "designer"
+    },
+    {
+     "name": "Farewell",
+     "slug": "farewell"
+    },
+    {
+     "name": "Special Days",
+     "slug": "special-days"
+    },
+    {
+     "name": "Baby Shower",
+     "slug": "baby-shower"
+    }
+   ],
+   "cakes": [
+    "happy-diwali-celebration-cake",
+    "diya-cake",
+    "christmas-elf-sprinkle-cake"
+   ]
+  },
+  "/occasion-cakes/designer": {
+   "category": {
+    "name": "Occasion Cakes",
+    "slug": "occasion-cakes"
+   },
+   "sub": {
+    "name": "Designer",
+    "slug": "designer"
+   },
+   "children": [
+    {
+     "name": "Festivals",
+     "slug": "festivals"
+    },
+    {
+     "name": "Designer",
+     "slug": "designer"
+    },
+    {
+     "name": "Farewell",
+     "slug": "farewell"
+    },
+    {
+     "name": "Special Days",
+     "slug": "special-days"
+    },
+    {
+     "name": "Baby Shower",
+     "slug": "baby-shower"
+    }
+   ],
+   "cakes": [
+    "lavender-heart-celebration-cake"
+   ]
+  },
+  "/birthday-cakes": {
+   "category": {
+    "name": "Birthday Cakes",
+    "slug": "birthday-cakes"
+   },
+   "sub": null,
+   "children": [
+    {
+     "name": "Kids Birthday",
+     "slug": "kids-birthday"
+    },
+    {
+     "name": "Age-Specific",
+     "slug": "age-specific"
+    },
+    {
+     "name": "1st Birthday",
+     "slug": "1st-birthday"
+    },
+    {
+     "name": "Adult Birthday",
+     "slug": "adult-birthday"
+    },
+    {
+     "name": "Milestone Birthday",
+     "slug": "milestone-birthday"
+    }
+   ],
+   "cakes": [
+    "pink-butterfly-birthday-cake-cc045",
+    "under-the-sea-theme-cake",
+    "gentleman-face-cake",
+    "12th-birthday-pink-cake",
+    "pink-rose-birthday-cake",
+    "jungle-animals-1st-birthday-cake",
+    "doll-dress-birthday-cake",
+    "red-race-car-birthday-cake",
+    "red-doll-dress-cake",
+    "golden-number-1-cake",
+    "floral-16-birthday-cake",
+    "naruto-birthday-cake",
+    "pink-gold-first-birthday-cake",
+    "teddy-bear-half-birthday-cake",
+    "superhero-theme-birthday-cake",
+    "spider-man-4th-birthday-cake",
+    "little-singham-theme-cake",
+    "superhero-icons-cake",
+    "pink-rose-birthday-cake-cc232",
+    "blue-balloon-birthday-cake",
+    "lavender-daisy-birthday-cake",
+    "pink-ruffle-first-birthday-cake",
+    "doll-floral-designer-cake",
+    "pink-rose-doll-birthday-cake",
+    "blue-cartoon-dog-birthday-cake",
+    "rainbow-unicorn-birthday-cake",
+    "butterfly-5th-birthday-cake",
+    "blue-doll-dress-cake",
+    "panda-garden-theme-cake",
+    "dragon-4th-birthday-cake",
+    "pink-and-purple-doll-dress-cake",
+    "panda-face-birthday-cake",
+    "first-birthday-jungle-animals-cake",
+    "minecraft-9th-birthday-cake",
+    "jungle-animals-theme-cake",
+    "jungle-animals-1st-birthday-cake-fc018",
+    "cute-puppy-treats-cake",
+    "super-duper-thatha-cake",
+    "butterfly-8th-birthday-cake",
+    "romantic-teddy-bear-birthday-cake",
+    "rainbow-doll-dress-cake",
+    "little-singham-2nd-birthday-cake",
+    "baby-shark-1st-birthday-cake",
+    "hello-kitty-pink-cake",
+    "lavender-gold-balloon-cake",
+    "red-and-white-doll-dress-cake",
+    "polar-bear-number-cake",
+    "pink-butterfly-birthday-cake",
+    "blue-and-purple-doll-dress-cake",
+    "pink-ruffle-doll-dress-cake",
+    "roller-skate-9th-birthday-cake",
+    "blue-floral-doll-dress-cake",
+    "car-cartoon-5th-birthday-cake",
+    "jungle-lion-1st-birthday-cake",
+    "among-us-8th-birthday-cake",
+    "pink-doll-dress-cake-with-roses",
+    "unicorn-5th-birthday-cake",
+    "ladybug-1st-birthday-cake",
+    "fairy-birthday-cake-with-butterflies",
+    "music-cat-5th-birthday-cake",
+    "masha-and-the-bear-theme-cake",
+    "50th-birthday-cricket-tv-theme-cake",
+    "elegant-blue-and-gold-birthday-cake",
+    "pink-elephant-birthday-cake",
+    "green-badminton-birthday-cake",
+    "basketball-10th-birthday-cake",
+    "floral-9th-birthday-cake",
+    "boo-ghost-4th-birthday-cake",
+    "blue-white-floral-cake",
+    "happy-birthday-husband-cake",
+    "unicorn-6th-birthday-cake",
+    "pink-unicorn-cake",
+    "beer-mug-30th-birthday-cake",
+    "baby-shark-birthday-cake",
+    "squid-game-18th-birthday-cake",
+    "baby-shark-underwater-birthday-cake",
+    "rainbow-butterfly-cake",
+    "pink-floral-celebration-cake-cc226",
+    "classic-floral-tiered-cake",
+    "red-velvet-celebration-cake",
+    "minecraft-theme-birthday-cake",
+    "whiskey-label-birthday-cake",
+    "lol-doll-7th-birthday-cake",
+    "captain-america-shield-cake-cc240",
+    "music-notes-birthday-cake",
+    "chhota-bheem-birthday-cake",
+    "floral-number-cake",
+    "ladybug-1st-birthday-cake-cc249",
+    "blue-star-number-cake",
+    "teddy-bear-number-cake-",
+    "floral-doll-1st-birthday-cake",
+    "40th-birthday-star-cake",
+    "unicorn-10th-birthday-cake",
+    "teddy-bear-12-birthday-cake",
+    "space-7th-birthday-cake",
+    "building-block-9th-birthday-cake",
+    "jungle-safari-1st-birthday-cake",
+    "fitness-theme-birthday-cake",
+    "green-teddy-bear-birthday-cake",
+    "vehicle-2nd-birthday-cake",
+    "jungle-animal-birthday-cake-fc042",
+    "teddy-bear-half-birthday-cake-sf012",
+    "farm-animals-birthday-cake",
+    "fox-moon-1st-birthday-cake",
+    "shirt-cap-birthday-cake",
+    "transport-theme-1st-birthday-cake",
+    "cartoon-number-cake"
+   ]
+  },
+  "/birthday-cakes/1st-birthday": {
+   "category": {
+    "name": "Birthday Cakes",
+    "slug": "birthday-cakes"
+   },
+   "sub": {
+    "name": "1st Birthday",
+    "slug": "1st-birthday"
+   },
+   "children": [
+    {
+     "name": "Kids Birthday",
+     "slug": "kids-birthday"
+    },
+    {
+     "name": "Age-Specific",
+     "slug": "age-specific"
+    },
+    {
+     "name": "1st Birthday",
+     "slug": "1st-birthday"
+    },
+    {
+     "name": "Adult Birthday",
+     "slug": "adult-birthday"
+    },
+    {
+     "name": "Milestone Birthday",
+     "slug": "milestone-birthday"
+    }
+   ],
+   "cakes": [
+    "pink-gold-first-birthday-cake",
+    "jungle-animals-1st-birthday-cake",
+    "pink-ruffle-first-birthday-cake",
+    "ladybug-1st-birthday-cake",
+    "first-birthday-jungle-animals-cake",
+    "jungle-animals-1st-birthday-cake-fc018",
+    "polar-bear-number-cake",
+    "jungle-lion-1st-birthday-cake",
+    "baby-shark-1st-birthday-cake",
+    "ladybug-1st-birthday-cake-cc249",
+    "floral-doll-1st-birthday-cake",
+    "jungle-safari-1st-birthday-cake",
+    "fox-moon-1st-birthday-cake",
+    "transport-theme-1st-birthday-cake"
+   ]
+  },
+  "/occasion-cakes/farewell": {
+   "category": {
+    "name": "Occasion Cakes",
+    "slug": "occasion-cakes"
+   },
+   "sub": {
+    "name": "Farewell",
+    "slug": "farewell"
+   },
+   "children": [
+    {
+     "name": "Festivals",
+     "slug": "festivals"
+    },
+    {
+     "name": "Designer",
+     "slug": "designer"
+    },
+    {
+     "name": "Farewell",
+     "slug": "farewell"
+    },
+    {
+     "name": "Special Days",
+     "slug": "special-days"
+    },
+    {
+     "name": "Baby Shower",
+     "slug": "baby-shower"
+    }
+   ],
+   "cakes": [
+    "airplane-journey-cake"
+   ]
+  },
+  "/birthday-cakes/kids-birthday": {
+   "category": {
+    "name": "Birthday Cakes",
+    "slug": "birthday-cakes"
+   },
+   "sub": {
+    "name": "Kids Birthday",
+    "slug": "kids-birthday"
+   },
+   "children": [
+    {
+     "name": "Kids Birthday",
+     "slug": "kids-birthday"
+    },
+    {
+     "name": "Age-Specific",
+     "slug": "age-specific"
+    },
+    {
+     "name": "1st Birthday",
+     "slug": "1st-birthday"
+    },
+    {
+     "name": "Adult Birthday",
+     "slug": "adult-birthday"
+    },
+    {
+     "name": "Milestone Birthday",
+     "slug": "milestone-birthday"
+    }
+   ],
+   "cakes": [
+    "doll-floral-designer-cake",
+    "red-doll-dress-cake",
+    "under-the-sea-theme-cake",
+    "superhero-icons-cake",
+    "naruto-birthday-cake",
+    "blue-cartoon-dog-birthday-cake",
+    "superhero-theme-birthday-cake",
+    "hello-kitty-pink-cake",
+    "little-singham-theme-cake",
+    "blue-balloon-birthday-cake",
+    "doll-dress-birthday-cake",
+    "blue-doll-dress-cake",
+    "pink-and-purple-doll-dress-cake",
+    "blue-and-purple-doll-dress-cake",
+    "rainbow-doll-dress-cake",
+    "pink-ruffle-doll-dress-cake",
+    "pink-doll-dress-cake-with-roses",
+    "blue-floral-doll-dress-cake",
+    "teddy-bear-half-birthday-cake-sf012",
+    "red-and-white-doll-dress-cake",
+    "panda-face-birthday-cake",
+    "red-race-car-birthday-cake",
+    "rainbow-unicorn-birthday-cake",
+    "panda-garden-theme-cake",
+    "fairy-birthday-cake-with-butterflies",
+    "cute-puppy-treats-cake",
+    "masha-and-the-bear-theme-cake",
+    "pink-elephant-birthday-cake",
+    "pink-unicorn-cake",
+    "jungle-animal-birthday-cake-fc042",
+    "pink-rose-doll-birthday-cake",
+    "green-teddy-bear-birthday-cake"
+   ]
+  },
+  "/birthday-cakes/milestone-birthday": {
+   "category": {
+    "name": "Birthday Cakes",
+    "slug": "birthday-cakes"
+   },
+   "sub": {
+    "name": "Milestone Birthday",
+    "slug": "milestone-birthday"
+   },
+   "children": [
+    {
+     "name": "Kids Birthday",
+     "slug": "kids-birthday"
+    },
+    {
+     "name": "Age-Specific",
+     "slug": "age-specific"
+    },
+    {
+     "name": "1st Birthday",
+     "slug": "1st-birthday"
+    },
+    {
+     "name": "Adult Birthday",
+     "slug": "adult-birthday"
+    },
+    {
+     "name": "Milestone Birthday",
+     "slug": "milestone-birthday"
+    }
+   ],
+   "cakes": [
+    "50th-birthday-cricket-tv-theme-cake",
+    "beer-mug-30th-birthday-cake",
+    "40th-birthday-star-cake"
+   ]
+  },
+  "/theme-cakes": {
+   "category": {
+    "name": "Theme Cakes",
+    "slug": "theme-cakes"
+   },
+   "sub": null,
+   "children": [
+    {
+     "name": "Number & Alphabet",
+     "slug": "number-alphabet"
+    },
+    {
+     "name": "Kids",
+     "slug": "kids"
+    },
+    {
+     "name": "Photo Cakes",
+     "slug": "photo-cakes"
+    },
+    {
+     "name": "Cartoon",
+     "slug": "cartoon"
+    },
+    {
+     "name": "Designer",
+     "slug": "designer"
+    },
+    {
+     "name": "Floral",
+     "slug": "floral"
+    },
+    {
+     "name": "Character",
+     "slug": "character"
+    },
+    {
+     "name": "Sports",
+     "slug": "sports"
+    }
+   ],
+   "cakes": [
+    "pink-bow-heart-cake",
+    "pink-pearl-bow-cake",
+    "lavender-rose-designer-cake",
+    "pink-heart-rose-cake",
+    "pastel-daisy-cake",
+    "baby-shoes-cake",
+    "pink-floral-celebration-cake-cc226",
+    "purple-rose-designer-cake",
+    "teddy-bear-half-birthday-cake",
+    "pink-crown-rose-cake",
+    "doll-floral-designer-cake",
+    "under-the-sea-theme-cake",
+    "mermaid-ocean-theme-cake",
+    "doraemon-theme-cake",
+    "purple-butterfly-floral-cake",
+    "purple-barbie-doll-cake",
+    "football-cake-cc058",
+    "baby-shark-1st-birthday-cake",
+    "red-doll-dress-cake",
+    "colourful-chocolate-candy-cake",
+    "airplane-theme-cake-cc061",
+    "ice-cream-cone-theme-cake",
+    "mermaid-photo-cake",
+    "pink-butterfly-cake",
+    "bride-to-be-cake",
+    "romantic-heart-couple-cake",
+    "watermelon-character-cake",
+    "baby-rainbow-character-cake",
+    "red-rose-heart-cake-sf011",
+    "blue-white-rose-cake",
+    "moon-and-sun-theme-cake",
+    "gentleman-face-cake",
+    "red-rose-heart-cake",
+    "angry-birds-theme-cake",
+    "rose-bow-red-white-cake",
+    "teddy-bear-half-birthday-cake-sf012",
+    "coral-ocean-theme-cake",
+    "youtube-theme-cake",
+    "blue-basket-weave-cake",
+    "pink-heart-buttercream-cake",
+    "red-rose-designer-cake",
+    "cricket-stadium-cake",
+    "teddy-bear-12-birthday-cake",
+    "teddy-bear-cloud-cake",
+    "teddy-bear-number-cake",
+    "unicorn-10th-birthday-cake",
+    "lavender-daisy-birthday-cake",
+    "lavender-swirl-designer-cake",
+    "blue-butterfly-theme-cake",
+    "blue-white-floral-cake",
+    "unicorn-rainbow-butterfly-cake",
+    "romantic-couple-anniversary-cake-cc146",
+    "purple-rose-butterfly-cake",
+    "rose-macaron-floral-cake",
+    "baby-shark-birthday-cake",
+    "red-race-car-birthday-cake",
+    "gym-fitness-theme-cake",
+    "pink-butterfly-rose-cake",
+    "dance-theme-rosette-cake",
+    "jungle-animals-1st-birthday-cake",
+    "blue-floral-couple-anniversary-cake",
+    "rainbow-unicorn-birthday-cake",
+    "romantic-heart-rose-couple-cake",
+    "christmas-elf-sprinkle-cake",
+    "purple-cartoon-bee-theme-cake",
+    "hello-kitty-floral-cake",
+    "watermelon-cartoon-cake",
+    "couple-silhouette-anniversary-cake",
+    "pink-rose-heart-cake",
+    "butterfly-floral-garden-cake",
+    "bunny-character-theme-cake",
+    "jungle-safari-theme-cake",
+    "panda-bamboo-theme-cake",
+    "rainbow-sprinkle-designer-cake",
+    "superhero-icons-cake",
+    "pink-floral-celebration-cake",
+    "butterfly-5th-birthday-cake",
+    "lion-face-theme-cake",
+    "red-blue-scooter-theme-cake",
+    "spider-man-4th-birthday-cake",
+    "007-secret-agent-cake",
+    "squid-game-18th-birthday-cake",
+    "tiger-face-theme-cake",
+    "uno-game-theme-cake",
+    "romantic-couple-anniversary-cake",
+    "football-cake",
+    "pink-puppy-face-cake",
+    "teddy-bear-green-drip-cake",
+    "romantic-couple-photo-cake",
+    "baby-shark-underwater-birthday-cake",
+    "rainbow-butterfly-cake",
+    "jungle-animals-cake-cc222",
+    "blue-purple-butterfly-floral-cake",
+    "little-singham-theme-cake",
+    "blue-white-rose-designer-cake",
+    "pink-blue-baby-shower-cake",
+    "doll-dress-birthday-cake",
+    "romantic-rose-proposal-cake",
+    "pink-ruffle-first-birthday-cake",
+    "blue-coral-ocean-theme-cake",
+    "ballet-girl-theme-cake",
+    "superhero-theme-birthday-cake",
+    "blue-butterfly-pearl-cake",
+    "minecraft-9th-birthday-cake",
+    "blue-doll-dress-cake",
+    "panda-garden-theme-cake",
+    "classic-floral-tiered-cake",
+    "pink-donut-drip-cake",
+    "purple-floral-designer-cake",
+    "blue-cartoon-dog-birthday-cake",
+    "dragon-4th-birthday-cake",
+    "captain-america-shield-cake",
+    "pink-and-purple-doll-dress-cake",
+    "pink-gold-first-birthday-cake",
+    "20th-anniversary-heart-cake",
+    "jungle-animals-theme-cake",
+    "romantic-teddy-bear-birthday-cake",
+    "hello-kitty-pink-cake",
+    "rainbow-doll-dress-cake",
+    "lavender-gold-balloon-cake",
+    "bunny-face-cake",
+    "pink-daisy-heart-cake",
+    "solar-system-theme-cake",
+    "panda-face-cake",
+    "red-and-white-doll-dress-cake",
+    "floral-9th-birthday-cake",
+    "polar-bear-number-cake",
+    "rainbow-unicorn-cake",
+    "pink-butterfly-birthday-cake",
+    "red-rose-anniversary-cake",
+    "blue-and-purple-doll-dress-cake",
+    "proposal-heart-cake",
+    "football-field-cake",
+    "butterfly-8th-birthday-cake",
+    "butterfly-floral-cake",
+    "airplane-journey-cake",
+    "pink-ruffle-doll-dress-cake",
+    "pink-rose-birthday-cake-cc232",
+    "roller-skate-9th-birthday-cake",
+    "dinosaur-theme-cake",
+    "blue-butterfly-floral-cake",
+    "blue-floral-doll-dress-cake",
+    "minecraft-theme-birthday-cake",
+    "car-cartoon-5th-birthday-cake",
+    "jungle-animals-cake",
+    "among-us-8th-birthday-cake",
+    "pink-doll-dress-cake-with-roses",
+    "chocolate-heart-floral-cake",
+    "sheep-theme-cake",
+    "unicorn-5th-birthday-cake",
+    "pink-butterfly-floral-cake",
+    "road-track-theme-cake",
+    "pink-rose-floral-designer-cake",
+    "naruto-birthday-cake",
+    "peppa-pig-family-cake",
+    "lion-face-cake",
+    "ladybug-1st-birthday-cake",
+    "whiskey-label-birthday-cake",
+    "yin-yang-floral-cake",
+    "jungle-animal-birthday-cake",
+    "pink-barbie-doll-cake",
+    "panda-face-birthday-cake",
+    "fairy-birthday-cake-with-butterflies",
+    "football-cake-cc238",
+    "cute-puppy-treats-cake",
+    "girl-with-balloons-theme-cake",
+    "lol-doll-7th-birthday-cake",
+    "fashion-dress-designer-cake",
+    "masha-and-the-bear-theme-cake",
+    "50th-birthday-cricket-tv-theme-cake",
+    "captain-america-shield-cake-cc240",
+    "airplane-theme-cake",
+    "pink-elephant-birthday-cake",
+    "basketball-10th-birthday-cake",
+    "music-notes-birthday-cake",
+    "golden-floral-couple-cake",
+    "floral-doll-designer-cake",
+    "chhota-bheem-birthday-cake",
+    "cricket-theme-cake",
+    "cricket-ground-theme-cake",
+    "boo-ghost-4th-birthday-cake",
+    "rainbow-sprinkle-cake",
+    "jungle-animal-cake",
+    "two-tier-cream-cake",
+    "happy-birthday-husband-cake",
+    "unicorn-6th-birthday-cake",
+    "floral-number-cake",
+    "purple-doll-dress-cake",
+    "pink-unicorn-cake",
+    "cricket-champion-theme-cake",
+    "rainbow-sprinkle-drip-cake",
+    "jungle-lion-1st-birthday-cake",
+    "ladybug-1st-birthday-cake-cc249",
+    "rose-heart-anniversary-cake",
+    "orange-rose-floral-cake",
+    "blue-star-number-cake",
+    "romantic-couple-heart-cake",
+    "jungle-animals-1st-birthday-cake-fc018",
+    "teddy-bear-number-cake-",
+    "music-cat-5th-birthday-cake",
+    "pink-rose-anniversary-cake",
+    "beer-mug-30th-birthday-cake",
+    "doll-dress-cake",
+    "green-badminton-birthday-cake",
+    "floral-doll-1st-birthday-cake",
+    "pink-rose-doll-birthday-cake",
+    "whiskey-bottle-theme-cake",
+    "blue-floral-doll-cake",
+    "papa-shirt-theme-cake",
+    "pink-orange-floral-doll-cake",
+    "prince-or-princess-baby-shower-cake",
+    "red-floral-doll-cake",
+    "red-flower-doll-cake",
+    "blue-double-doll-cake",
+    "building-block-9th-birthday-cake",
+    "airplane-pilot-cake",
+    "jungle-safari-1st-birthday-cake",
+    "jungle-animal-adventure-cake",
+    "romantic-proposal-heart-cake",
+    "fitness-theme-birthday-cake",
+    "makeup-artist-theme-cake",
+    "green-teddy-bear-birthday-cake",
+    "vehicle-2nd-birthday-cake",
+    "teddy-bear-cloud-theme-cake",
+    "jungle-animal-birthday-cake-fc042",
+    "mermaid-underwater-theme-cake",
+    "moon-and-teddy-bear-cake",
+    "hello-kitty-floral-cake-fc051",
+    "school-theme-cake",
+    "40th-birthday-star-cake",
+    "farm-animals-birthday-cake",
+    "roulette-king-theme-cake",
+    "mermaid-underwater-theme-cake-fc059",
+    "little-singham-2nd-birthday-cake",
+    "doctor-theme-cake",
+    "space-7th-birthday-cake",
+    "blackpink-theme-cake",
+    "doctor-theme-cake-fc066",
+    "fox-moon-1st-birthday-cake",
+    "wedding-couple-theme-cake",
+    "traditional-wedding-couple-cake",
+    "shirt-cap-birthday-cake",
+    "tooth-shaped-dentist-cake",
+    "transport-theme-1st-birthday-cake",
+    "red-car-theme-cake",
+    "minnie-mouse-theme-cake",
+    "blue-motorcycle-theme-cake",
+    "teddy-bear-heart-cake-fc084",
+    "cartoon-number-cake",
+    "house-theme-cake",
+    "fashion-theme-cake",
+    "couple-character-cake",
+    "blue-bow-designer-cake",
+    "pastel-rainbow-drip-cake",
+    "pink-heart-rose-cake-cc008",
+    "pink-butterfly-cake-cc013",
+    "hello-kitty-pink-cake-cc071",
+    "dinosaur-theme-cake-cc073"
+   ]
+  },
+  "/theme-cakes/number-alphabet": {
+   "category": {
+    "name": "Theme Cakes",
+    "slug": "theme-cakes"
+   },
+   "sub": {
+    "name": "Number & Alphabet",
+    "slug": "number-alphabet"
+   },
+   "children": [
+    {
+     "name": "Number & Alphabet",
+     "slug": "number-alphabet"
+    },
+    {
+     "name": "Kids",
+     "slug": "kids"
+    },
+    {
+     "name": "Photo Cakes",
+     "slug": "photo-cakes"
+    },
+    {
+     "name": "Cartoon",
+     "slug": "cartoon"
+    },
+    {
+     "name": "Designer",
+     "slug": "designer"
+    },
+    {
+     "name": "Floral",
+     "slug": "floral"
+    },
+    {
+     "name": "Character",
+     "slug": "character"
+    },
+    {
+     "name": "Sports",
+     "slug": "sports"
+    }
+   ],
+   "cakes": [
+    "spider-man-4th-birthday-cake",
+    "floral-number-cake",
+    "teddy-bear-number-cake-",
+    "blue-star-number-cake",
+    "jungle-animals-cake-cc222",
+    "polar-bear-number-cake",
+    "road-track-theme-cake",
+    "cartoon-number-cake"
+   ]
+  },
+  "/theme-cakes/kids": {
+   "category": {
+    "name": "Theme Cakes",
+    "slug": "theme-cakes"
+   },
+   "sub": {
+    "name": "Kids",
+    "slug": "kids"
+   },
+   "children": [
+    {
+     "name": "Number & Alphabet",
+     "slug": "number-alphabet"
+    },
+    {
+     "name": "Kids",
+     "slug": "kids"
+    },
+    {
+     "name": "Photo Cakes",
+     "slug": "photo-cakes"
+    },
+    {
+     "name": "Cartoon",
+     "slug": "cartoon"
+    },
+    {
+     "name": "Designer",
+     "slug": "designer"
+    },
+    {
+     "name": "Floral",
+     "slug": "floral"
+    },
+    {
+     "name": "Character",
+     "slug": "character"
+    },
+    {
+     "name": "Sports",
+     "slug": "sports"
+    }
+   ],
+   "cakes": [
+    "under-the-sea-theme-cake",
+    "jungle-animals-1st-birthday-cake",
+    "baby-shark-birthday-cake",
+    "baby-shark-underwater-birthday-cake",
+    "uno-game-theme-cake",
+    "panda-bamboo-theme-cake",
+    "spider-man-4th-birthday-cake",
+    "rainbow-unicorn-birthday-cake",
+    "butterfly-5th-birthday-cake",
+    "jungle-safari-theme-cake",
+    "pink-gold-first-birthday-cake",
+    "lion-face-theme-cake",
+    "red-blue-scooter-theme-cake",
+    "rainbow-butterfly-cake",
+    "tiger-face-theme-cake",
+    "teddy-bear-green-drip-cake",
+    "pink-blue-baby-shower-cake",
+    "ballet-girl-theme-cake",
+    "captain-america-shield-cake-cc240",
+    "panda-garden-theme-cake",
+    "ice-cream-cone-theme-cake",
+    "jungle-animals-theme-cake",
+    "polar-bear-number-cake",
+    "cute-puppy-treats-cake",
+    "pink-ruffle-first-birthday-cake",
+    "dinosaur-theme-cake",
+    "car-cartoon-5th-birthday-cake",
+    "jungle-lion-1st-birthday-cake",
+    "jungle-animals-cake",
+    "airplane-journey-cake",
+    "ladybug-1st-birthday-cake",
+    "building-block-9th-birthday-cake",
+    "jungle-animal-birthday-cake",
+    "pink-elephant-birthday-cake",
+    "rainbow-sprinkle-cake",
+    "jungle-animal-cake",
+    "pink-unicorn-cake",
+    "mermaid-underwater-theme-cake-fc059",
+    "space-7th-birthday-cake",
+    "ladybug-1st-birthday-cake-cc249",
+    "jungle-animals-1st-birthday-cake-fc018",
+    "airplane-pilot-cake",
+    "jungle-safari-1st-birthday-cake",
+    "jungle-animal-adventure-cake",
+    "teddy-bear-cloud-theme-cake",
+    "fox-moon-1st-birthday-cake",
+    "jungle-animal-birthday-cake-fc042",
+    "moon-and-teddy-bear-cake",
+    "farm-animals-birthday-cake",
+    "transport-theme-1st-birthday-cake",
+    "dragon-4th-birthday-cake",
+    "dinosaur-theme-cake-cc073",
+    "watermelon-character-cake",
+    "teddy-bear-cloud-cake",
+    "teddy-bear-number-cake",
+    "moon-and-sun-theme-cake",
+    "red-car-theme-cake",
+    "teddy-bear-12-birthday-cake",
+    "teddy-bear-half-birthday-cake-sf012"
+   ]
+  },
+  "/theme-cakes/photo-cakes": {
+   "category": {
+    "name": "Theme Cakes",
+    "slug": "theme-cakes"
+   },
+   "sub": {
+    "name": "Photo Cakes",
+    "slug": "photo-cakes"
+   },
+   "children": [
+    {
+     "name": "Number & Alphabet",
+     "slug": "number-alphabet"
+    },
+    {
+     "name": "Kids",
+     "slug": "kids"
+    },
+    {
+     "name": "Photo Cakes",
+     "slug": "photo-cakes"
+    },
+    {
+     "name": "Cartoon",
+     "slug": "cartoon"
+    },
+    {
+     "name": "Designer",
+     "slug": "designer"
+    },
+    {
+     "name": "Floral",
+     "slug": "floral"
+    },
+    {
+     "name": "Character",
+     "slug": "character"
+    },
+    {
+     "name": "Sports",
+     "slug": "sports"
+    }
+   ],
+   "cakes": [
+    "mermaid-photo-cake",
+    "romantic-couple-photo-cake"
+   ]
+  },
+  "/theme-cakes/cartoon": {
+   "category": {
+    "name": "Theme Cakes",
+    "slug": "theme-cakes"
+   },
+   "sub": {
+    "name": "Cartoon",
+    "slug": "cartoon"
+   },
+   "children": [
+    {
+     "name": "Number & Alphabet",
+     "slug": "number-alphabet"
+    },
+    {
+     "name": "Kids",
+     "slug": "kids"
+    },
+    {
+     "name": "Photo Cakes",
+     "slug": "photo-cakes"
+    },
+    {
+     "name": "Cartoon",
+     "slug": "cartoon"
+    },
+    {
+     "name": "Designer",
+     "slug": "designer"
+    },
+    {
+     "name": "Floral",
+     "slug": "floral"
+    },
+    {
+     "name": "Character",
+     "slug": "character"
+    },
+    {
+     "name": "Sports",
+     "slug": "sports"
+    }
+   ],
+   "cakes": [
+    "naruto-birthday-cake",
+    "blue-cartoon-dog-birthday-cake",
+    "masha-and-the-bear-theme-cake",
+    "purple-cartoon-bee-theme-cake",
+    "watermelon-cartoon-cake",
+    "bunny-character-theme-cake"
+   ]
+  },
+  "/theme-cakes/designer": {
+   "category": {
+    "name": "Theme Cakes",
+    "slug": "theme-cakes"
+   },
+   "sub": {
+    "name": "Designer",
+    "slug": "designer"
+   },
+   "children": [
+    {
+     "name": "Number & Alphabet",
+     "slug": "number-alphabet"
+    },
+    {
+     "name": "Kids",
+     "slug": "kids"
+    },
+    {
+     "name": "Photo Cakes",
+     "slug": "photo-cakes"
+    },
+    {
+     "name": "Cartoon",
+     "slug": "cartoon"
+    },
+    {
+     "name": "Designer",
+     "slug": "designer"
+    },
+    {
+     "name": "Floral",
+     "slug": "floral"
+    },
+    {
+     "name": "Character",
+     "slug": "character"
+    },
+    {
+     "name": "Sports",
+     "slug": "sports"
+    }
+   ],
+   "cakes": [
+    "doll-floral-designer-cake",
+    "blue-butterfly-theme-cake",
+    "romantic-couple-anniversary-cake-cc146",
+    "pink-pearl-bow-cake",
+    "red-race-car-birthday-cake",
+    "blue-bow-designer-cake",
+    "dance-theme-rosette-cake",
+    "squid-game-18th-birthday-cake",
+    "christmas-elf-sprinkle-cake",
+    "pink-bow-heart-cake",
+    "pastel-rainbow-drip-cake",
+    "gym-fitness-theme-cake",
+    "couple-silhouette-anniversary-cake",
+    "butterfly-floral-garden-cake",
+    "rainbow-sprinkle-designer-cake",
+    "pink-butterfly-cake-cc013",
+    "colourful-chocolate-candy-cake",
+    "007-secret-agent-cake",
+    "lavender-swirl-designer-cake",
+    "blue-purple-butterfly-floral-cake",
+    "rainbow-butterfly-cake",
+    "purple-butterfly-floral-cake",
+    "romantic-rose-proposal-cake",
+    "romantic-heart-couple-cake",
+    "pink-butterfly-cake",
+    "blue-coral-ocean-theme-cake",
+    "blue-butterfly-pearl-cake",
+    "pink-donut-drip-cake",
+    "captain-america-shield-cake",
+    "pink-gold-first-birthday-cake",
+    "lavender-gold-balloon-cake",
+    "mermaid-ocean-theme-cake",
+    "baby-shoes-cake",
+    "proposal-heart-cake",
+    "pink-ruffle-first-birthday-cake",
+    "solar-system-theme-cake",
+    "airplane-journey-cake",
+    "pink-butterfly-floral-cake",
+    "whiskey-label-birthday-cake",
+    "yin-yang-floral-cake",
+    "airplane-theme-cake-cc061",
+    "fashion-dress-designer-cake",
+    "50th-birthday-cricket-tv-theme-cake",
+    "airplane-theme-cake",
+    "pink-heart-buttercream-cake",
+    "music-notes-birthday-cake",
+    "golden-floral-couple-cake",
+    "floral-doll-designer-cake",
+    "coral-ocean-theme-cake",
+    "blue-basket-weave-cake",
+    "lavender-daisy-birthday-cake",
+    "two-tier-cream-cake",
+    "happy-birthday-husband-cake",
+    "cricket-champion-theme-cake",
+    "rainbow-sprinkle-drip-cake",
+    "beer-mug-30th-birthday-cake",
+    "romantic-couple-heart-cake",
+    "youtube-theme-cake",
+    "whiskey-bottle-theme-cake",
+    "papa-shirt-theme-cake",
+    "prince-or-princess-baby-shower-cake",
+    "romantic-proposal-heart-cake",
+    "fitness-theme-birthday-cake",
+    "makeup-artist-theme-cake",
+    "mermaid-underwater-theme-cake",
+    "school-theme-cake",
+    "40th-birthday-star-cake",
+    "roulette-king-theme-cake",
+    "doctor-theme-cake",
+    "blackpink-theme-cake",
+    "doctor-theme-cake-fc066",
+    "shirt-cap-birthday-cake",
+    "blue-motorcycle-theme-cake",
+    "tooth-shaped-dentist-cake",
+    "house-theme-cake",
+    "fashion-theme-cake"
+   ]
+  },
+  "/theme-cakes/floral": {
+   "category": {
+    "name": "Theme Cakes",
+    "slug": "theme-cakes"
+   },
+   "sub": {
+    "name": "Floral",
+    "slug": "floral"
+   },
+   "children": [
+    {
+     "name": "Number & Alphabet",
+     "slug": "number-alphabet"
+    },
+    {
+     "name": "Kids",
+     "slug": "kids"
+    },
+    {
+     "name": "Photo Cakes",
+     "slug": "photo-cakes"
+    },
+    {
+     "name": "Cartoon",
+     "slug": "cartoon"
+    },
+    {
+     "name": "Designer",
+     "slug": "designer"
+    },
+    {
+     "name": "Floral",
+     "slug": "floral"
+    },
+    {
+     "name": "Character",
+     "slug": "character"
+    },
+    {
+     "name": "Sports",
+     "slug": "sports"
+    }
+   ],
+   "cakes": [
+    "blue-white-floral-cake",
+    "purple-rose-butterfly-cake",
+    "rose-macaron-floral-cake",
+    "lavender-rose-designer-cake",
+    "pink-butterfly-rose-cake",
+    "blue-floral-couple-anniversary-cake",
+    "romantic-heart-rose-couple-cake",
+    "pink-heart-rose-cake",
+    "pink-rose-heart-cake",
+    "butterfly-floral-garden-cake",
+    "pink-heart-rose-cake-cc008",
+    "pink-floral-celebration-cake",
+    "blue-purple-butterfly-floral-cake",
+    "romantic-couple-anniversary-cake",
+    "blue-white-rose-designer-cake",
+    "romantic-rose-proposal-cake",
+    "pink-floral-celebration-cake-cc226",
+    "classic-floral-tiered-cake",
+    "purple-floral-designer-cake",
+    "20th-anniversary-heart-cake",
+    "pink-daisy-heart-cake",
+    "floral-9th-birthday-cake",
+    "pink-butterfly-birthday-cake",
+    "red-rose-anniversary-cake",
+    "blue-white-rose-cake",
+    "butterfly-8th-birthday-cake",
+    "purple-rose-designer-cake",
+    "pink-rose-birthday-cake-cc232",
+    "butterfly-floral-cake",
+    "blue-butterfly-floral-cake",
+    "rose-bow-red-white-cake",
+    "chocolate-heart-floral-cake",
+    "pink-butterfly-floral-cake",
+    "red-rose-heart-cake",
+    "pink-rose-floral-designer-cake",
+    "red-rose-designer-cake",
+    "pink-crown-rose-cake",
+    "pastel-daisy-cake",
+    "golden-floral-couple-cake",
+    "floral-doll-designer-cake",
+    "lavender-daisy-birthday-cake",
+    "purple-doll-dress-cake",
+    "rose-heart-anniversary-cake",
+    "orange-rose-floral-cake",
+    "pink-rose-anniversary-cake",
+    "red-rose-heart-cake-sf011"
+   ]
+  },
+  "/theme-cakes/character": {
+   "category": {
+    "name": "Theme Cakes",
+    "slug": "theme-cakes"
+   },
+   "sub": {
+    "name": "Character",
+    "slug": "character"
+   },
+   "children": [
+    {
+     "name": "Number & Alphabet",
+     "slug": "number-alphabet"
+    },
+    {
+     "name": "Kids",
+     "slug": "kids"
+    },
+    {
+     "name": "Photo Cakes",
+     "slug": "photo-cakes"
+    },
+    {
+     "name": "Cartoon",
+     "slug": "cartoon"
+    },
+    {
+     "name": "Designer",
+     "slug": "designer"
+    },
+    {
+     "name": "Floral",
+     "slug": "floral"
+    },
+    {
+     "name": "Character",
+     "slug": "character"
+    },
+    {
+     "name": "Sports",
+     "slug": "sports"
+    }
+   ],
+   "cakes": [
+    "couple-character-cake",
+    "unicorn-rainbow-butterfly-cake",
+    "baby-shark-birthday-cake",
+    "baby-shark-underwater-birthday-cake",
+    "hello-kitty-floral-cake",
+    "baby-shark-1st-birthday-cake",
+    "superhero-icons-cake",
+    "red-doll-dress-cake",
+    "spider-man-4th-birthday-cake",
+    "little-singham-2nd-birthday-cake",
+    "hello-kitty-pink-cake-cc071",
+    "pink-puppy-face-cake",
+    "teddy-bear-green-drip-cake",
+    "teddy-bear-half-birthday-cake",
+    "little-singham-theme-cake",
+    "doll-dress-birthday-cake",
+    "angry-birds-theme-cake",
+    "superhero-theme-birthday-cake",
+    "minecraft-9th-birthday-cake",
+    "blue-doll-dress-cake",
+    "panda-garden-theme-cake",
+    "bride-to-be-cake",
+    "pink-and-purple-doll-dress-cake",
+    "romantic-teddy-bear-birthday-cake",
+    "hello-kitty-pink-cake",
+    "rainbow-doll-dress-cake",
+    "bunny-face-cake",
+    "baby-rainbow-character-cake",
+    "panda-face-cake",
+    "red-and-white-doll-dress-cake",
+    "rainbow-unicorn-cake",
+    "blue-and-purple-doll-dress-cake",
+    "pink-ruffle-doll-dress-cake",
+    "gentleman-face-cake",
+    "blue-floral-doll-dress-cake",
+    "minecraft-theme-birthday-cake",
+    "among-us-8th-birthday-cake",
+    "pink-doll-dress-cake-with-roses",
+    "sheep-theme-cake",
+    "unicorn-5th-birthday-cake",
+    "naruto-birthday-cake",
+    "peppa-pig-family-cake",
+    "doraemon-theme-cake",
+    "lion-face-cake",
+    "pink-barbie-doll-cake",
+    "panda-face-birthday-cake",
+    "fairy-birthday-cake-with-butterflies",
+    "purple-barbie-doll-cake",
+    "girl-with-balloons-theme-cake",
+    "lol-doll-7th-birthday-cake",
+    "masha-and-the-bear-theme-cake",
+    "captain-america-shield-cake-cc240",
+    "pink-elephant-birthday-cake",
+    "chhota-bheem-birthday-cake",
+    "boo-ghost-4th-birthday-cake",
+    "jungle-animal-cake",
+    "unicorn-6th-birthday-cake",
+    "purple-doll-dress-cake",
+    "pink-unicorn-cake",
+    "music-cat-5th-birthday-cake",
+    "doll-dress-cake",
+    "floral-doll-1st-birthday-cake",
+    "pink-rose-doll-birthday-cake",
+    "unicorn-10th-birthday-cake",
+    "blue-floral-doll-cake",
+    "pink-orange-floral-doll-cake",
+    "red-floral-doll-cake",
+    "red-flower-doll-cake",
+    "blue-double-doll-cake",
+    "green-teddy-bear-birthday-cake",
+    "vehicle-2nd-birthday-cake",
+    "hello-kitty-floral-cake-fc051",
+    "farm-animals-birthday-cake",
+    "wedding-couple-theme-cake",
+    "traditional-wedding-couple-cake",
+    "minnie-mouse-theme-cake",
+    "teddy-bear-heart-cake-fc084"
+   ]
+  },
+  "/theme-cakes/sports": {
+   "category": {
+    "name": "Theme Cakes",
+    "slug": "theme-cakes"
+   },
+   "sub": {
+    "name": "Sports",
+    "slug": "sports"
+   },
+   "children": [
+    {
+     "name": "Number & Alphabet",
+     "slug": "number-alphabet"
+    },
+    {
+     "name": "Kids",
+     "slug": "kids"
+    },
+    {
+     "name": "Photo Cakes",
+     "slug": "photo-cakes"
+    },
+    {
+     "name": "Cartoon",
+     "slug": "cartoon"
+    },
+    {
+     "name": "Designer",
+     "slug": "designer"
+    },
+    {
+     "name": "Floral",
+     "slug": "floral"
+    },
+    {
+     "name": "Character",
+     "slug": "character"
+    },
+    {
+     "name": "Sports",
+     "slug": "sports"
+    }
+   ],
+   "cakes": [
+    "football-cake",
+    "football-field-cake",
+    "roller-skate-9th-birthday-cake",
+    "football-cake-cc058",
+    "football-cake-cc238",
+    "basketball-10th-birthday-cake",
+    "cricket-theme-cake",
+    "cricket-ground-theme-cake",
+    "cricket-champion-theme-cake",
+    "cricket-stadium-cake",
+    "green-badminton-birthday-cake"
+   ]
+  },
+  "/occasion-cakes": {
+   "category": {
+    "name": "Occasion Cakes",
+    "slug": "occasion-cakes"
+   },
+   "sub": null,
+   "children": [
+    {
+     "name": "Festivals",
+     "slug": "festivals"
+    },
+    {
+     "name": "Designer",
+     "slug": "designer"
+    },
+    {
+     "name": "Farewell",
+     "slug": "farewell"
+    },
+    {
+     "name": "Special Days",
+     "slug": "special-days"
+    },
+    {
+     "name": "Baby Shower",
+     "slug": "baby-shower"
+    }
+   ],
+   "cakes": [
+    "welcome-baby-unicorn-cake",
+    "lavender-heart-celebration-cake",
+    "airplane-journey-cake",
+    "baby-shoes-cake",
+    "super-duper-thatha-cake",
+    "pink-blue-baby-shower-cake",
+    "baby-rainbow-character-cake",
+    "rose-macaron-floral-cake",
+    "watch-theme-cake-for-dad",
+    "prince-or-princess-baby-shower-cake",
+    "christmas-elf-sprinkle-cake",
+    "baby-booties-celebration-cake",
+    "father-s-day-cake",
+    "bride-to-be-cake",
+    "happy-diwali-celebration-cake",
+    "diya-cake",
+    "papa-shirt-theme-cake"
+   ]
+  },
+  "/occasion-cakes/special-days": {
+   "category": {
+    "name": "Occasion Cakes",
+    "slug": "occasion-cakes"
+   },
+   "sub": {
+    "name": "Special Days",
+    "slug": "special-days"
+   },
+   "children": [
+    {
+     "name": "Festivals",
+     "slug": "festivals"
+    },
+    {
+     "name": "Designer",
+     "slug": "designer"
+    },
+    {
+     "name": "Farewell",
+     "slug": "farewell"
+    },
+    {
+     "name": "Special Days",
+     "slug": "special-days"
+    },
+    {
+     "name": "Baby Shower",
+     "slug": "baby-shower"
+    }
+   ],
+   "cakes": [
+    "bride-to-be-cake",
+    "rose-macaron-floral-cake",
+    "watch-theme-cake-for-dad",
+    "papa-shirt-theme-cake",
+    "super-duper-thatha-cake",
+    "father-s-day-cake"
+   ]
+  },
+  "/occasion-cakes/baby-shower": {
+   "category": {
+    "name": "Occasion Cakes",
+    "slug": "occasion-cakes"
+   },
+   "sub": {
+    "name": "Baby Shower",
+    "slug": "baby-shower"
+   },
+   "children": [
+    {
+     "name": "Festivals",
+     "slug": "festivals"
+    },
+    {
+     "name": "Designer",
+     "slug": "designer"
+    },
+    {
+     "name": "Farewell",
+     "slug": "farewell"
+    },
+    {
+     "name": "Special Days",
+     "slug": "special-days"
+    },
+    {
+     "name": "Baby Shower",
+     "slug": "baby-shower"
+    }
+   ],
+   "cakes": [
+    "pink-blue-baby-shower-cake",
+    "welcome-baby-unicorn-cake",
+    "prince-or-princess-baby-shower-cake",
+    "baby-shoes-cake",
+    "baby-booties-celebration-cake",
+    "baby-rainbow-character-cake"
+   ]
+  },
+  "/anniversary-cakes/couple-anniversary": {
+   "category": {
+    "name": "Anniversary Cakes",
+    "slug": "anniversary-cakes"
+   },
+   "sub": {
+    "name": "Couple Anniversary",
+    "slug": "couple-anniversary"
+   },
+   "children": [
+    {
+     "name": "Couple Anniversary",
+     "slug": "couple-anniversary"
+    }
+   ],
+   "cakes": [
+    "romantic-couple-anniversary-cake-cc146",
+    "romantic-rose-proposal-cake",
+    "rose-macaron-floral-cake",
+    "lavender-heart-celebration-cake",
+    "just-engaged-rose-cake",
+    "blue-floral-couple-anniversary-cake",
+    "romantic-heart-rose-couple-cake",
+    "pink-heart-rose-cake",
+    "couple-silhouette-anniversary-cake",
+    "pink-rose-heart-cake",
+    "romantic-couple-anniversary-cake",
+    "romantic-couple-photo-cake",
+    "pink-floral-celebration-cake-cc226",
+    "romantic-heart-couple-cake",
+    "classic-floral-tiered-cake",
+    "20th-anniversary-heart-cake",
+    "red-velvet-celebration-cake",
+    "black-and-white-heart-cake",
+    "red-rose-anniversary-cake",
+    "proposal-heart-cake",
+    "chocolate-heart-floral-cake",
+    "yin-yang-floral-cake",
+    "romantic-couple-rose-butterfly-cake",
+    "golden-floral-couple-cake",
+    "rose-heart-anniversary-cake",
+    "pink-rose-anniversary-cake",
+    "romantic-couple-heart-cake",
+    "red-rose-heart-cake-sf011",
+    "romantic-proposal-heart-cake",
+    "wedding-couple-theme-cake",
+    "traditional-wedding-couple-cake",
+    "teddy-bear-heart-cake-fc084"
+   ]
+  },
+  "/birthday-cakes/age-specific": {
+   "category": {
+    "name": "Birthday Cakes",
+    "slug": "birthday-cakes"
+   },
+   "sub": {
+    "name": "Age-Specific",
+    "slug": "age-specific"
+   },
+   "children": [
+    {
+     "name": "Kids Birthday",
+     "slug": "kids-birthday"
+    },
+    {
+     "name": "Age-Specific",
+     "slug": "age-specific"
+    },
+    {
+     "name": "1st Birthday",
+     "slug": "1st-birthday"
+    },
+    {
+     "name": "Adult Birthday",
+     "slug": "adult-birthday"
+    },
+    {
+     "name": "Milestone Birthday",
+     "slug": "milestone-birthday"
+    }
+   ],
+   "cakes": [
+    "teddy-bear-half-birthday-cake",
+    "12th-birthday-pink-cake",
+    "roller-skate-9th-birthday-cake",
+    "butterfly-5th-birthday-cake",
+    "music-cat-5th-birthday-cake",
+    "spider-man-4th-birthday-cake",
+    "butterfly-8th-birthday-cake",
+    "minecraft-9th-birthday-cake",
+    "dragon-4th-birthday-cake",
+    "jungle-animals-theme-cake",
+    "car-cartoon-5th-birthday-cake",
+    "among-us-8th-birthday-cake",
+    "unicorn-5th-birthday-cake",
+    "basketball-10th-birthday-cake",
+    "boo-ghost-4th-birthday-cake",
+    "unicorn-6th-birthday-cake",
+    "floral-number-cake",
+    "floral-9th-birthday-cake",
+    "minecraft-theme-birthday-cake",
+    "blue-star-number-cake",
+    "lol-doll-7th-birthday-cake",
+    "chhota-bheem-birthday-cake",
+    "teddy-bear-number-cake-",
+    "building-block-9th-birthday-cake",
+    "vehicle-2nd-birthday-cake",
+    "space-7th-birthday-cake",
+    "cartoon-number-cake",
+    "little-singham-2nd-birthday-cake",
+    "golden-number-1-cake",
+    "floral-16-birthday-cake",
+    "teddy-bear-12-birthday-cake",
+    "unicorn-10th-birthday-cake"
+   ]
+  },
+  "/anniversary-cakes": {
+   "category": {
+    "name": "Anniversary Cakes",
+    "slug": "anniversary-cakes"
+   },
+   "sub": null,
+   "children": [
+    {
+     "name": "Couple Anniversary",
+     "slug": "couple-anniversary"
+    }
+   ],
+   "cakes": [
+    "just-engaged-rose-cake",
+    "pink-heart-rose-cake",
+    "romantic-heart-couple-cake",
+    "pink-rose-anniversary-cake",
+    "romantic-couple-anniversary-cake-cc146",
+    "blue-floral-couple-anniversary-cake",
+    "pink-floral-celebration-cake-cc226",
+    "golden-floral-couple-cake",
+    "rose-macaron-floral-cake",
+    "romantic-rose-proposal-cake",
+    "romantic-heart-rose-couple-cake",
+    "yin-yang-floral-cake",
+    "lavender-heart-celebration-cake",
+    "couple-silhouette-anniversary-cake",
+    "red-rose-heart-cake-sf011",
+    "pink-rose-heart-cake",
+    "romantic-couple-anniversary-cake",
+    "romantic-couple-photo-cake",
+    "classic-floral-tiered-cake",
+    "20th-anniversary-heart-cake",
+    "red-velvet-celebration-cake",
+    "black-and-white-heart-cake",
+    "rose-heart-anniversary-cake",
+    "red-rose-anniversary-cake",
+    "proposal-heart-cake",
+    "chocolate-heart-floral-cake",
+    "romantic-couple-rose-butterfly-cake",
+    "romantic-couple-heart-cake",
+    "romantic-proposal-heart-cake",
+    "wedding-couple-theme-cake",
+    "traditional-wedding-couple-cake",
+    "teddy-bear-heart-cake-fc084"
+   ]
+  },
+  "/products": {
+   "cakes": []
+  }
+ },
+ "pages": {
+  "/about": {
+   "content": {
+    "id": "6793fe90-1670-4411-bc31-10f2d19818c4",
+    "story_heading": "Our Story",
+    "story_subheading": "Baking for Hyderabad since 1999.",
+    "story_tagline": "More Than a Bakery. A Part of Every Celebration.",
+    "story_body": "We opened our first bakery in Hyderabad in 1999. More than 26 years on, one small neighbourhood shop has become a name families across the city keep coming back to. Cakes, breads, desserts, savoury snacks, café favourites, we bake all of it fresh and put the same care into every one. That much has not changed since the beginning.\n\nFood has a way of turning up in the moments that matter. The birthday cake nobody forgets. The puff you grab on the way home. The bread on the table at breakfast. The wedding cake that ends up in every photo. We think about that when we start baking each morning, because we know we are not just filling a shelf. We are part of somebody's day.",
+    "vision_label": "TASTE & TRUST ",
+    "vision_text": "SINCE 1999",
+    "mission_label": "Our Mission",
+    "mission_text": "We together make celebrations more delightful by reaching millions of hearts through our wholesome food products.",
+    "values_heading": "Core Values",
+    "strengths_eyebrow": "Why Choose Us",
+    "strengths_heading": "Our Strengths",
+    "team_heading": "Our Team",
+    "team_subheading": "It takes a lot of hands to get fresh product on the shelf every day. Here are the people who do it.",
+    "accolades_heading": "Accolades",
+    "press_heading": "Press Coverage",
+    "press_note": "",
+    "team_quote": "\"Sharing the joy of baking with you\"",
+    "closing_cta_text": "See What We Bake",
+    "closing_cta_url": "",
+    "updated_at": "2026-09-25T14:59:49.959Z"
+   },
+   "values": [
+    {
+     "id": "a6103229-0c59-4987-84fc-fb9b0024fd3b",
+     "section": "values",
+     "icon": "Shield",
+     "image_url": "",
+     "title": "Integrity",
+     "subtitle": "",
+     "description": "",
+     "link_url": "",
+     "display_order": 0
+    },
+    {
+     "id": "aff8209c-0196-477b-9db1-643f3212994a",
+     "section": "values",
+     "icon": "Users",
+     "image_url": "",
+     "title": "Respect",
+     "subtitle": "",
+     "description": "",
+     "link_url": "",
+     "display_order": 1
+    },
+    {
+     "id": "da2f57f4-19d3-455b-97ae-b98a2e716366",
+     "section": "values",
+     "icon": "CheckCircle",
+     "image_url": "",
+     "title": "Responsibility",
+     "subtitle": "",
+     "description": "",
+     "link_url": "",
+     "display_order": 2
+    },
+    {
+     "id": "ad302b66-f6b6-4126-aec6-47d8649b4b79",
+     "section": "values",
+     "icon": "BookOpen",
+     "image_url": "",
+     "title": "Learning",
+     "subtitle": "",
+     "description": "",
+     "link_url": "",
+     "display_order": 3
+    },
+    {
+     "id": "3da8c27e-0b03-4906-bd98-87339060ef0d",
+     "section": "values",
+     "icon": "HeartHandshake",
+     "image_url": "",
+     "title": "Synergy",
+     "subtitle": "",
+     "description": "",
+     "link_url": "",
+     "display_order": 4
+    }
+   ],
+   "strengths": [
+    {
+     "icon": "Sparkles",
+     "image_url": "",
+     "title": "Fresh Every Day",
+     "subtitle": "",
+     "description": "We bake in batches through the day, so what you take home was made hours ago, not days.",
+     "link_url": ""
+    },
+    {
+     "icon": "Heart",
+     "image_url": "",
+     "title": "In-house Expertise",
+     "subtitle": "",
+     "description": "Breads, cakes, pastries, savouries. Our own bakers make all of it, under one roof and one standard.",
+     "link_url": ""
+    },
+    {
+     "icon": "Globe",
+     "image_url": "",
+     "title": "Global Ingredients",
+     "subtitle": "",
+     "description": "We bring in the best ingredients we can find, from wherever they happen to be best.",
+     "link_url": ""
+    },
+    {
+     "icon": "Lightbulb",
+     "image_url": "",
+     "title": "Innovation",
+     "subtitle": "",
+     "description": "We keep the recipes people love and still try new things, because tastes move on and so do we.",
+     "link_url": ""
+    },
+    {
+     "icon": "ShieldCheck",
+     "image_url": "",
+     "title": "Food Safety",
+     "subtitle": "",
+     "description": "Hygiene and quality checks at every stage. That part is not negotiable.",
+     "link_url": ""
+    },
+    {
+     "icon": "Smile",
+     "image_url": "",
+     "title": "Customer First",
+     "subtitle": "",
+     "description": "Before anything reaches a store, we ask one simple thing. Will people love it?",
+     "link_url": ""
+    }
+   ],
+   "team": [
+    {
+     "id": "5a241dcf-1391-4331-b1d8-a7b286624fc1",
+     "section": "team",
+     "icon": "",
+     "image_url": "/leadership/katla-sandeep-reddy.webp",
+     "title": "Katla Sandeep Reddy",
+     "subtitle": "Chief Executive Officer & Managing Director",
+     "description": "Katla Sandeep Reddy provides the strategic direction for KS Bakers, guiding business growth, retail expansion, manufacturing excellence, and customer experience while driving innovation across the organization.",
+     "link_url": "",
+     "display_order": 0
+    },
+    {
+     "id": "b3e0edc6-15e9-4e50-bf60-b18459b505c2",
+     "section": "team",
+     "icon": "",
+     "image_url": "/leadership/govinda-rajulu.webp",
+     "title": "Govinda Rajulu Pyla",
+     "subtitle": "Head of People, Culture & Administration",
+     "description": "Govinda Rajulu Pyla oversees human resources, administration, and organizational development, building a people-first culture that supports employee growth, collaboration, and long-term business success.",
+     "link_url": "",
+     "display_order": 1
+    },
+    {
+     "id": "9fc2da63-f662-49db-853c-31614ddef020",
+     "section": "team",
+     "icon": "",
+     "image_url": "/leadership/ravindra-varma.webp",
+     "title": "Ravindra Varma Alluri",
+     "subtitle": "Head of Corporate Sales, Business Development & Public Relations",
+     "description": "Ravindra Varma Alluri develops strategic partnerships with corporate and institutional clients while strengthening business development initiatives and public relations to expand KS Bakers' market presence.",
+     "link_url": "",
+     "display_order": 2
+    },
+    {
+     "id": "b276cc34-cf4b-4316-9059-0d4c2e447279",
+     "section": "team",
+     "icon": "",
+     "image_url": "/leadership/bhaskar-reddy.webp",
+     "title": "Bhaskar Reddy Gopireddy",
+     "subtitle": "Head of Retail Sales & Operations",
+     "description": "Bhaskar Reddy Gopireddy is responsible for retail operations across KS Bakers, enhancing outlet performance, customer satisfaction, sales execution, and operational consistency across the growing store network.",
+     "link_url": "",
+     "display_order": 3
+    },
+    {
+     "id": "14260923-f96e-45d8-8547-21de1a7b4f31",
+     "section": "team",
+     "icon": "",
+     "image_url": "http://127.0.0.1:9000/ksbakers/uploads/fd24e008-e409-46a8-b402-e9145f4eafbd.jpg",
+     "title": "Sarwar Pasha Shaik",
+     "subtitle": "Head of Projects, Infrastructure, Supply Chain & Procurement",
+     "description": "Sarwar Pasha Shaik oversees infrastructure development, supply chain operations, procurement, and expansion projects, enabling efficient logistics and supporting KS Bakers' continued growth.",
+     "link_url": "",
+     "display_order": 4
+    },
+    {
+     "id": "138ea3b3-e7ae-49be-ad97-c3cc97e95448",
+     "section": "team",
+     "icon": "",
+     "image_url": "/leadership/gopendra.webp",
+     "title": "Gopendra Geddam",
+     "subtitle": "Head of Manufacturing, Production & Food Quality",
+     "description": "Gopendra Geddam manages manufacturing operations, production planning, food quality, and safety standards, ensuring every product consistently meets the highest benchmarks of freshness, quality, and operational efficiency.",
+     "link_url": "",
+     "display_order": 5
+    },
+    {
+     "id": "e9f66344-81db-4f7d-bc3d-3e8c5e872d4d",
+     "section": "team",
+     "icon": "",
+     "image_url": "/leadership/mukesh-singh.webp",
+     "title": "Mukesh Singh",
+     "subtitle": "Head of Digital Commerce & Cloud Kitchen Operations",
+     "description": "Mukesh Singh manages KS Bakers' digital commerce business across cloud kitchens and online food delivery platforms, optimizing marketplace performance, digital operations, and customer convenience to expand online revenue.",
+     "link_url": "",
+     "display_order": 6
+    },
+    {
+     "id": "bbd55e23-34f9-497f-ba74-6f9b683b43bd",
+     "section": "team",
+     "icon": "",
+     "image_url": "/leadership/tulasi-ram.webp",
+     "title": "Tulasi Satya Ram Lolla",
+     "subtitle": "Head of Finance & Business Intelligence",
+     "description": "Tulasi Satya Ram Lolla oversees financial planning, business intelligence, budgeting, and corporate reporting, providing the insights and financial governance that support informed decision-making and long-term business performance.",
+     "link_url": "",
+     "display_order": 7
+    },
+    {
+     "id": "08ab71a0-4fbd-499f-a90c-e5a07e176e2a",
+     "section": "team",
+     "icon": "",
+     "image_url": "/leadership/siraj-mulla.webp",
+     "title": "Siraj Mulla",
+     "subtitle": "Head of Brand & Creative Communications",
+     "description": "Siraj Mulla shapes KS Bakers' offline brand identity through retail branding, packaging, visual merchandising, print communication, and creative campaigns, ensuring every physical customer interaction reflects the brand's values and personality.",
+     "link_url": "",
+     "display_order": 8
+    },
+    {
+     "id": "b410584a-b1ed-4ab3-ad60-501217a2405e",
+     "section": "team",
+     "icon": "",
+     "image_url": "/leadership/nalla-manas-reddy.webp",
+     "title": "Manas Reddy Nalla",
+     "subtitle": "Head of Marketing & Growth Strategy",
+     "description": "Manas Reddy Nalla oversees KS Bakers' digital marketing, growth strategy, social media, performance marketing, website ecosystem, CRM, AI-powered marketing automation, customer loyalty programs, and customer delight initiatives. By combining technology, data, and creativity, he builds personalized customer experiences that accelerate brand growth and business performance.",
+     "link_url": "",
+     "display_order": 9
+    }
+   ],
+   "accolades": [
+    {
+     "icon": "",
+     "image_url": "",
+     "title": "Award or recognition",
+     "subtitle": "",
+     "description": "",
+     "link_url": ""
+    },
+    {
+     "icon": "",
+     "image_url": "",
+     "title": "Award or recognition",
+     "subtitle": "",
+     "description": "",
+     "link_url": ""
+    },
+    {
+     "icon": "",
+     "image_url": "",
+     "title": "Award or recognition",
+     "subtitle": "",
+     "description": "",
+     "link_url": ""
+    },
+    {
+     "icon": "",
+     "image_url": "",
+     "title": "Award or recognition",
+     "subtitle": "",
+     "description": "",
+     "link_url": ""
+    },
+    {
+     "icon": "",
+     "image_url": "",
+     "title": "Award or recognition",
+     "subtitle": "",
+     "description": "",
+     "link_url": ""
+    }
+   ],
+   "press": [
+    {
+     "id": "ae863842-5c06-44fb-8c33-0696d04f7f79",
+     "section": "press",
+     "icon": "",
+     "image_url": "",
+     "title": "\"KS Bakers Works on Aligning Operations and Customer Experience Across Locations\"",
+     "subtitle": "The CEO Magazine, April 2026",
+     "description": "",
+     "link_url": "https://www.theceo.in/press-release/ks-bakers-works-on-aligning-operations-and-customer-experience-across-locations",
+     "display_order": 0
+    },
+    {
+     "id": "508b4301-8464-483e-b6d7-03418f37b1e6",
+     "section": "press",
+     "icon": "",
+     "image_url": "",
+     "title": "\"KS Bakers Incorporates Customer Feedback into Store Operations\"",
+     "subtitle": "Nagpur Today, April 28, 2026",
+     "description": "",
+     "link_url": "https://www.nagpurtoday.in/ks-bakers-incorporates-customer-feedback-into-store-operations/",
+     "display_order": 1
+    },
+    {
+     "id": "4f5f8cab-62a5-4f04-8ba0-c5e0d09b317b",
+     "section": "press",
+     "icon": "",
+     "image_url": "",
+     "title": "\"KS Bakers Strengthens B2B Presence: Corporate and Institutional Partnerships in Hyderabad\"",
+     "subtitle": "OneIndia",
+     "description": "",
+     "link_url": "https://www.oneindia.com/in-the-news/ks-bakers-strengthens-b2b-presence-corporate-institutional-partnerships-hyderabad-011-8071975.html",
+     "display_order": 2
+    },
+    {
+     "id": "cce359e4-307c-424a-8ca1-ef35cf50d909",
+     "section": "press",
+     "icon": "",
+     "image_url": "",
+     "title": "\"KS Bakers Expands Presence in Hyderabad's Bakery Segment\"",
+     "subtitle": "Ahmedabad Mirror",
+     "description": "",
+     "link_url": "https://www.ahmedabadmirror.com/ks-bakers-expands-presence-in-hyderabads-bakery-segment/81912405.html",
+     "display_order": 3
+    }
+   ]
+  },
+  "/stores": {
+   "page": {
+    "heading": "Locate Us",
+    "subheading": "There's a KS Bakers close to you, and there probably always has been.",
+    "intro": "With 25 outlets spread across Hyderabad, chances are we've been your neighbourhood bakery for years without you even realising it's the same kitchen behind every one. Walk in, pick out a cake in person, or sit down for something fresh off the tray. Every outlet is run by us, not a franchisee, so it tastes like home wherever you are in the city.",
+    "list_heading": "KS Bakers near me",
+    "cta_heading": "Can't find an outlet near you?",
+    "cta_text": "Suggest us where we should go next.",
+    "cta_label": "Chat on WhatsApp",
+    "cta_url": "https://wa.link/ggyht6",
+    "cta_phone": "",
+    "cta_email": "",
+    "slug": "locations",
+    "updated_at": "2026-09-25T15:05:02.107Z"
+   },
+   "outlets": [
+    {
+     "id": "83ca1405-63bf-4257-8288-467a5a385cd2",
+     "name": "KS Bakers Chandanagar",
+     "address": "1-142, Bombay Highway, Chandanagar, Hyderabad, Rangareddy, Telangana - 500050",
+     "phone": "+91 7997980001",
+     "fssai_no": "13617013001109",
+     "opened_year": "1999",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/UhazZjvAwvF4y7Bsj",
+     "description": "Some places become part of a neighbourhood simply by being there year after year. Our Chandanagar store has been one of those places since 1999. On Bombay Highway, it has seen morning bread runs, evening snack stops, last-minute birthday cake pickups and plenty of celebrations along the way. We love that families can walk in for something as simple as fresh bread and come back when there's a birthday, anniversary or another reason to make the day a little sweeter."
+    },
+    {
+     "id": "b8070228-82ab-49ab-a05e-d426f41376dd",
+     "name": "KS Bakers KPHB",
+     "address": "Shop No.3 and 4, Udayakrishna Complex, Bhagyanagar Colony, Opp KPHB, Hyderabad, Telangana - 500072",
+     "phone": "+91 7997980002",
+     "fssai_no": "13617013001107",
+     "opened_year": "2001",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/cUfej3RmwolWUWnxR",
+     "description": "Our KPHB store has been part of the neighbourhood since 2002. Located at Udayakrishna Complex in Bhagyanagar Colony, it has become a familiar stop for the little things people pick up through the week and the cakes they plan for days that matter. From a quick evening snack to a cake chosen for someone special, we're happy to have a place in the everyday rhythm of KPHB."
+    },
+    {
+     "id": "9390910b-8045-4f7d-893d-80f2920e8a78",
+     "name": "KS Bakers Ameerpet",
+     "address": "8-3-903/F/11/S-11 and S-12, Ground Floor, Eureka Court, Yellareddyguda, Ameerpet, Hyderabad, Telangana - 500073",
+     "phone": "+91 7997980003",
+     "fssai_no": "13617011001354",
+     "opened_year": "2003",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/dYEVjz04JKX25wHKB",
+     "description": "Ameerpet moves quickly, but there's always room for something fresh and comforting. Our Ameerpet store opened in 2025 at Eureka Court, Yellareddyguda, bringing KS Bakers a little closer to the people who live, work and spend their days here. It's a newer store, but the feeling we want to create is simple: a welcoming place to grab a favourite snack, pick up something sweet or take home a cake for a celebration."
+    },
+    {
+     "id": "e1154b45-c3b6-445f-bd4e-fcb7c6637728",
+     "name": "KS Bakers JNTU",
+     "address": "Shop No.101, 102 and 103, MCK Block No.31, Prasanka Enclave, Phase IV, KPHB Colony, Hyderabad, Telangana - 500072",
+     "phone": "+91 7997980004",
+     "fssai_no": "13617013001110",
+     "opened_year": "2010",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/aEfXufyArt5E5TZSJ",
+     "description": "For many students and families around JNTU and KPHB Colony, the days can be busy and the best moments are often the simple ones. We've been serving this community since 2012 from Prasanka Enclave. It might be a quick bite between classes, something to take home after a long day, or a cake waiting for a birthday celebration. We're glad to have been part of those everyday moments for so many years."
+    },
+    {
+     "id": "a75a9a1d-6f86-4388-9a34-10f94b42facc",
+     "name": "KS Bakers Miyapur",
+     "address": "Shop No.G-1, 2, 3 and C-1, Madhavnagar, Miyapur, Hyderabad, Rangareddy, Telangana - 500049",
+     "phone": "+91 7997980005",
+     "fssai_no": "13617013001111",
+     "opened_year": "2010",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/hnTAg4JWkNA8HAq6P",
+     "description": "Miyapur has grown and changed over the years, and our store in Madhavnagar has grown with it. Since opening in 2012, we've welcomed families looking for their everyday breads and snacks, as well as customers choosing a cake for a birthday or a special gathering. There's something lovely about being the bakery people remember when they need a familiar favourite, and that's what we've tried to build here."
+    },
+    {
+     "id": "83844b35-7529-4ab6-b636-f40227f31bcb",
+     "name": "KS Bakers Sangareddy",
+     "address": "Plot No.10, Beside New Collectorate, Pothireddypally, Sangareddy, Telangana - 502001",
+     "phone": "+91 7997980007",
+     "fssai_no": "13621026000203",
+     "opened_year": "2013",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/Yg7jevPL8ldlzNnkG",
+     "description": "Our Sangareddy store, beside the New Collectorate in Pothireddypally, has been serving the community since 2013. Over the years, we've seen the same simple reasons bring people through the door: fresh bread for home, a snack for the evening, something sweet to share, or a cake for a day everyone has been looking forward to. That everyday connection is what makes this store special to us."
+    },
+    {
+     "id": "d5e8bf6f-d2c3-45ac-94ba-5c26e2899d78",
+     "name": "KS Bakers Uppal",
+     "address": "Plot No.1 and 10, Ground Floor, GHMC Uppal Circle, Uppal Village, Hyderabad, Rangareddy, Telangana - 500039",
+     "phone": "+91 7997980009",
+     "fssai_no": "13620012000297",
+     "opened_year": "2014",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/l0RlZhzSfp91dypDl",
+     "description": "Our Uppal store has been serving the area around GHMC Uppal Circle since 2014. It's the kind of place where one visit might be for an evening snack and the next might be for a cake that has a whole family gathering around it. We're grateful for every customer who has made us part of their routine, their celebrations and the little sweet moments in between."
+    },
+    {
+     "id": "56b071f5-7b6b-455f-acb2-173105df3abe",
+     "name": "KS Bakers AS Rao Nagar",
+     "address": "Shop No.4, Plot No.290 1-256/91, Ground, 1st and 2nd Floors, Srinivasanagar, Kapra, Hyderabad, Rangareddy, Telangana - 500062",
+     "phone": "+91 7997980008",
+     "fssai_no": "13620012000272",
+     "opened_year": "2014",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/XJBmlY1XjjxH9ujTs",
+     "description": "Since 2015, our AS Rao Nagar store in Srinivasanagar, Kapra has been a familiar part of the local neighbourhood. Some visits are quick, a few snacks or fresh bread on the way home. Others are for a birthday cake or something special for the family. We value both. After all, a bakery becomes part of a community through the small everyday visits just as much as the big celebrations."
+    },
+    {
+     "id": "2c353202-7f08-4cb6-b803-3950de9ab240",
+     "name": "KS Bakers Gachibowli",
+     "address": "Plot No.70, Care Crystal, Vinayaknagar Colony, Basement, Mezzanine, Gachibowli, Hyderabad, Rangareddy, Telangana - 500032",
+     "phone": "+91 7997980006",
+     "fssai_no": "13620013000633",
+     "opened_year": "2016",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/VdimNifCe86hho1bn",
+     "description": "Gachibowli is always on the move, so our store at Care Crystal in Vinayaknagar Colony is a small place to pause and pick up something you enjoy. Since 2016, we've served everything from quick snacks and fresh bakery favourites to cakes that make their way home for celebrations. Whether the day calls for a simple treat or something worth sharing, we're happy to be part of it."
+    },
+    {
+     "id": "b8eac731-52a5-4ca0-84fe-e9216d0501fd",
+     "name": "KS Bakers LB Nagar",
+     "address": "Sy.No.56/U, L.B. Nagar, Karmanghat Village, Hyderabad, Rangareddy, Telangana - 500079",
+     "phone": "+91 7997980010",
+     "fssai_no": "13620012000299",
+     "opened_year": "2017",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/Lob8jR64qiNSDw7Ix",
+     "description": "We opened our L.B. Nagar store near Karmanghat Village in 2017, and since then it has become part of the everyday life of the neighbourhood. There are customers who come in for their usual favourites, families looking for something to share at home, and people who arrive with a celebration in mind. From a simple loaf of bread to a carefully chosen cake, we believe every order deserves the same care."
+    },
+    {
+     "id": "60a02c2d-dfe2-4455-98b2-0f32848a369a",
+     "name": "KS Bakers Kukatpally",
+     "address": "H.No.5-1-63, 63/1, 64, 64/1, Ground and First Floors, KKR Arige Complex, Main Road, Kukatpally, Hyderabad, Telangana - 500072",
+     "phone": "+91 7997980011",
+     "fssai_no": "13618013001364",
+     "opened_year": "2018",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/CiS3g96WnGOZ7HDUG",
+     "description": "Kukatpally is a busy neighbourhood, and our store at KKR Arige Complex on the Main Road has been right in the middle of it since 2018. Some days call for a quick snack on the way somewhere; other days call for a cake that becomes the centre of a celebration. We're here for both, serving fresh bakery favourites and being part of the moments that bring people together."
+    },
+    {
+     "id": "552862b4-f0a4-4c6a-b623-949aa695d75d",
+     "name": "KS Bakers Nacharam",
+     "address": "KS Bakers Nacharam, Hyderabad, Telangana",
+     "phone": "+91 7997980016",
+     "fssai_no": "13619012000460",
+     "opened_year": "2019",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/wuyYOao1SYXBcMMoJ",
+     "description": "Our Nacharam store opened in 2019 with a simple idea: to have a bakery nearby that people could return to and feel familiar with. Since then, we've been part of everyday routines and special occasions alike. A quick snack after a long day, fresh bread for home, or a cake for someone's birthday. These may be small moments, but they're the kind we love being part of."
+    },
+    {
+     "id": "990831bd-bfe5-4481-8f87-0581c30da518",
+     "name": "KS Bakers Manikonda",
+     "address": "Plot No. 35 and 36, Lanco Hills Manikonda, Beside Harivillu Apartments, Hyderabad, Rangareddy, Telangana - 500089",
+     "phone": "+91 7337442083",
+     "fssai_no": "13621010000267",
+     "opened_year": "2021",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/4ZKS9lq7cp6fQqatP",
+     "description": "Our Manikonda store at Lanco Hills, beside Harivillu Apartments, opened in 2021. Since then, we've had the pleasure of being part of birthdays, family gatherings, everyday snack breaks and those moments when you simply feel like bringing something nice home. We wanted this store to feel like a neighbourhood bakery: easy to drop into, familiar to return to and always ready with something worth sharing."
+    },
+    {
+     "id": "673279b5-74ec-4f22-99af-f7f4795e2826",
+     "name": "KS Bakers Kondapur",
+     "address": "Plot No. 34-A and 45-A, Sy. No. 206, Kondapur Village, Serilingampally Mandal, Hyderabad, Rangareddy, Telangana - 500084",
+     "phone": "+91 9154819482",
+     "fssai_no": "13621026000043",
+     "opened_year": "2021",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/OKINv0xnvOU0DUdeE",
+     "description": "Kondapur has become home to so many families, professionals and growing communities, and our store has been part of that story since 2021. From our location in the Serilingampally area, we serve the everyday favourites people pick up on the way home, along with cakes for birthdays, festivals and family celebrations. We're grateful for every occasion, big or small, that has brought customers through our doors."
+    },
+    {
+     "id": "b8d876f0-316f-41e5-84f3-9fe0949b64c7",
+     "name": "KS Bakers Bachupally",
+     "address": "Shop No. 2, Krishnaja Hills, Coca Rd, X Road, Hyderabad, Medchal Malkajgiri, Telangana - 500090",
+     "phone": "+91 9154819486",
+     "fssai_no": "13624034000198",
+     "opened_year": "2024",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/Org3yL4nnVfWXvVex",
+     "description": "Our Bachupally store at Krishnaja Hills opened in 2023, and we've loved getting to know the neighbourhood since then. Some customers stop by for a familiar snack, while others come looking for a cake that will make someone's day. We hope the store feels less like a place you simply shop at and more like a bakery you know you can count on when there's something good to celebrate."
+    },
+    {
+     "id": "e99c99a8-8c46-4cb4-8db1-20b9c7a31cb2",
+     "name": "KS Bakers RC Puram",
+     "address": "Plot No 11, Sy No 194, Ground Floor, R R Nagar, Ramachandrapuram Village, Hyderabad, Sangareddy, Telangana - 502032",
+     "phone": "+91 9154979110",
+     "fssai_no": "13623013002089",
+     "opened_year": "2023",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/qxuyABSI6TzGXMzMZ",
+     "description": "Our RC Puram store in R R Nagar, Ramachandrapuram opened in 2023. Since then, we've been getting to know the families and neighbours who walk through our doors, sometimes for a quick snack, sometimes for something to share at home, and sometimes for a cake that marks a day worth remembering. We're proud to be building that connection one order at a time."
+    },
+    {
+     "id": "f896d7b8-4225-48ff-8b53-5865362a2f7d",
+     "name": "KS Bakers Medchal",
+     "address": "1-315 Sy.No.39, NH-7, Main Road, Medchal, Hyderabad, Medchal Malkajgiri, Telangana - 501401",
+     "phone": "+91 7997955443",
+     "fssai_no": "13624034000693",
+     "opened_year": "2024",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/MzPV6HA5MLF1T68hC",
+     "description": "Our Medchal store opened on the NH-7 Main Road in 2024, bringing KS Bakers to a growing local community. As one of our newer stores, we're still building the memories that make a bakery feel like it belongs: the first regular customers, the familiar faces and the celebrations we get to be part of. We look forward to filling this store with many more such moments."
+    },
+    {
+     "id": "74b758bf-94a1-4aed-9bf4-30ca002068c2",
+     "name": "KS Bakers Chintal",
+     "address": "47-001/B/1/Nr Plot No 1 and 2, Sri Sai Nagar Colony, Survey No 187 HMT Road, Quthbullapur, Municipal Circle Chintal, Hyderabad, Telangana - 500054",
+     "phone": "+91 9154979108",
+     "fssai_no": "13623014001016",
+     "opened_year": "2024",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/BJMKx5d8BYPxrqczd",
+     "description": "We opened our Chintal store in Sri Sai Nagar Colony, Quthbullapur in 2024. It's a newer part of the KS Bakers journey, and we're enjoying becoming part of this fast-growing neighbourhood. From everyday breads and snacks to desserts and celebration cakes, we're here for the moments that happen around the table, at home and with the people you care about."
+    },
+    {
+     "id": "9cd6c5b3-f43a-47be-9cf8-27f94e73e8ea",
+     "name": "KS Bakers Siddipet",
+     "address": "H.No 18-19-28/3C/4A, Plot No 129 and 146, Prashanth Nagar, Old GP, Siddipet, Telangana - 502103",
+     "phone": "+91 7997955430",
+     "fssai_no": "13624027000175",
+     "opened_year": "2024",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/Iw9w5ZWTueqCr9MCT",
+     "description": "Opening our Siddipet store in Prashanth Nagar in 2025 was an important new chapter for KS Bakers. For the first time, we were bringing our bakery closer to a community beyond Hyderabad city. We're excited to get to know Siddipet through the everyday things that matter: a box of treats for home, a snack shared with friends, or a cake chosen for a celebration. We hope this store becomes a familiar part of your special moments."
+    },
+    {
+     "id": "a796404d-bfad-49c7-98e0-805e26a8150a",
+     "name": "KS Bakers KPHB Metro",
+     "address": "30 Phase 1, KPHB Colony, Kukatpally, Opposite Metro Pillar No A-743, Hyderabad, Rangareddy, Telangana - 500072",
+     "phone": "+91 7997980089",
+     "fssai_no": "13625013000627",
+     "opened_year": "2025",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/5LT1tdWJ2D7jA5zu9",
+     "description": "Right opposite Metro Pillar A-743, our KPHB Metro store opened in 2025 to be part of the fast-moving life around the metro. It's a convenient stop when you're heading home, meeting someone or simply looking for a quick bite. And when there's a birthday or celebration waiting at home, you can pick up a cake and make the journey back a little sweeter."
+    },
+    {
+     "id": "072bd7b0-9d05-4b22-aea5-8db3560ee71f",
+     "name": "KS Bakers Ameenpur",
+     "address": "Plot No 29, Vidyanagar Colony, Ameenpur Road, Hyderabad, Rangareddy, Telangana - 500050",
+     "phone": "+91 8977781271",
+     "fssai_no": "13625034001078",
+     "opened_year": "2025",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/blTgOHJ8rfU5BzD5g",
+     "description": "Our Ameenpur store in Vidyanagar Colony opened in 2025, bringing KS Bakers closer to a community we're excited to get to know. It's still a new store, and every familiar face, repeat visit and celebration helps make it feel more like home. Whether you're picking up something for an ordinary evening or a cake for a special day, we're looking forward to being part of many more moments here."
+    },
+    {
+     "id": "10c356cd-6553-4fd2-aabd-44c2606fbe9d",
+     "name": "KS Bakers Karimnagar",
+     "address": "Plot No 2-10-1591, Chaitanyapuri Colony, Jagatal Road, 2-10-15/91, Karimnagar, Telangana - 505001",
+     "phone": "+91 8977781272",
+     "fssai_no": "13626002000002",
+     "opened_year": "2026",
+     "hours": "10:00 AM to 11:00 PM",
+     "directions_url": "https://share.google/EROZMASn5n7erKOLc",
+     "description": "Karimnagar marks an exciting new chapter for KS Bakers. Our store in Chaitanyapuri Colony on Jagatal Road opened in 2026, bringing our bakery favourites to a new city and a new community. We're looking forward to becoming a familiar name here, the place you think of when you need something fresh for home, a treat to share or a cake for a day worth celebrating."
+    }
+   ]
+  },
+  "/faq": {
+   "page": {
+    "heading": "Frequently Asked Questions",
+    "subheading": "Everything Hyderabad usually asks us, in one place.",
+    "intro": "Whether you're ordering a cake for a birthday, picking up your favourite bakery treats, or planning something special, here are answers to some of the questions customers ask us most often.",
+    "list_heading": "",
+    "cta_heading": "Still have a question?",
+    "cta_text": "Couldn't find the answer you're looking for? We're happy to help. Message us on WhatsApp and our team will assist you with your order or query.",
+    "cta_label": "Chat on WhatsApp",
+    "cta_url": "https://wa.me/917997980023",
+    "cta_phone": "+91 90101 11144",
+    "cta_email": "online@ksbakers.com",
+    "slug": "faq"
+   },
+   "faqs": [
+    {
+     "id": "80b64ae4-a7a0-4ec7-9cd4-efa447a1ee3a",
+     "category": "Ordering",
+     "question": "Do I need to create an account to place an order?",
+     "answer": "Yes. You need to create an account on the KS Bakers website or app to place an order.\nA valid phone number is mandatory for ordering. This allows us to confirm your order, contact you about delivery or pickup, and share important updates."
+    },
+    {
+     "id": "5296ae32-eb01-4c74-9c88-128a9e4ad3ab",
+     "category": "Ordering",
+     "question": "Why do I need to provide my phone number?",
+     "answer": "Your phone number helps us keep you updated throughout the ordering process. We may use it to:\n• Confirm your order\n• Contact you about delivery or pickup\n• Clarify any order or customisation requirements\n• Share important updates about your order\nPlease make sure you provide an active phone number that you can access after placing your order."
+    },
+    {
+     "id": "b5458903-ddd3-4068-a0aa-d3006237b594",
+     "category": "Ordering",
+     "question": "Can I order a cake for same-day delivery?",
+     "answer": "Yes. Same-day availability depends on the cake, outlet, availability, and design requirements.\nPlain and semi-custom cakes may be available for same-day delivery from selected outlets. For fully custom cakes, we recommend placing your order at least 24 to 48 hours in advance so our team has enough time to prepare it properly."
+    },
+    {
+     "id": "025ff0a2-815c-4c2a-a56d-aeb074378e9c",
+     "category": "Ordering",
+     "question": "Can I customise a cake from the KS Bakers menu?",
+     "answer": "Yes. Most cakes can be customised to some extent, including the flavour, size, message, and basic design.\nIf you have a specific theme or want a completely personalised cake, you can explore our Custom Cakes section or contact us directly on WhatsApp."
+    },
+    {
+     "id": "5658682a-520f-42cc-93b3-fce57f57b9fb",
+     "category": "Ordering",
+     "question": "Can I add a message to my cake?",
+     "answer": "Yes. A cake message can be added to most cakes where customisation is available.\nPlease check your message carefully before placing the order, especially names, spellings, dates, and other personal details."
+    },
+    {
+     "id": "5197f7c9-5436-4b28-a6dc-b514ef301e51",
+     "category": "Ordering",
+     "question": "Can I order a completely custom-designed cake?",
+     "answer": "Yes. We accept requests for custom and personalised cakes.\nCustom cakes can vary in design, size, flavour, finishing, and preparation time. For a fully customised cake, we recommend contacting our team in advance so we can understand your requirements and confirm what is possible."
+    },
+    {
+     "id": "ed9d70a3-de13-41db-8ffc-f956c053d9e0",
+     "category": "Delivery and pickup",
+     "question": "Does KS Bakers offer home delivery?",
+     "answer": "Yes. You can either collect your order from a KS Bakers outlet or choose home delivery if your location is within our serviceable area."
+    },
+    {
+     "id": "f5d696b0-6031-457b-82e3-76ea60d68a4d",
+     "category": "Delivery and pickup",
+     "question": "How can I check if my area is covered for delivery?",
+     "answer": "Enter your delivery address during checkout.\nIf your location is outside our delivery service area, you will be informed during checkout and can choose store pickup instead."
+    },
+    {
+     "id": "43c2087c-90e5-46a9-bdef-9b2e497ebcaa",
+     "category": "Delivery and pickup",
+     "question": "What happens if I am not available when my order is delivered?",
+     "answer": "Our delivery partner will try to contact you using the phone number provided with your order.\nPlease keep your phone reachable around the expected delivery window and make sure someone is available to receive the order. This is especially important for cakes and other fresh products."
+    },
+    {
+     "id": "5fd1f6a7-dd1d-4b54-8579-f6d1c32bcf3e",
+     "category": "Delivery and pickup",
+     "question": "Can someone else receive my order for me?",
+     "answer": "Yes. Someone else can receive your order at the delivery address.\nWe recommend informing the person in advance, particularly when the order contains a cake or another product that needs to be handled carefully."
+    },
+    {
+     "id": "c24e7c55-e443-49d3-ba76-9210720af509",
+     "category": "Delivery and pickup",
+     "question": "What happens if the delivery cannot be completed because I am unavailable?",
+     "answer": "Our delivery partner will make reasonable attempts to contact you.\nHowever, an order may not be eligible for a refund solely because delivery could not be completed due to the customer being unavailable, providing an incorrect or incomplete address, or another issue caused by the customer."
+    },
+    {
+     "id": "93f16ffa-03e7-45c9-b68c-7d94e9cd5a48",
+     "category": "Payments",
+     "question": "What payment methods does KS Bakers accept?",
+     "answer": "Depending on the options available at checkout, you can pay using:\n• Credit and debit cards\n• UPI\n• Net banking\n• Popular digital wallets\nThe payment options available for your order will be shown at checkout."
+    },
+    {
+     "id": "254a1cfb-eb91-4bd9-85da-1805922339b0",
+     "category": "Payments",
+     "question": "Is it safe to pay online?",
+     "answer": "Yes. Online payments are processed through a secure, encrypted third-party payment gateway.\nKS Bakers does not store your card details on its own servers."
+    },
+    {
+     "id": "1ef6fb0a-db5f-47a3-b4a7-a4bb93a107e9",
+     "category": "Payments",
+     "question": "What should I do if my payment is successful but my order is not confirmed?",
+     "answer": "If the payment has been deducted but your order confirmation has not been received, please check your account or order history first.\nIf the order is still not visible, contact KS Bakers with your payment details or transaction reference and registered phone number, and our team can help check the status."
+    },
+    {
+     "id": "6517e28b-17f9-4d62-aff9-1913555dee0a",
+     "category": "Cancellations and refunds",
+     "question": "Can I cancel my order after placing it?",
+     "answer": "Cancellation depends on the type of product and the stage of preparation.\nFor standard products, cancellation may be possible within the applicable cancellation window.\nFor custom, personalised, or made-to-order cakes, cancellation is not possible once preparation has started.\nIf you need to cancel an order, please contact us as early as possible."
+    },
+    {
+     "id": "cc2a0198-cd7a-4bcd-8c85-3e16f78f1a61",
+     "category": "Cancellations and refunds",
+     "question": "Can I cancel a custom cake after preparation has started?",
+     "answer": "No. Once preparation of a custom or made-to-order cake has started, the order cannot be cancelled and the amount paid will not be refundable.\nCustom cakes are prepared specifically for each customer and may involve ingredients, materials, designs, and preparation work that have already been committed to the order."
+    },
+    {
+     "id": "3081941c-1b6f-4504-a2bc-12184025f1bb",
+     "category": "Cancellations and refunds",
+     "question": "Can I cancel a custom cake on the day of delivery?",
+     "answer": "Cancellation may not be possible, particularly if preparation has already started.\nWe recommend requesting cancellation at least 24 hours before the scheduled delivery or pickup time.\nHowever, the key factor is whether preparation has already begun. Once preparation has started, a custom cake cannot be cancelled or refunded."
+    },
+    {
+     "id": "2254321c-4d47-44a5-9534-508c14b203fc",
+     "category": "Cancellations and refunds",
+     "question": "What if I need to change my custom cake order?",
+     "answer": "Please contact us as early as possible.\nWe will review requests based on the type of change and the stage of preparation. Once preparation has started, some changes may no longer be possible."
+    },
+    {
+     "id": "c170c810-c8cf-4a72-b538-c0a89a649a98",
+     "category": "Cancellations and refunds",
+     "question": "Will I get a refund if my cancellation is approved?",
+     "answer": "If your cancellation is approved and the order is eligible for a refund, the refund will generally be made to the original payment method used for the order, unless otherwise agreed.\nThe applicable cancellation or processing charges, if any, may be deducted from the refund."
+    },
+    {
+     "id": "5f7901d5-21cf-4193-8aea-4a125688d53f",
+     "category": "Cancellations and refunds",
+     "question": "What if my cake arrives damaged?",
+     "answer": "Please contact us within a reasonable time after delivery or pickup and share photographs of the cake and the issue, wherever possible.\nAfter reviewing the concern, KS Bakers may provide an appropriate resolution, which may include a replacement, refund, or store credit, depending on the circumstances."
+    },
+    {
+     "id": "435a7da4-a27b-4b01-b1aa-ad042d689352",
+     "category": "Cancellations and refunds",
+     "question": "What if I receive the wrong cake?",
+     "answer": "Please contact us as soon as possible after receiving your order.\nShare your Order ID and photographs of the product, where possible. Our team will review the issue and work towards an appropriate resolution."
+    },
+    {
+     "id": "6a670748-a3e7-4a77-b27d-92cc6c2d1238",
+     "category": "Cancellations and refunds",
+     "question": "What if my order is significantly different from what I ordered?",
+     "answer": "If your order is significantly different from the product you ordered, please contact us within a reasonable time of delivery or pickup.\nPlease provide your Order ID and photographs where possible so our team can review the concern."
+    },
+    {
+     "id": "7d055479-2961-469b-8972-ec898678d37f",
+     "category": "Cakes and customisation",
+     "question": "How far in advance should I order a custom cake?",
+     "answer": "For fully custom cakes, we recommend ordering at least 24 to 48 hours in advance.\nMore detailed or complex designs may require additional preparation time. Availability also depends on the outlet and the requirements of your cake."
+    },
+    {
+     "id": "ab8b793b-7268-44e2-b2d5-6b00d24e939c",
+     "category": "Cakes and customisation",
+     "question": "Can I choose the flavour and size of my cake?",
+     "answer": "Most cakes allow customisation of flavour and size, depending on the product and availability.\nAvailable options will be shown while placing or customising your order."
+    },
+    {
+     "id": "e0df83da-ee33-411f-8540-1feae529728c",
+     "category": "Cakes and customisation",
+     "question": "Can I request a specific cake design?",
+     "answer": "Yes, you can request a custom design.\nThe final design will depend on the requirements, preparation time, ingredients, materials, and feasibility. For a fully bespoke design, please contact our custom cake team in advance."
+    },
+    {
+     "id": "f641bcc5-be55-46f6-9b15-10ce46557f07",
+     "category": "Allergens and dietary needs",
+     "question": "Does KS Bakers offer eggless cakes?",
+     "answer": "Yes. Most of our cakes are available in an eggless version.\nWhere an eggless option is available, you can select it while customising your cake."
+    },
+    {
+     "id": "00add4d4-2df1-4553-8034-bf8767325f43",
+     "category": "Allergens and dietary needs",
+     "question": "Do KS Bakers products contain nuts, dairy, egg, or gluten?",
+     "answer": "Our kitchens handle common allergens, including nuts, dairy, egg, and gluten.\nIf you have a serious food allergy, please check with your nearest KS Bakers outlet before placing your order."
+    },
+    {
+     "id": "e246624c-c73d-4a6f-b2f2-d614c759e3b2",
+     "category": "Allergens and dietary needs",
+     "question": "Can I order a cake based on specific dietary requirements?",
+     "answer": "Availability depends on the cake and the specific dietary requirement.\nIf you have an allergy or dietary restriction, we recommend contacting the nearest KS Bakers outlet before ordering so our team can guide you on the available options."
+    },
+    {
+     "id": "5f525e97-0f71-471f-8f1e-3a77a94c6e74",
+     "category": "Corporate and bulk orders",
+     "question": "Does KS Bakers accept bulk or corporate orders?",
+     "answer": "Yes. We accept bulk orders for office celebrations, corporate gifting, events, and other occasions.\nFor bulk requirements and pricing, you can contact us on WhatsApp or explore our Gifting section."
+    },
+    {
+     "id": "513907c1-2d85-4d5c-bf1d-fa9c8eac206c",
+     "category": "Corporate and bulk orders",
+     "question": "Can I place a large order in advance?",
+     "answer": "Yes. For larger orders, we recommend contacting our team in advance.\nThis gives us time to understand your quantity, product requirements, customisation, delivery or pickup requirements, and preferred date."
+    },
+    {
+     "id": "950c7cf6-ebe2-4782-b0c9-843438d9ee49",
+     "category": "Corporate and bulk orders",
+     "question": "Does KS Bakers offer corporate gifting?",
+     "answer": "Yes. KS Bakers can cater to corporate gifting and event requirements.\nFor larger gifting requirements, please contact our team through WhatsApp or our Gifting section to discuss your requirements."
+    },
+    {
+     "id": "e0b3bd37-9d81-4823-890f-72370cd4132a",
+     "category": "Order support",
+     "question": "How can I check the status of my order?",
+     "answer": "You can check your order through your KS Bakers account.\nYour registered phone number may also be used to contact you regarding important order updates."
+    },
+    {
+     "id": "fd6c5a41-e5e5-4912-bd6b-101b0f15ad0d",
+     "category": "Order support",
+     "question": "What should I do if I entered the wrong delivery address?",
+     "answer": "Please contact KS Bakers as soon as possible.\nIf the order has not yet been dispatched or prepared for delivery, our team will check whether the address can be updated.\nFor orders that have already been prepared or dispatched, changes may not be possible."
+    },
+    {
+     "id": "5e00454b-3cbe-42c4-b27c-9017b3124b69",
+     "category": "Order support",
+     "question": "What should I do if I have a problem with my order?",
+     "answer": "If there is an issue with your order, please contact us as soon as possible with your Order ID and registered phone number.\nIf the issue concerns the product itself, photographs can also help our team understand and resolve the concern faster."
+    }
+   ]
+  },
+  "/gifting": {
+   "banners": [
+    {
+     "id": "2ebe323c-0df5-4fb0-bdc6-f499549d8a8a",
+     "image_url": "http://127.0.0.1:9000/ksbakers/uploads/472576c3-8501-4f9e-9ba8-ad0b9b40a275.jpg",
+     "image_url_hd": null,
+     "mobile_image_url": "http://127.0.0.1:9000/ksbakers/uploads/7a3d475c-ec06-4409-8704-10f2e32e7ee9.jpg",
+     "mobile_image_url_hd": "http://127.0.0.1:9000/ksbakers/uploads/0baad85e-c9a2-4ef1-ac7a-37a92e15fb38.jpg",
+     "alt_text": "Gifting",
+     "link_url": "/gifting"
+    }
+   ],
+   "tiles": [
+    {
+     "id": "955a5d05-85b5-450a-8586-f5bfa66fa462",
+     "image_url": "http://127.0.0.1:9000/ksbakers/uploads/0420831f-ccb6-4319-b667-c10e2df8d2d8.jpg",
+     "label": "Hampers",
+     "link": "/gifting/hampers"
+    },
+    {
+     "id": "064b9576-70b9-473f-90d6-100dcdf58d3a",
+     "image_url": "",
+     "label": "Snack Boxes",
+     "link": "/gifting/snack-boxes"
+    },
+    {
+     "id": "3d670c00-369b-4927-87a8-35a7592b2387",
+     "image_url": "",
+     "label": "DIY Hampers",
+     "link": "/gifting/diy-hampers"
+    },
+    {
+     "id": "98a87281-60c6-4a4a-a6ed-7da1297c7771",
+     "image_url": "",
+     "label": "DIY Snack Boxes",
+     "link": "/gifting/diy-snack-boxes"
+    }
+   ]
+  },
+  "/gifting/hampers": {
+   "listing": {
+    "name": "Hampers",
+    "slug": "hampers",
+    "hampers": [
+     {
+      "id": "188d19bc-5cb3-475d-8651-2a7f7eddb7a2",
+      "name": "Choco Tales",
+      "price": 399,
+      "images": [
+       "http://127.0.0.1:9000/ksbakers/uploads/81bf03e4-5086-4c9b-b438-9cfd7c526266.jpg"
+      ]
+     },
+     {
+      "id": "9954f1f1-0eaa-4b7b-99f5-ea62fd9698dd",
+      "name": "Choco Delight",
+      "price": 499,
+      "images": [
+       "http://127.0.0.1:9000/ksbakers/uploads/9c248c08-0d5f-42c5-9b75-fde8da1a0cd1.jpg"
+      ]
+     },
+     {
+      "id": "c468aa2a-eaf0-4a5f-8af5-cf6194c2f32a",
+      "name": "The Mithai Ritual",
+      "price": 699,
+      "images": [
+       "http://127.0.0.1:9000/ksbakers/uploads/8f1e4761-1151-466c-871f-f79a0cad6f46.png"
+      ]
+     },
+     {
+      "id": "5656e3b7-3eba-4644-bb5a-4290964622ce",
+      "name": "The Diya Box",
+      "price": 999,
+      "images": [
+       "http://127.0.0.1:9000/ksbakers/uploads/9c38916d-3dcd-4cbd-ac0b-1c959ba4bd9b.png"
+      ]
+     },
+     {
+      "id": "9d382a7d-e599-425f-8942-0a9b82edba5d",
+      "name": "The Grand Utsav",
+      "price": 1199,
+      "images": [
+       "http://127.0.0.1:9000/ksbakers/uploads/566b4748-61f9-4d1b-abfd-a32cfc267f5b.png"
+      ]
+     }
+    ],
+    "snack_boxes": []
+   },
+   "hampers": [
+    {
+     "id": "188d19bc-5cb3-475d-8651-2a7f7eddb7a2",
+     "name": "Choco Tales",
+     "price": 399,
+     "images": [
+      "http://127.0.0.1:9000/ksbakers/uploads/81bf03e4-5086-4c9b-b438-9cfd7c526266.jpg"
+     ]
+    },
+    {
+     "id": "9954f1f1-0eaa-4b7b-99f5-ea62fd9698dd",
+     "name": "Choco Delight",
+     "price": 499,
+     "images": [
+      "http://127.0.0.1:9000/ksbakers/uploads/9c248c08-0d5f-42c5-9b75-fde8da1a0cd1.jpg"
+     ]
+    },
+    {
+     "id": "c468aa2a-eaf0-4a5f-8af5-cf6194c2f32a",
+     "name": "The Mithai Ritual",
+     "price": 699,
+     "images": [
+      "http://127.0.0.1:9000/ksbakers/uploads/8f1e4761-1151-466c-871f-f79a0cad6f46.png"
+     ]
+    },
+    {
+     "id": "5656e3b7-3eba-4644-bb5a-4290964622ce",
+     "name": "The Diya Box",
+     "price": 999,
+     "images": [
+      "http://127.0.0.1:9000/ksbakers/uploads/9c38916d-3dcd-4cbd-ac0b-1c959ba4bd9b.png"
+     ]
+    },
+    {
+     "id": "9d382a7d-e599-425f-8942-0a9b82edba5d",
+     "name": "The Grand Utsav",
+     "price": 1199,
+     "images": [
+      "http://127.0.0.1:9000/ksbakers/uploads/566b4748-61f9-4d1b-abfd-a32cfc267f5b.png"
+     ]
+    }
+   ],
+   "snack_boxes": []
+  },
+  "/add-ons": {
+   "listing": {
+    "categories": [
+     {
+      "name": "Hamper",
+      "slug": "hamper"
+     }
+    ],
+    "addons": [
+     {
+      "id": "bb7681c6-e03b-4a85-aed4-38c21c3c9b7f",
+      "name": "Choco Delight Hamper",
+      "description": "",
+      "price": 499,
+      "images": [
+       "http://127.0.0.1:9000/ksbakers/uploads/39fc9d6b-c88e-4411-bdc4-5c7c915984c4.jpg"
+      ],
+      "category": "hamper"
+     },
+     {
+      "id": "09ca1d62-460b-4ddd-8cfc-72bb350acac9",
+      "name": "Choco Tales Hamper",
+      "description": "",
+      "price": 399,
+      "images": [
+       "http://127.0.0.1:9000/ksbakers/uploads/fcd4958e-92ea-4095-8dff-c6755f83b888.jpg"
+      ],
+      "category": "hamper"
+     },
+     {
+      "id": "833c7b1a-49a1-4624-869c-cf65e7e50018",
+      "name": "THE MITHAI RITUAL",
+      "description": "",
+      "price": 699,
+      "images": [
+       "http://127.0.0.1:9000/ksbakers/uploads/6eb42747-e9ef-40e6-a47d-534a4e39ed0b.png"
+      ],
+      "category": "hamper"
+     },
+     {
+      "id": "bbc80ddd-3db3-41f6-8a95-e4e7768cf056",
+      "name": "THE DIYA BOX",
+      "description": "",
+      "price": 999,
+      "images": [
+       "http://127.0.0.1:9000/ksbakers/uploads/a1c45da8-a0f8-4b70-a461-0d4f02b7218c.png"
+      ],
+      "category": "hamper"
+     },
+     {
+      "id": "f6ca8cde-378d-4b7e-b3b8-d45e06e3da74",
+      "name": "THE GRAND UTSAV",
+      "description": "",
+      "price": 1199,
+      "images": [
+       "http://127.0.0.1:9000/ksbakers/uploads/b6a51d40-4d40-43a9-918f-96a48cb0af32.png"
+      ],
+      "category": "hamper"
+     }
+    ]
+   },
+   "categories": [
+    {
+     "name": "Hamper",
+     "slug": "hamper"
+    }
+   ],
+   "addons": [
+    {
+     "id": "bb7681c6-e03b-4a85-aed4-38c21c3c9b7f",
+     "name": "Choco Delight Hamper",
+     "description": "",
+     "price": 499,
+     "images": [
+      "http://127.0.0.1:9000/ksbakers/uploads/39fc9d6b-c88e-4411-bdc4-5c7c915984c4.jpg"
+     ],
+     "category": "hamper"
+    },
+    {
+     "id": "09ca1d62-460b-4ddd-8cfc-72bb350acac9",
+     "name": "Choco Tales Hamper",
+     "description": "",
+     "price": 399,
+     "images": [
+      "http://127.0.0.1:9000/ksbakers/uploads/fcd4958e-92ea-4095-8dff-c6755f83b888.jpg"
+     ],
+     "category": "hamper"
+    },
+    {
+     "id": "833c7b1a-49a1-4624-869c-cf65e7e50018",
+     "name": "THE MITHAI RITUAL",
+     "description": "",
+     "price": 699,
+     "images": [
+      "http://127.0.0.1:9000/ksbakers/uploads/6eb42747-e9ef-40e6-a47d-534a4e39ed0b.png"
+     ],
+     "category": "hamper"
+    },
+    {
+     "id": "bbc80ddd-3db3-41f6-8a95-e4e7768cf056",
+     "name": "THE DIYA BOX",
+     "description": "",
+     "price": 999,
+     "images": [
+      "http://127.0.0.1:9000/ksbakers/uploads/a1c45da8-a0f8-4b70-a461-0d4f02b7218c.png"
+     ],
+     "category": "hamper"
+    },
+    {
+     "id": "f6ca8cde-378d-4b7e-b3b8-d45e06e3da74",
+     "name": "THE GRAND UTSAV",
+     "description": "",
+     "price": 1199,
+     "images": [
+      "http://127.0.0.1:9000/ksbakers/uploads/b6a51d40-4d40-43a9-918f-96a48cb0af32.png"
+     ],
+     "category": "hamper"
+    }
+   ]
+  },
+  "/blog": {
+   "data": {
+    "posts": [],
+    "total": 0,
+    "page": 1,
+    "limit": 10
+   },
+   "posts": []
+  }
+ }
+}
