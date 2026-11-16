@@ -236,6 +236,17 @@ class WorkspaceCreate(BaseModel):
     def _upi_mobile(cls, v: Optional[str]) -> Optional[str]:
         return None if v is None or not v.strip() else _normalize_mobile(v)
 
+    # PERSONAL (default, no business documents needed) or MERCHANT. Overrides upi_is_merchant when given.
+    account_type: Optional[Literal["PERSONAL", "MERCHANT"]] = None
+    upi_bank_name: Optional[str] = Field(None, max_length=100)
+    business_name: Optional[str] = Field(None, max_length=200)
+
+    @model_validator(mode="after")
+    def _account_type(self):
+        if self.account_type is not None:
+            self.upi_is_merchant = self.account_type == "MERCHANT"
+        return self
+
     _vpa_strip = field_validator("upi_vpa", mode="before")(_clean_vpa)
 
     @field_validator("upi_vpa")
@@ -261,6 +272,18 @@ class WorkspaceUpdate(BaseModel):
     upi_is_merchant: Optional[bool] = None
     merchant_code: Optional[str] = Field(None, pattern=r"^\d{4}$")
     upi_mobile: Optional[str] = Field(None, max_length=20, description="Empty string removes it")
+    account_type: Optional[Literal["PERSONAL", "MERCHANT"]] = None
+    upi_bank_name: Optional[str] = Field(None, max_length=100)
+    business_name: Optional[str] = Field(None, max_length=200)
+    pay_intent_enabled: Optional[bool] = None
+    pay_qr_enabled: Optional[bool] = None
+    pay_manual_enabled: Optional[bool] = None
+
+    @model_validator(mode="after")
+    def _account_type(self):
+        if self.account_type is not None:
+            self.upi_is_merchant = self.account_type == "MERCHANT"
+        return self
 
     @field_validator("upi_mobile")
     @classmethod

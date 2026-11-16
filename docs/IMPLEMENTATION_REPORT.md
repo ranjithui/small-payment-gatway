@@ -224,3 +224,26 @@ becomes PAID.
 | 8 – Tests | Backend: 198 on SQLite, 200 on PostgreSQL, plus the upgrade of a previous-version database. Browser: desktop mode (QR first), emulated Android (Pay using UPI → no app → fallback, a double tap logged once), manual copy, declaration, admin reference, attempts and remarks. |
 
 **Still to test on real phones** with ₹1 payments and the centre's permission: Android Chrome with Google Pay, PhonePe and Paytm installed; Android with no UPI app; iPhone Safari; and QR scanning from another phone and from the gallery. Personal UPI IDs may still be refused by some apps. That is bank/app policy, and the page never claims otherwise.
+
+## Personal UPI & Merchant UPI accounts (v2.6)
+
+* **Onboarding:** choose **Personal UPI** (the default) or **Merchant UPI**. Personal needs only an account
+  holder name, centre name, UPI ID and optionally a bank name; no GST, company or shop documents. Merchant
+  adds an optional business name and the merchant code (8299). Account type is stored as `upi_is_merchant`.
+  New optional columns: `upi_bank_name`, `business_name`.
+* **Settings → Payment Settings:** account type (switchable), UPI ID, payee name, bank and business name,
+  mobile number (personal), merchant code, and **payment method switches** (`pay_intent_enabled`,
+  `pay_qr_enabled`, `pay_manual_enabled`); at least one must stay on. Configuration status is Ready /
+  Check UPI ID / Incomplete, checking format only and never claiming bank verification.
+* **Clean payment page:**
+  * **Personal UPI:** no one-tap button (UPI apps block pre-filled payments to personal IDs). "Pay to this UPI
+    ID" first (copy UPI ID, mobile, amount and reference; open-app buttons; 4 steps), then a QR **without
+    amount**.
+  * **Merchant UPI:** "Pay using UPI app" (one-tap), then QR **with amount** and Copy UPI ID. If no app opens,
+    the page shows the spec's fallback message and never reports a failure.
+  * Removed: "Try one-tap", the "different amount" link, the QR mode toggle and extra rows.
+* **Platform:** UPI account type column and filter, masked UPI IDs, and per-centre pending, confirmed and
+  rejected counts with filters.
+* **Statuses kept** (spec name → existing): PENDING→UNPAID, PAYMENT_DECLARED→PAYMENT_REPORTED,
+  VERIFICATION_PENDING→PENDING_VERIFICATION, plus PAID / REJECTED / PARTIALLY_PAID / FAILED.
+* **Upgrade:** existing centres become Personal with all methods on. Tests: 214 on SQLite, 216 on PostgreSQL.

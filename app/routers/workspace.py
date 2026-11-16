@@ -13,7 +13,7 @@ from app.audit import audit
 from app.db import get_db
 from app.models import AdminUser, Tenant
 from app.ratelimit import rate_limit
-from app.schemas import SignupRequest, WorkspaceCreate, WorkspaceUpdate
+from app.schemas import UPI_VPA_PATTERN, SignupRequest, WorkspaceCreate, WorkspaceUpdate
 from app.security import AdminContext, SessionContext, hash_password, issue_admin_token, require_admin, require_session
 from app.services.subscription import subscription_out
 from app.services.upi import DEFAULT_MERCHANT_CODE
@@ -23,7 +23,27 @@ limit = Depends(rate_limit("admin", 240))
 
 EDITABLE = ("name", "upi_vpa", "upi_payee_name", "contact_phone", "contact_email",
             "verification_grace_hours", "reminder_frequency_hours", "ack_sms_enabled", "auto_send_links",
-            "upi_is_merchant", "merchant_code", "upi_mobile")
+            "upi_is_merchant", "merchant_code", "upi_mobile", "upi_bank_name", "business_name",
+            "pay_intent_enabled", "pay_qr_enabled", "pay_manual_enabled")
+
+
+def payment_methods(t: Tenant) -> dict:
+    """What parents are offered. One-tap 'UPI app' only for merchant UPI IDs (apps block it for personal IDs)."""
+    return {
+        "upi_app": bool(t.upi_is_merchant and t.pay_intent_enabled),
+        "qr": bool(t.pay_qr_enabled),
+        "copy": bool(t.pay_manual_enabled),
+    }
+
+
+def upi_config_status(t: Tenant) -> dict:
+    """Format and completeness only - FeeFlow cannot confirm the account exists or can receive money."""
+    if not t.upi_vpa or not re.match(UPI_VPA_PATTERN, t.upi_vpa):
+        return {"status": "CHECK_UPI_ID", "message": "The UPI ID format looks wrong. Please correct it."}
+    if not (t.upi_payee_name or "").strip():
+        return {"status": "INCOMPLETE", "message": "Enter the payee name shown in UPI apps."}
+    return {"status": "READY", "message": ("UPI ID format checked. FeeFlow can't confirm the account can receive "
+                                           "payments - send yourself a Rs. 1 test payment.")}
 
 
 def workspace_out(t: Optional[Tenant]) -> Optional[dict]:
@@ -44,6 +64,13 @@ def workspace_out(t: Optional[Tenant]) -> Optional[dict]:
         "upi_is_merchant": bool(t.upi_is_merchant),
         "merchant_code": t.merchant_code,
         "upi_mobile": t.upi_mobile,
+        "account_type": "MERCHANT" if t.upi_is_merchant else "PERSONAL",
+        "upi_bank_name": t.upi_bank_name,
+        "business_name": t.business_name,
+        "payment_methods": payment_methods(t),
+        "payment_methods_settings": {"upi_app": bool(t.pay_intent_enabled), "qr": bool(t.pay_qr_enabled),
+                                     "copy": bool(t.pay_manual_enabled)},
+        "upi_config_status": upi_config_status(t),
         "subscription": subscription_out(t),
     }
 
@@ -109,6 +136,8 @@ def create_workspace(body: WorkspaceCreate, session: SessionContext = Depends(re
         upi_is_merchant=body.upi_is_merchant,
         merchant_code=(body.merchant_code or DEFAULT_MERCHANT_CODE) if body.upi_is_merchant else None,
         upi_mobile=body.upi_mobile,
+        upi_bank_name=(body.upi_bank_name or "").strip() or None,
+        business_name=(body.business_name or "").strip() or None,
     )
     db.add(t)
     db.flush()
@@ -141,6 +170,10 @@ def update_workspace(body: WorkspaceUpdate, admin: AdminContext = Depends(requir
         if old != value:
             changes[field] = {"from": old, "to": value}
             setattr(t, field, value)
+    if not any(payment_methods(t).values()):
+        db.rollback()
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
+                            detail="Keep at least one payment method on (QR code or Copy UPI ID for personal UPI IDs)")
     if t.upi_is_merchant and not t.merchant_code:
         t.merchant_code = DEFAULT_MERCHANT_CODE
         changes.setdefault("merchant_code", {"from": None, "to": DEFAULT_MERCHANT_CODE})

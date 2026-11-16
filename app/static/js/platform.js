@@ -34,6 +34,8 @@
   $("pLogout").addEventListener("click", logout);
   $("pRefresh").addEventListener("click", load);
   $("pFilter").addEventListener("change", render);
+  $("pType").addEventListener("change", render);
+  $("pPay").addEventListener("change", render);
   $("pSearch").addEventListener("input", render);
 
   async function start() {
@@ -51,26 +53,30 @@
     rows = data.items;
     const s = data.summary;
     $("pCards").innerHTML = [["Workspaces", s.total], ["On trial", s.TRIAL], ["Active", s.ACTIVE], ["Trial ended", s.EXPIRED],
-      ["Suspended", s.SUSPENDED], ["Signed up, no workspace yet", s.signed_up_without_workspace]]
+      ["Suspended", s.SUSPENDED], ["Personal UPI", s.PERSONAL], ["Merchant UPI", s.MERCHANT], ["Signed up, no workspace yet", s.signed_up_without_workspace]]
       .map(([k, v]) => `<div class="card"><span class="big">${v}</span><span class="small muted">${k}</span></div>`).join("");
     render();
   }
 
   function render() {
-    const f = $("pFilter").value, q = $("pSearch").value.trim().toLowerCase();
-    const list = rows.filter((w) => (!f || w.status === f) && (!q || `${w.name} ${w.owner_email || ""}`.toLowerCase().includes(q)));
-    $("pTable").innerHTML = `<tr><th>Centre</th><th>Owner</th><th>Signed up</th><th>Status</th><th>Students</th><th>Fees (paid)</th><th>SMS phone</th><th>Last activity</th><th></th></tr>` +
+    const f = $("pFilter").value, q = $("pSearch").value.trim().toLowerCase(), ty = $("pType").value, pay = $("pPay").value;
+    const payKey = { pending: "pending_verification", confirmed: "confirmed_payments", rejected: "rejected_declarations" }[pay];
+    const list = rows.filter((w) => (!f || w.status === f) && (!ty || w.account_type === ty) && (!payKey || w[payKey] > 0) &&
+      (!q || `${w.name} ${w.owner_email || ""}`.toLowerCase().includes(q)));
+    $("pTable").innerHTML = `<tr><th>Centre</th><th>Owner</th><th>Signed up</th><th>Status</th><th>UPI</th><th>Students</th><th>Fees (paid)</th><th>Payments</th><th>SMS phone</th><th>Last activity</th><th></th></tr>` +
       (list.length ? list.map((w) => `<tr>
-        <td><b>${esc(w.name)}</b><br><span class="small muted">${esc(w.short_code)} · ${esc(w.upi_vpa)}</span></td>
+        <td><b>${esc(w.name)}</b><br><span class="small muted">${esc(w.short_code)}</span></td>
         <td>${esc(w.owner_name || "")}<br><span class="small muted">${esc(w.owner_email || "-")}</span></td>
         <td>${t(w.created_at)}</td>
         <td>${pill(w.status)}<br><span class="small muted">${w.status === "TRIAL" ? `${w.trial_days_left} days left` : w.status === "EXPIRED" ? `ended ${t(w.trial_ends_at)}` : w.status === "SUSPENDED" ? esc(w.suspended_reason || "") : ""}</span></td>
-        <td>${w.students}</td><td>${w.fees} (${w.fees_paid})</td><td>${w.sms_phone_active ? "Yes" : "No"}</td><td>${t(w.last_activity_at)}</td>
+        <td><span class="pill ${w.account_type === "MERCHANT" ? "ok" : ""}">${w.account_type === "MERCHANT" ? "Merchant" : "Personal"}</span><br><span class="small muted">${esc(w.upi_vpa)}</span></td>
+        <td>${w.students}</td><td>${w.fees} (${w.fees_paid})</td>
+        <td class="small">${w.pending_verification} pending<br>${w.confirmed_payments} confirmed<br>${w.rejected_declarations} rejected</td><td>${w.sms_phone_active ? "Yes" : "No"}</td><td>${t(w.last_activity_at)}</td>
         <td class="actions">
           ${w.status !== "SUSPENDED" ? `<button class="btn ghost sm" data-act="extend" data-id="${esc(w.id)}">+30 days trial</button>` : ""}
           ${w.status !== "ACTIVE" && w.status !== "SUSPENDED" ? `<button class="btn sm ok" data-act="activate" data-id="${esc(w.id)}">Activate</button>` : ""}
           ${w.status !== "SUSPENDED" ? `<button class="btn sm bad" data-act="suspend" data-id="${esc(w.id)}">Suspend</button>` : `<button class="btn sm" data-act="reactivate" data-id="${esc(w.id)}">Reactivate</button>`}
-        </td></tr>`).join("") : '<tr><td colspan="9" class="muted">No workspaces match.</td></tr>');
+        </td></tr>`).join("") : '<tr><td colspan="11" class="muted">No workspaces match.</td></tr>');
     $("pTable").querySelectorAll("[data-act]").forEach((b) => (b.onclick = () => act(b.dataset.act, b.dataset.id)));
   }
 

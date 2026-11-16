@@ -116,8 +116,10 @@ def upi_qr(secure_token: str, any_amount: bool = False, db: Session = Depends(ge
 
 def _validated_qr_uri(db: Session, link, view: dict, any_amount: bool = False) -> str:
     """The QR encodes exactly the link shown on the page, re-checked against server-side fee records."""
-    uri = view["upi"]["uris_any_amount" if any_amount else "uris"]["QR"]
     tenant = db.get(Tenant, link.tenant_id)
+    if not tenant.upi_is_merchant:
+        any_amount = True  # personal UPI: pre-filled amounts are what UPI apps block
+    uri = view["upi"]["uris_any_amount" if any_amount else "uris"]["QR"]
     problems = validate_upi_uri(uri, vpa=tenant.upi_vpa, payee_name=tenant.upi_payee_name,
                                 amount_paise=None if any_amount else view["fee"]["outstanding_paise"],
                                 reference=view["payment_reference"])
@@ -141,7 +143,8 @@ def upi_qr_png(secure_token: str, download: bool = False, size: str = "standard"
     db.commit()
     if not view["can_pay"] or not view["upi"]:
         raise HTTPException(status.HTTP_409_CONFLICT, detail="Payment is not available for this link")
-    # any_amount=1: QR without a pre-filled amount - most reliable for personal UPI IDs (parent types the amount).
+    # Personal UPI IDs always get a QR without amount (parent types it); merchants get the exact amount.
+    any_amount = any_amount or not view["upi"]["qr_has_amount"]
     uri = _validated_qr_uri(db, link, view, any_amount)
     buf = io.BytesIO()
     segno.make(uri, error="m").save(buf, kind="png", scale=QR_SCALES[size], border=4)

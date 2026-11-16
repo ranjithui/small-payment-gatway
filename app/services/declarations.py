@@ -37,8 +37,8 @@ PARENT_ACTIONS = {
 
 PARENT_MESSAGES = {
     "REPORTED": (
-        "Thank you! Your payment declaration has been submitted. The tuition centre will verify your payment "
-        "and update your fee status. Please do not make another payment while it is being checked."
+        "Your payment declaration has been submitted successfully. The tuition centre will verify the bank "
+        "transaction and update your payment status. Please do not make another payment while it is being checked."
     ),
     "PROCESSING": (
         "Thanks for letting us know. Bank transfers can take a little time. Please do not repeat the payment "
@@ -185,6 +185,11 @@ def public_view(db: Session, link: PaymentLink) -> Dict[str, Any]:
             "is_merchant": bool(tenant.upi_is_merchant),
             # Personal UPI IDs: apps block pre-filled links, so parents pay by UPI ID / phone number / QR.
             "personal_mode": not tenant.upi_is_merchant,
+            "account_type": "MERCHANT" if tenant.upi_is_merchant else "PERSONAL",
+            # Personal UPI: no one-tap (apps block it) and the QR carries no amount (parent types it).
+            "methods": {"upi_app": bool(tenant.upi_is_merchant and tenant.pay_intent_enabled),
+                        "qr": bool(tenant.pay_qr_enabled), "copy": bool(tenant.pay_manual_enabled)},
+            "qr_has_amount": bool(tenant.upi_is_merchant),
             "upi_mobile": _display_mobile(tenant.upi_mobile),
             "amount_text": amount_str(inst.outstanding_paise),
         }

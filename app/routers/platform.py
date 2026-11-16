@@ -10,7 +10,8 @@ from sqlalchemy.orm import Session
 
 from app.audit import audit
 from app.db import get_db, utcnow
-from app.models import AdminUser, AuditLog, Device, Installment, Student, Tenant
+from app.models import AdminUser, AuditLog, Device, Installment, PaymentDeclaration, Student, Tenant, VerifiedPayment
+from app.states import REVIEWABLE_STATUSES
 from app.ratelimit import rate_limit
 from app.schemas import PlatformExtendTrial, PlatformSuspend
 from app.security import SessionContext, require_platform_admin
@@ -19,6 +20,14 @@ from app.services.subscription import effective_status, subscription_out
 
 router = APIRouter(prefix="/api/v1/platform", tags=["platform"])
 limit = Depends(rate_limit("platform", 240))
+
+
+def mask_vpa(vpa: str) -> str:
+    """saruranjith96-3@okhdfcbank -> sar…@okhdfcbank"""
+    if not vpa or "@" not in vpa:
+        return "…"
+    local, handle = vpa.split("@", 1)
+    return f"{local[:3]}…@{handle}"
 
 
 def _counts(db: Session, model, col_tenant):
@@ -34,7 +43,12 @@ def workspace_row(db: Session, t: Tenant, counts: dict) -> dict:
         "owner_email": owner.email if owner else None,
         "owner_name": owner.name if owner else None,
         "created_at": _iso(t.created_at),
-        "upi_vpa": t.upi_vpa,
+        # Masked: the platform owner sees the account type, not the full payment configuration.
+        "upi_vpa": mask_vpa(t.upi_vpa),
+        "account_type": "MERCHANT" if t.upi_is_merchant else "PERSONAL",
+        "pending_verification": counts["pending"].get(t.id, 0),
+        "confirmed_payments": counts["confirmed"].get(t.id, 0),
+        "rejected_declarations": counts["rejected"].get(t.id, 0),
         **subscription_out(t),
         "suspended_reason": t.suspended_reason,
         "students": counts["students"].get(t.id, 0),
@@ -53,6 +67,13 @@ def _all_counts(db: Session) -> dict:
                      .filter(Installment.status == "PAID").group_by(Installment.tenant_id).all()),
         "devices": {r[0] for r in db.query(Device.tenant_id).filter(Device.active.is_(True)).all()},
         "activity": dict(db.query(AuditLog.tenant_id, func.max(AuditLog.created_at)).group_by(AuditLog.tenant_id).all()),
+        "pending": dict(db.query(PaymentDeclaration.tenant_id, func.count(PaymentDeclaration.id))
+                        .filter(PaymentDeclaration.declaration_status.in_([s.value for s in REVIEWABLE_STATUSES]))
+                        .group_by(PaymentDeclaration.tenant_id).all()),
+        "confirmed": _counts(db, VerifiedPayment, VerifiedPayment.tenant_id),
+        "rejected": dict(db.query(PaymentDeclaration.tenant_id, func.count(PaymentDeclaration.id))
+                         .filter(PaymentDeclaration.declaration_status == "REJECTED")
+                         .group_by(PaymentDeclaration.tenant_id).all()),
     }
 
 
@@ -61,6 +82,8 @@ def list_workspaces(_: SessionContext = Depends(require_platform_admin), db: Ses
     counts = _all_counts(db)
     rows = [workspace_row(db, t, counts) for t in db.query(Tenant).order_by(Tenant.created_at.desc()).all()]
     summary = {s: sum(1 for r in rows if r["status"] == s) for s in ("TRIAL", "ACTIVE", "EXPIRED", "SUSPENDED")}
+    summary.update({"PERSONAL": sum(1 for r in rows if r["account_type"] == "PERSONAL"),
+                    "MERCHANT": sum(1 for r in rows if r["account_type"] == "MERCHANT")})
     pending_owners = db.query(func.count(AdminUser.id)).filter(AdminUser.tenant_id.is_(None),
                                                                AdminUser.is_platform_admin.is_(False)).scalar()
     return {"items": rows, "summary": {**summary, "total": len(rows), "signed_up_without_workspace": pending_owners}}

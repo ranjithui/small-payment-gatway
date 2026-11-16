@@ -54,6 +54,13 @@ class Tenant(Base):
     merchant_code: Mapped[Optional[str]] = mapped_column(String(4))
     # Mobile number linked to the centre's UPI (parents can pay it via "Pay phone number").
     upi_mobile: Mapped[Optional[str]] = mapped_column(String(15))
+    upi_bank_name: Mapped[Optional[str]] = mapped_column(String(100))  # optional, display only
+    business_name: Mapped[Optional[str]] = mapped_column(String(200))  # optional (merchant accounts)
+    # Payment methods offered to parents. "UPI app" (one-tap) is only offered for merchant UPI IDs,
+    # because UPI apps block pre-filled one-tap payments to personal UPI IDs.
+    pay_intent_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    pay_qr_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    pay_manual_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     verification_grace_hours: Mapped[int] = mapped_column(Integer, default=24)
     reminder_frequency_hours: Mapped[int] = mapped_column(Integer, default=72)
     ack_sms_enabled: Mapped[bool] = mapped_column(Boolean, default=True)

@@ -5,19 +5,21 @@
   const root = document.getElementById("app");
   const KEY_STORE = "ff-idem-" + token.slice(0, 12);
   const RETURN_FLAG = "ff-launched-" + token.slice(0, 12);
-  let state = null;
-  const UA = navigator.userAgent || "";
-  // Desktop browsers can't open UPI apps: lead with the QR code instead of the UPI button.
-  const IS_DESKTOP = !/Android|iPhone|iPad|iPod|Mobile/i.test(UA) && !(navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));
   const INTENT_FLAG = "ff-intent-" + token.slice(0, 12);
-  let intentNotice = null; // { text, tone } shown under the UPI button
-  let desktopShown = false;
+  const UA = navigator.userAgent || "";
+  // Desktop browsers can't open UPI apps: lead with the QR code.
+  const IS_DESKTOP = !/Android|iPhone|iPad|iPod|Mobile/i.test(UA) && !(navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));
+  const IS_IOS = /iPhone|iPad|iPod/.test(UA);
+  let state = null;
+  let intentNotice = null; // { text, tone } shown under the one-tap button
+  let initialPanelDone = false;
 
   const $ = (id) => document.getElementById(id);
   const rupees = (p) => "Rs. " + (p / 100).toLocaleString("en-IN", { minimumFractionDigits: p % 100 ? 2 : 0, maximumFractionDigits: 2 });
   const fmtTime = (iso) => (iso ? new Date(iso).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "-");
   const fmtMonth = (m) => { const [y, mo] = m.split("-"); return new Date(+y, +mo - 1, 1).toLocaleString("en-IN", { month: "long", year: "numeric" }); };
   const show = (el, on) => el.classList.toggle("hidden", !on);
+  const visible = (el) => !el.classList.contains("hidden");
   const newKey = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
 
   // One idempotency key per "attempt": repeated taps reuse it, so only one declaration is created.
@@ -74,6 +76,7 @@
     $("feePaid").textContent = rupees(s.fee.paid_paise);
     $("feeDue").textContent = new Date(s.fee.due_date + "T00:00:00").toLocaleDateString("en-IN", { dateStyle: "medium" });
     $("feeOutstanding").textContent = rupees(s.fee.outstanding_paise);
+    $("feeRef").textContent = s.payment_reference || "-";
     const [label, cls] = PILL[s.display_status] || [s.display_status, ""];
     const pill = $("statusPill"); pill.textContent = label; pill.className = "pill " + cls;
     $("contactName").textContent = c.name;
@@ -90,33 +93,12 @@
     show($("messageCard"), !!msg);
     if (msg) { $("messageBanner").textContent = msg; $("messageBanner").className = "banner " + tone; }
 
-    // Payment controls
-    $("feeRef").textContent = s.payment_reference || "-";
+    // Payment options
     show($("upiErrorCard"), s.can_pay && !s.upi);
     if (s.can_pay && !s.upi) $("upiErrorMsg").textContent = s.upi_error || "Online payment is not available. Please contact the tuition centre.";
     show($("paySection"), s.can_pay && !!s.upi);
-    if (s.can_pay && s.upi) {
-      const u = s.upi;
-      $("payAmt").textContent = rupees(u.amount_paise);
-      $("payPayee").textContent = u.payee_name; $("payRef").textContent = u.reference;
-      $("vpa").textContent = u.payee_vpa; $("qrPayee").textContent = u.payee_name;
-      $("mCentre").textContent = c.name; $("mPayee").textContent = u.payee_name; $("mPayee2").textContent = u.payee_name;
-      $("mVpa").textContent = u.payee_vpa; $("mAmt").textContent = "Rs. " + u.amount_text; $("mRef").textContent = u.reference;
-      $("mStudent").textContent = `${s.student.name} (${s.student.student_id})`; $("mMonth").textContent = fmtMonth(s.fee.billing_month);
-      $("mAmt2").textContent = "Rs. " + u.amount_text;
-      $("mMobile").textContent = u.upi_mobile || ""; show($("mMobileRow"), !!u.upi_mobile); show($("stepMobile"), !!u.upi_mobile);
-      $("qrAmtText").textContent = "Rs. " + u.amount_text; $("qrRefText").textContent = u.reference;
-      personalMode = !!u.personal_mode;
-      if (qrMode === null) qrMode = personalMode ? "any" : "amount";
-      layout();
-      // Desktop: no UPI apps here, so show the QR straight away.
-      show($("payUpiBtn"), !IS_DESKTOP); show($("payUpiHint"), !IS_DESKTOP); show($("desktopNote"), IS_DESKTOP);
-      show($("openAppBlock"), !IS_DESKTOP);
-      if (IS_DESKTOP && !desktopShown) { desktopShown = true; openPanel("qr", false); }
-      applyQrMode();
-      if (intentNotice) { $("intentMsg").textContent = intentNotice.text; $("intentMsg").className = "banner " + intentNotice.tone; }
-      else show($("intentMsg"), false);
-    }
+    if (s.can_pay && s.upi) renderPayment(s.upi);
+
     const launched = sessionStorage.getItem(RETURN_FLAG) === "1";
     const midFlow = d && (d.status === "PAYMENT_INITIATED" || d.status === "PAYMENT_PROCESSING");
     show($("askSection"), s.can_pay && !!s.upi && (launched || midFlow || IS_DESKTOP));
@@ -144,55 +126,61 @@
     });
   }
 
-  function $tpl() {
-    const frag = document.getElementById("tpl").content.cloneNode(true);
-    const wrap = document.createElement("div"); wrap.appendChild(frag);
-    setTimeout(bind, 0);
-    return wrap;
+  // ---------------- payment options
+  // Personal UPI: no one-tap (UPI apps block pre-filled payments to personal IDs); UPI ID panel first; QR without amount.
+  // Merchant UPI: "Pay using UPI app" first, then QR (with amount) and Copy UPI ID.
+  function renderPayment(u) {
+    const m = u.methods;
+    $("payAmt").textContent = rupees(u.amount_paise);
+    $("payPayee").textContent = u.payee_name; $("payRef").textContent = u.reference;
+    $("mPayee").textContent = u.payee_name; $("mPayee2").textContent = u.payee_name;
+    $("mVpa").textContent = u.payee_vpa; $("mAmt").textContent = "Rs. " + u.amount_text; $("mAmt2").textContent = "Rs. " + u.amount_text;
+    $("mRef").textContent = u.reference;
+    $("mMobile").textContent = u.upi_mobile || ""; show($("mMobileRow"), !!u.upi_mobile); show($("stepMobile"), !!u.upi_mobile);
+    $("vpa").textContent = u.payee_vpa; $("qrPayee").textContent = u.payee_name;
+    $("qrAmtText").textContent = "Rs. " + u.amount_text; $("qrRefText").textContent = u.reference;
+    show($("qrAmountNote"), !u.qr_has_amount);
+    const qr = `/api/v1/pay/${encodeURIComponent(token)}/qr.png`;
+    $("qrSave").href = qr + "?download=1"; $("qrSaveHi").href = qr + "?download=1&size=large";
+
+    show($("desktopNote"), IS_DESKTOP && m.qr);
+    show($("oneTapBlock"), m.upi_app && !IS_DESKTOP);
+    show($("openAppBlock"), !IS_DESKTOP);
+    if (intentNotice) { $("intentMsg").textContent = intentNotice.text; $("intentMsg").className = "banner " + intentNotice.tone; }
+    else show($("intentMsg"), false);
+
+    // Which panel is open first (only decided once, so the parent's own choice is kept on refresh)
+    if (!initialPanelDone) {
+      initialPanelDone = true;
+      const ways = $("payWays");
+      if (IS_DESKTOP) ["qrBlock", "manualBlock", "choiceRow", "oneTapBlock"].forEach((id) => ways.appendChild($(id)));
+      if (IS_DESKTOP && m.qr) openPanel("qr", false);
+      else if (!m.upi_app || IS_DESKTOP) openPanel(m.copy ? "manual" : "qr", false);
+    }
+    // Buttons for the options that are not open yet
+    show($("showQrBtn"), m.qr && !visible($("qrBlock")));
+    show($("showManualBtn"), m.copy && !visible($("manualBlock")));
+    show($("choiceRow"), visible($("showQrBtn")) || visible($("showManualBtn")));
   }
 
-  // ---------------- personal UPI mode
-  // Personal UPI IDs: UPI apps often block pre-filled one-tap links, so parents pay from inside their own app
-  // (UPI ID / mobile number / QR without amount). Business UPI IDs keep one-tap "Pay using UPI" first.
-  let personalMode = false;
-  let qrMode = null; // "any" (no amount) | "amount"
-  let personalShown = false;
-
-  function layout() {
-    const ways = $("payWays");
-    const order = personalMode
-      ? (IS_DESKTOP ? ["qrBlock", "manualBlock", "choiceRow", "oneTapBlock"] : ["manualBlock", "choiceRow", "qrBlock", "oneTapBlock"])
-      : ["oneTapBlock", "choiceRow", "qrBlock", "manualBlock"];
-    order.forEach((id) => ways.appendChild($(id)));
-    $("manualTitle").textContent = personalMode ? "Pay to UPI ID or mobile number" : "Pay manually";
-    show($("personalNote"), personalMode);
-    show($("showManualBtn"), !personalMode); // always visible in personal mode
-    const btn = $("payUpiBtn");
-    btn.className = personalMode ? "btn secondary" : "btn";
-    btn.textContent = personalMode ? "Try one-tap UPI" : "Pay using UPI";
-    $("payUpiHint").textContent = personalMode
-      ? "May not work with personal UPI IDs - your app may show \"bank limit\" or \"server issues\". If so, use the steps above."
-      : "Opens Google Pay, PhonePe, Paytm or any UPI app on this phone. The amount and reference are filled in.";
-    if (personalMode && !personalShown) { personalShown = true; show($("manualBlock"), true); }
-  }
-
-  function qrUrl(extra) {
-    const p = new URLSearchParams(extra || {});
-    if (qrMode === "any") p.set("any_amount", "1");
-    const q = p.toString();
-    return `/api/v1/pay/${encodeURIComponent(token)}/qr.png` + (q ? "?" + q : "");
-  }
-
-  function applyQrMode() {
-    $("qrModeAny").classList.toggle("active-choice", qrMode === "any");
-    $("qrModeAmt").classList.toggle("active-choice", qrMode === "amount");
-    show($("qrAmountNote"), qrMode === "any");
-    $("qrSave").href = qrUrl({ download: "1" }); $("qrSaveHi").href = qrUrl({ download: "1", size: "large" });
-    if (!$("qrBlock").classList.contains("hidden")) loadQr();
+  function openPanel(which, record = true) {
+    const qr = which === "qr";
+    const panel = qr ? $("qrBlock") : $("manualBlock");
+    show(panel, true);
+    if (qr) loadQr();
+    logAttempt(qr ? "QR" : "MANUAL", qr ? "QR_SHOWN" : "STARTED", IS_DESKTOP ? "desktop" : null, true);
+    if (record) startedManually(qr ? "QR" : "OTHER_UPI");
+    else show($("askSection"), true);
+    if (state && state.upi) {
+      show($("showQrBtn"), state.upi.methods.qr && !visible($("qrBlock")));
+      show($("showManualBtn"), state.upi.methods.copy && !visible($("manualBlock")));
+      show($("choiceRow"), visible($("showQrBtn")) || visible($("showManualBtn")));
+    }
+    if (record) panel.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function loadQr() {
-    const img = $("qrImg"), url = qrUrl();
+    const img = $("qrImg"), url = `/api/v1/pay/${encodeURIComponent(token)}/qr.png`;
     if (img.getAttribute("src") !== url) img.src = url;
   }
 
@@ -203,7 +191,7 @@
   function openUpiApp(app) {
     logAttempt("MANUAL", "OPEN_APP", app);
     startedManually("OTHER_UPI");
-    if (/iPhone|iPad|iPod/.test(UA)) { location.href = IOS_SCHEME[app]; return; }
+    if (IS_IOS) { location.href = IOS_SCHEME[app]; return; }
     const store = encodeURIComponent("https://play.google.com/store/apps/details?id=" + APP_PKG[app]);
     location.href = `intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=${APP_PKG[app]};S.browser_fallback_url=${store};end`;
   }
@@ -215,6 +203,14 @@
     document.body.appendChild(ta); ta.select();
     let ok = false; try { ok = document.execCommand("copy"); } catch (_) { ok = false; }
     ta.remove(); return ok;
+  }
+
+  function paymentDetailsText() {
+    const u = state.upi;
+    return [`Pay to: ${u.payee_name} (${state.centre.name})`, `UPI ID: ${u.payee_vpa}`,
+      ...(u.upi_mobile ? [`Or mobile number: ${u.upi_mobile}`] : []), `Amount: Rs. ${u.amount_text}`,
+      `Reference: ${u.reference}`, `Student: ${state.student.name} (${state.student.student_id})`,
+      `Fee month: ${fmtMonth(state.fee.billing_month)}`].join("\n");
   }
 
   let manualStarted = false;
@@ -234,12 +230,12 @@
       headers: { "Content-Type": "application/json" }, body: JSON.stringify({ method, event, detail: detail || null }) }).catch(() => {});
   }
 
-  // ---------------- Feature A: UPI intent (Android shows every installed UPI app; nothing is forced)
+  // ---------------- one-tap UPI app (merchant UPI IDs only; Android lets the parent choose the app)
+  const FALLBACK_MSG = "We couldn't initiate this payment through your selected UPI application. Please try another UPI application or use the manual payment option.";
   let intentPending = false;
-  function payUsingUpi(anyAmount) {
+  function payUsingUpi() {
     if (intentPending) return; // one attempt at a time - never loops or re-redirects
     intentPending = true;
-    const uri = (anyAmount ? state.upi.uris_any_amount : state.upi.uris).OTHER_UPI;
     let left = false;
     const onHide = () => { if (document.visibilityState === "hidden") left = true; };
     const onBlur = () => { left = true; };
@@ -247,21 +243,21 @@
     window.addEventListener("blur", onBlur);
     sessionStorage.setItem(RETURN_FLAG, "1");
     sessionStorage.setItem(INTENT_FLAG, "1");
-    // Record the intent (NOT proof of payment), then hand the upi:// link to the phone.
     api("POST", API, { token, action: "INITIATED", upi_app: "OTHER_UPI" }, newKey()).catch(() => {});
-    logAttempt("UPI_INTENT", "STARTED", anyAmount ? "open amount" : null);
+    logAttempt("UPI_INTENT", "STARTED");
     $("optApp").value = "OTHER_UPI";
-    location.href = uri;
+    location.href = state.upi.uris.OTHER_UPI;
     setTimeout(() => {
       document.removeEventListener("visibilitychange", onHide);
       window.removeEventListener("blur", onBlur);
       intentPending = false;
       if (!left && document.visibilityState === "visible") {
-        // Nothing took over the screen: no UPI app handled the link.
+        // Nothing took over the screen: no UPI app handled the link. (Not a payment failure - status unknown.)
         sessionStorage.removeItem(INTENT_FLAG);
-        intentNotice = { text: "No compatible UPI application was detected. Please scan the QR code or use manual payment.", tone: "warn" };
+        intentNotice = { text: FALLBACK_MSG, tone: "warn" };
         logAttempt("UPI_INTENT", "NO_APP", null, true);
-        openPanel("qr", false);
+        if (state.upi.methods.copy) openPanel("manual", false);
+        if (state.upi.methods.qr) openPanel("qr", false);
         render();
       } else {
         logAttempt("UPI_INTENT", "APP_OPENED", null, true);
@@ -274,29 +270,9 @@
   function onReturnFromApp() {
     if (sessionStorage.getItem(INTENT_FLAG) !== "1") return;
     sessionStorage.removeItem(INTENT_FLAG);
-    intentNotice = { text: "Please complete the payment in your UPI application and return here. Then tap \"I have paid\" below.", tone: "info" };
+    intentNotice = { text: "If you completed the payment, tap \"I have paid\" below. If your UPI app showed an error, " +
+      "try another UPI app or use Copy UPI ID.", tone: "info" };
     logAttempt("UPI_INTENT", "RETURNED", null, true);
-  }
-
-  // ---------------- Features B + C: QR and manual panels
-  function openPanel(which, record = true) {
-    const qr = which === "qr";
-    show($("qrBlock"), qr);
-    // In personal mode the UPI ID / mobile panel always stays open.
-    show($("manualBlock"), personalMode || !qr);
-    $("showQrBtn").classList.toggle("active-choice", qr); $("showManualBtn").classList.toggle("active-choice", !qr);
-    if (qr) loadQr();
-    logAttempt(qr ? "QR" : "MANUAL", qr ? "QR_SHOWN" : "STARTED", IS_DESKTOP ? "desktop" : null, true);
-    if (record) startedManually(qr ? "QR" : "OTHER_UPI");
-    else show($("askSection"), true);
-  }
-
-  function paymentDetailsText() {
-    const u = state.upi;
-    return [`Pay to: ${u.payee_name} (${state.centre.name})`, `UPI ID: ${u.payee_vpa}`,
-      ...(u.upi_mobile ? [`Or pay mobile number: ${u.upi_mobile}`] : []), `Amount: Rs. ${u.amount_text}`,
-      `Reference: ${u.reference}`, `Student: ${state.student.name} (${state.student.student_id})`,
-      `Fee month: ${fmtMonth(state.fee.billing_month)}`].join("\n");
   }
 
   async function submit(action) {
@@ -338,9 +314,15 @@
     } catch (e) { errEl.textContent = e.message; } finally { btn.disabled = false; }
   }
 
+  function $tpl() {
+    const frag = document.getElementById("tpl").content.cloneNode(true);
+    const wrap = document.createElement("div"); wrap.appendChild(frag);
+    setTimeout(bind, 0);
+    return wrap;
+  }
+
   function bind() {
-    $("payUpiBtn").addEventListener("click", () => payUsingUpi(false));
-    $("anyAmountBtn").addEventListener("click", () => { $("partialChk").checked = true; show($("partialBox"), true); payUsingUpi(true); });
+    $("payUpiBtn").addEventListener("click", payUsingUpi);
     $("showQrBtn").addEventListener("click", () => openPanel("qr"));
     $("showManualBtn").addEventListener("click", () => openPanel("manual"));
     document.querySelectorAll(".copy[data-copy]").forEach((b) => b.addEventListener("click", async () => {
@@ -353,17 +335,15 @@
         const el = b.previousElementSibling, range = document.createRange();
         range.selectNodeContents(el); const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
       }
-      b.textContent = ok ? "Copied" : (what === "all" ? "Copy failed - copy each item" : "Press and hold the text to copy");
+      b.textContent = ok ? "Copied" : (what === "all" ? "Copy failed - copy each item" : "Press and hold to copy");
       b.classList.toggle("done", ok);
       setTimeout(() => { b.textContent = b.dataset.label; b.classList.remove("done"); }, ok ? 1800 : 4000);
       logAttempt("MANUAL", "COPIED", what, true);
       startedManually("OTHER_UPI");
     }));
-    $("qrModeAny").addEventListener("click", () => { qrMode = "any"; applyQrMode(); logAttempt("QR", "QR_SHOWN", "no amount", true); });
-    $("qrModeAmt").addEventListener("click", () => { qrMode = "amount"; applyQrMode(); logAttempt("QR", "QR_SHOWN", "with amount", true); });
     document.querySelectorAll("[data-open]").forEach((b) => b.addEventListener("click", () => openUpiApp(b.dataset.open)));
     [$("qrSave"), $("qrSaveHi")].forEach((a) => a.addEventListener("click", () => {
-      logAttempt("QR", "QR_DOWNLOADED", (a.id === "qrSaveHi" ? "large" : "standard") + (qrMode === "any" ? " no amount" : ""), true);
+      logAttempt("QR", "QR_DOWNLOADED", a.id === "qrSaveHi" ? "large" : "standard", true);
       startedManually("QR");
     }));
     $("partialChk").addEventListener("change", () => show($("partialBox"), $("partialChk").checked));

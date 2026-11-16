@@ -58,42 +58,78 @@
   }
 
   $("setupLogout").addEventListener("click", logout);
+  // ---------------- UPI account type (Personal = default, no business documents; Merchant = optional)
+  const radioVal = (name) => (document.querySelector(`input[name="${name}"]:checked`) || {}).value;
+  function applyAccountType(prefix) {
+    const merchant = radioVal(prefix + "Type") === "MERCHANT";
+    $(prefix + "MerchantOnly").classList.toggle("hidden", !merchant);
+    $(prefix + "PersonalOnly").classList.toggle("hidden", merchant);
+    $(prefix + "PayeeLabel").textContent = merchant ? "Merchant display name" : "Account holder name";
+    $(prefix + "VpaLabel").textContent = merchant ? "Merchant UPI ID" : "Personal UPI ID";
+    if (prefix === "st") {
+      // One-tap "Pay using UPI app" only works for merchant UPI IDs, so it is not offered for personal IDs.
+      $("stMUpiWrap").classList.toggle("hidden", !merchant);
+    }
+  }
+  document.querySelectorAll('input[name="wsType"]').forEach((r) => r.addEventListener("change", () => applyAccountType("ws")));
+  document.querySelectorAll('input[name="stType"]').forEach((r) => r.addEventListener("change", () => applyAccountType("st")));
+
   $("setupForm").addEventListener("submit", async (e) => {
     e.preventDefault(); $("setupErr").textContent = "";
     const vpa = $("wsVpa").value.trim();
     if (vpa.toLowerCase() !== $("wsVpa2").value.trim().toLowerCase()) { $("setupErr").textContent = "The two UPI IDs do not match."; return; }
-    if (!confirm(`Parents will pay to ${vpa}. Is this the centre's correct UPI ID?`)) return;
+    const type = radioVal("wsType");
+    if (!confirm(`Parents will pay to ${vpa} (${type === "MERCHANT" ? "merchant" : "personal"} UPI). Is this correct?`)) return;
     try {
       await api("POST", "/api/v1/workspace", { name: $("wsName").value.trim(), upi_vpa: vpa, upi_payee_name: $("wsPayee").value.trim(),
-        upi_is_merchant: $("wsMerchant").checked, upi_mobile: $("wsUpiMobile").value.trim() || null,
+        account_type: type, business_name: type === "MERCHANT" ? ($("wsBusiness").value.trim() || null) : null,
+        upi_bank_name: $("wsBank").value.trim() || null,
+        upi_mobile: type === "PERSONAL" ? ($("wsUpiMobile").value.trim() || null) : null,
         contact_phone: $("wsPhone").value.trim() || null, contact_email: $("wsEmail").value.trim() || null });
       start();
     } catch (err) { $("setupErr").textContent = err.message; }
   });
 
+  const STATUS_PILL = { READY: ["Ready", "ok"], CHECK_UPI_ID: ["Check UPI ID", "bad"], INCOMPLETE: ["Incomplete", "warn"] };
   async function loadSettings() {
     const w = await api("GET", "/api/v1/workspace");
+    const [label, cls] = STATUS_PILL[w.upi_config_status.status] || [w.upi_config_status.status, ""];
+    $("stStatus").textContent = label; $("stStatus").className = "pill " + cls; $("stStatusMsg").textContent = w.upi_config_status.message;
+    document.querySelector(`input[name="stType"][value="${w.account_type}"]`).checked = true;
     $("stName").value = w.name; $("stVpa").value = w.upi_vpa; $("stPayee").value = w.upi_payee_name;
+    $("stBusiness").value = w.business_name || ""; $("stBank").value = w.upi_bank_name || "";
+    $("stMc").value = w.merchant_code || "8299";
+    $("stUpiMobile").value = w.upi_mobile ? w.upi_mobile.replace(/^\+91/, "") : "";
+    const pm = w.payment_methods_settings;
+    $("stMUpi").checked = pm.upi_app; $("stMQr").checked = pm.qr; $("stMCopy").checked = pm.copy;
     $("stPhone").value = w.contact_phone || ""; $("stEmail").value = w.contact_email || "";
     $("stGrace").value = w.verification_grace_hours; $("stFreq").value = w.reminder_frequency_hours;
     $("stAck").checked = w.ack_sms_enabled; $("stAuto").checked = w.auto_send_links; $("stCode").textContent = w.short_code;
-    $("stMerchant").checked = w.upi_is_merchant; $("stMc").value = w.merchant_code || "8299";
-    $("stMcWrap").classList.toggle("hidden", !w.upi_is_merchant);
-    $("stUpiMobile").value = w.upi_mobile ? w.upi_mobile.replace(/^\+91/, "") : "";
+    applyAccountType("st");
     $("settingsForm").dataset.vpa = w.upi_vpa; $("stErr").textContent = ""; $("stOk").textContent = "";
   }
-  $("stMerchant").addEventListener("change", () => $("stMcWrap").classList.toggle("hidden", !$("stMerchant").checked));
   $("settingsForm").addEventListener("submit", async (e) => {
     e.preventDefault(); $("stErr").textContent = ""; $("stOk").textContent = "";
     const vpa = $("stVpa").value.trim();
+    const merchant = radioVal("stType") === "MERCHANT";
+    if (!$("stMQr").checked && !$("stMCopy").checked && !(merchant && $("stMUpi").checked)) {
+      $("stErr").textContent = "Keep at least one payment method on."; return;
+    }
     if (vpa !== $("settingsForm").dataset.vpa && !confirm(`Change the centre UPI ID to ${vpa}?\n\nFrom now on every parent pays to this ID.`)) return;
     try {
-      const w = await api("PATCH", "/api/v1/workspace", { name: $("stName").value.trim(), upi_vpa: vpa, upi_payee_name: $("stPayee").value.trim(),
+      await api("PATCH", "/api/v1/workspace", { name: $("stName").value.trim(), upi_vpa: vpa, upi_payee_name: $("stPayee").value.trim(),
+        account_type: merchant ? "MERCHANT" : "PERSONAL",
+        merchant_code: merchant ? ($("stMc").value.trim() || "8299") : undefined,
+        business_name: merchant ? $("stBusiness").value.trim() : undefined,
+        upi_bank_name: $("stBank").value.trim(),
+        upi_mobile: merchant ? undefined : $("stUpiMobile").value.trim(),
+        pay_intent_enabled: merchant ? $("stMUpi").checked : undefined, pay_qr_enabled: $("stMQr").checked, pay_manual_enabled: $("stMCopy").checked,
         contact_phone: $("stPhone").value.trim(), contact_email: $("stEmail").value.trim(),
-        verification_grace_hours: +$("stGrace").value, reminder_frequency_hours: +$("stFreq").value, ack_sms_enabled: $("stAck").checked, auto_send_links: $("stAuto").checked,
-        upi_is_merchant: $("stMerchant").checked, merchant_code: $("stMerchant").checked ? ($("stMc").value.trim() || "8299") : undefined,
-        upi_mobile: $("stUpiMobile").value.trim() });
-      $("centreTitle").textContent = w.name; $("settingsForm").dataset.vpa = w.upi_vpa; $("stOk").textContent = "Saved.";
+        verification_grace_hours: +$("stGrace").value, reminder_frequency_hours: +$("stFreq").value,
+        ack_sms_enabled: $("stAck").checked, auto_send_links: $("stAuto").checked });
+      $("centreTitle").textContent = $("stName").value.trim();
+      await loadSettings();
+      $("stOk").textContent = "Saved.";
     } catch (err) { $("stErr").textContent = err.message; }
   });
 

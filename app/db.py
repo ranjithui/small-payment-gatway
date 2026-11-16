@@ -86,6 +86,12 @@ UPGRADES = [
     "CREATE UNIQUE INDEX IF NOT EXISTS uq_installment_payment_reference ON installments (tenant_id, payment_reference)",
     # v2.5: UPI-linked mobile number (personal UPI payments by phone number).
     "ALTER TABLE tenants ADD COLUMN IF NOT EXISTS upi_mobile VARCHAR(15)",
+    # v2.6: personal / merchant UPI account details + payment method switches (existing centres: all on).
+    "ALTER TABLE tenants ADD COLUMN IF NOT EXISTS upi_bank_name VARCHAR(100)",
+    "ALTER TABLE tenants ADD COLUMN IF NOT EXISTS business_name VARCHAR(200)",
+    "ALTER TABLE tenants ADD COLUMN IF NOT EXISTS pay_intent_enabled BOOLEAN NOT NULL DEFAULT TRUE",
+    "ALTER TABLE tenants ADD COLUMN IF NOT EXISTS pay_qr_enabled BOOLEAN NOT NULL DEFAULT TRUE",
+    "ALTER TABLE tenants ADD COLUMN IF NOT EXISTS pay_manual_enabled BOOLEAN NOT NULL DEFAULT TRUE",
 ]
 
 

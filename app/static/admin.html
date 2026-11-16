@@ -41,15 +41,25 @@
     <h1>Create your workspace</h1>
     <p class="muted">Set up your tuition centre. Parents pay directly to the UPI ID you enter here; you can change it later in Settings.</p>
     <form id="setupForm">
-      <label for="wsName">Tuition centre name</label><input id="wsName" required minlength="2" maxlength="200" placeholder="e.g. Bright Minds Tuition Centre">
-      <label for="wsVpa">Centre UPI ID</label><input id="wsVpa" required maxlength="100" placeholder="e.g. brightminds@okaxis" autocomplete="off">
-      <p class="small muted" style="margin:4px 0 0">Use the UPI ID of the centre's own bank account. Double-check it: payments go straight to this ID.</p>
+      <label>UPI account type</label>
+      <div class="acct-choice">
+        <label class="acct"><input type="radio" name="wsType" value="PERSONAL" checked>
+          <span><b>Personal UPI</b><br><span class="small muted">For individual tutors and small tuition centres using their personal bank account. No business documents needed.</span></span></label>
+        <label class="acct"><input type="radio" name="wsType" value="MERCHANT">
+          <span><b>Merchant UPI</b><br><span class="small muted">For registered tuition businesses using a merchant UPI account (optional).</span></span></label>
+      </div>
+      <label for="wsName">Centre display name</label><input id="wsName" required minlength="2" maxlength="200" placeholder="e.g. Bright Minds Tuition Centre">
+      <label for="wsPayee" id="wsPayeeLabel">Account holder name</label><input id="wsPayee" required minlength="2" maxlength="100" placeholder="Name on the bank account">
+      <label for="wsVpa" id="wsVpaLabel">Personal UPI ID</label><input id="wsVpa" required maxlength="100" placeholder="e.g. yourname@okhdfcbank" autocomplete="off">
       <label for="wsVpa2">Confirm UPI ID</label><input id="wsVpa2" required maxlength="100" autocomplete="off">
-      <label class="check"><input type="checkbox" id="wsMerchant"> This is a business (merchant) UPI ID</label>
-      <p class="small muted" style="margin:2px 0 0 30px">Turn on if this UPI ID comes from Google Pay for Business, PhonePe Business, Paytm for Business, BharatPe or your bank's merchant service. Personal UPI IDs: leave off. Google Pay and PhonePe often block one-tap pre-filled payments to personal UPI IDs, so parents are shown "Pay using UPI ID" and the QR code first.</p>
-      <label for="wsUpiMobile">UPI-linked mobile number (optional)</label><input id="wsUpiMobile" maxlength="20" inputmode="tel" placeholder="10-digit mobile linked to this UPI ID">
-      <p class="small muted" style="margin:2px 0 0">Parents can also pay it with "Pay phone number" in Google Pay or PhonePe. Leave empty to hide this option.</p>
-      <label for="wsPayee">Payee name shown in UPI apps</label><input id="wsPayee" required minlength="2" maxlength="100">
+      <p class="small muted" style="margin:4px 0 0">FeeFlow checks the format only. Send yourself a Rs. 1 test payment after setup.</p>
+      <div id="wsMerchantOnly" class="hidden">
+        <label for="wsBusiness">Business name (optional)</label><input id="wsBusiness" maxlength="200">
+      </div>
+      <div id="wsPersonalOnly">
+        <label for="wsUpiMobile">UPI-linked mobile number (optional)</label><input id="wsUpiMobile" maxlength="20" inputmode="tel" placeholder="Parents can pay this number too">
+      </div>
+      <label for="wsBank">Bank name (optional)</label><input id="wsBank" maxlength="100" placeholder="e.g. HDFC Bank">
       <label for="wsPhone">Contact phone for parents (optional)</label><input id="wsPhone" maxlength="20" inputmode="tel">
       <label for="wsEmail">Contact email (optional)</label><input id="wsEmail" type="email" maxlength="200">
       <button class="btn" style="margin-top:14px">Create workspace</button>
@@ -126,26 +136,43 @@
     <div id="tab-settings" class="card hidden" style="max-width:640px">
       <h2>Settings</h2>
       <form id="settingsForm">
-        <label for="stName">Tuition centre name</label><input id="stName" required minlength="2" maxlength="200">
-        <label for="stVpa">Centre UPI ID</label><input id="stVpa" required maxlength="100" autocomplete="off">
-        <p class="small muted" style="margin:4px 0 0">Changing this changes where every parent pays from now on (open payment pages update immediately). The change is recorded in the audit log.</p>
-        <label class="check"><input type="checkbox" id="stMerchant"> This is a business (merchant) UPI ID</label>
-        <p class="small muted" style="margin:2px 0 0 30px">Turn on if this UPI ID comes from Google Pay for Business, PhonePe Business, Paytm for Business, BharatPe or your bank's merchant service. Personal UPI IDs: leave off. Google Pay and PhonePe often block one-tap pre-filled payments to personal UPI IDs, so parents are shown "Pay using UPI ID" and the QR code first.</p>
-        <div id="stMcWrap" class="hidden" style="margin-left:30px">
+        <h3 style="margin-top:0">Payment Settings <span class="pill" id="stStatus"></span></h3>
+        <p class="small muted" id="stStatusMsg" style="margin:0 0 6px"></p>
+        <label>UPI account type</label>
+        <div class="acct-choice">
+          <label class="acct"><input type="radio" name="stType" value="PERSONAL">
+            <span><b>Personal UPI</b><br><span class="small muted">Parents pay by copying your UPI ID or scanning the QR (one-tap is blocked by UPI apps for personal IDs).</span></span></label>
+          <label class="acct"><input type="radio" name="stType" value="MERCHANT">
+            <span><b>Merchant UPI</b><br><span class="small muted">Adds one-tap "Pay using UPI app" and a QR with the amount filled in.</span></span></label>
+        </div>
+        <label for="stPayee" id="stPayeeLabel">Account holder name</label><input id="stPayee" required minlength="2" maxlength="100">
+        <label for="stVpa" id="stVpaLabel">UPI ID</label><input id="stVpa" required maxlength="100" autocomplete="off">
+        <p class="small muted" style="margin:4px 0 0">Changing it applies to all payment links straight away and is recorded in the audit log.</p>
+        <div id="stMerchantOnly" class="hidden">
+          <label for="stBusiness">Business name (optional)</label><input id="stBusiness" maxlength="200">
           <label for="stMc">Merchant category code</label>
           <input id="stMc" maxlength="4" inputmode="numeric" pattern="\d{4}" style="width:120px" placeholder="8299">
-          <p class="small muted" style="margin:2px 0 0">8299 = Schools &amp; educational services (the usual code for tuition centres).</p>
+          <p class="small muted" style="margin:2px 0 0">8299 = Schools &amp; educational services.</p>
         </div>
-        <label for="stUpiMobile">UPI-linked mobile number (optional)</label><input id="stUpiMobile" maxlength="20" inputmode="tel" placeholder="10-digit mobile linked to this UPI ID">
-        <p class="small muted" style="margin:2px 0 0">Shown to parents as "Or pay mobile number" (for "Pay phone number" in Google Pay / PhonePe). Leave empty to hide it.</p>
-        <label for="stPayee">Payee name shown in UPI apps</label><input id="stPayee" required minlength="2" maxlength="100">
+        <div id="stPersonalOnly">
+          <label for="stUpiMobile">UPI-linked mobile number (optional)</label><input id="stUpiMobile" maxlength="20" inputmode="tel">
+        </div>
+        <label for="stBank">Bank name (optional)</label><input id="stBank" maxlength="100">
+        <label>Payment methods shown to parents</label>
+        <label class="check" id="stMUpiWrap"><input type="checkbox" id="stMUpi"> Pay using UPI app (one-tap)</label>
+        <label class="check"><input type="checkbox" id="stMQr"> QR code</label>
+        <label class="check"><input type="checkbox" id="stMCopy"> Copy UPI ID</label>
+
+        <h3>Centre</h3>
+        <label for="stName">Centre display name</label><input id="stName" required minlength="2" maxlength="200">
         <label for="stPhone">Contact phone</label><input id="stPhone" maxlength="20">
         <label for="stEmail">Contact email</label><input id="stEmail" type="email" maxlength="200">
+
+        <h3>Reminders &amp; SMS</h3>
         <label for="stGrace">Pause reminders after "I have paid" for (hours)</label><input id="stGrace" type="number" min="1" max="168">
         <label for="stFreq">Hours between reminders</label><input id="stFreq" type="number" min="12" max="720">
         <label class="check"><input type="checkbox" id="stAck"> Send parents an SMS when they tap "I have paid"</label>
-        <label class="check"><input type="checkbox" id="stAuto"> Send the fee link by SMS automatically when each month's fee is created (and schedule reminders)</label>
-        <p class="small muted" style="margin:0 0 0 30px">Off = use the "Send fee link" button on each student (recommended while testing).</p>
+        <label class="check"><input type="checkbox" id="stAuto"> Send the fee link by SMS automatically when each month's fee is created</label>
         <p class="small muted">Receipt prefix: <b id="stCode"></b></p>
         <button class="btn" style="margin-top:10px">Save settings</button>
         <p class="err" id="stErr"></p><p id="stOk" class="small" style="color:var(--ok)"></p>

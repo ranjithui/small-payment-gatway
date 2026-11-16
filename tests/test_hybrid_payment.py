@@ -86,7 +86,8 @@ def test_qr_png_standard_and_high_resolution(env):
     w = lambda b: int.from_bytes(b[16:20], "big")  # PNG IHDR width
     assert w(std.content) < 500 < 900 < w(big.content)
     ref = env.view().json()["payment_reference"]
-    assert big.headers["content-disposition"] == f'attachment; filename="FeeFlow-UPI-QR-{ref}.png"'
+    # demo centre uses a personal UPI ID, so its QR never carries an amount
+    assert big.headers["content-disposition"] == f'attachment; filename="FeeFlow-UPI-QR-{ref}-no-amount.png"'
     assert env.c.get(f"/api/v1/pay/{env.token()}/qr.png?size=huge").status_code == 422
 
 
@@ -111,8 +112,8 @@ def test_declaration_message_and_amount_from_server(env):
     assert r.status_code == 201
     v = r.json()
     assert v["declaration"]["declared_amount_paise"] == 250000
-    assert v["message"].startswith("Thank you! Your payment declaration has been submitted. The tuition centre will "
-                                   "verify your payment and update your fee status.")
+    assert v["message"].startswith("Your payment declaration has been submitted successfully. The tuition centre will "
+                                   "verify the bank transaction and update your payment status.")
     assert v["fee"]["paid_paise"] == 0 and v["installment_status"] == "UNPAID"
     assert env.declare(action="PAID").json()["duplicate"] is True
     failed = env.declare("BM-1002", action="FAILED").json()

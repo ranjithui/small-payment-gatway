@@ -44,8 +44,11 @@ def test_qr_without_amount(env):
     r = env.c.get(f"/api/v1/pay/{env.token()}/qr.png?any_amount=1&download=1")
     assert r.status_code == 200 and r.content[:8] == b"\x89PNG\r\n\x1a\n"
     assert r.headers["content-disposition"].endswith('-no-amount.png"')
-    with_amt = env.c.get(f"/api/v1/pay/{env.token()}/qr.png").content
-    assert with_amt != r.content
+    # Personal UPI: even without any_amount the QR never carries an amount (apps block pre-filled amounts)
+    assert env.c.get(f"/api/v1/pay/{env.token()}/qr.png").content == env.c.get(f"/api/v1/pay/{env.token()}/qr.png?any_amount=1").content
+    # Merchant UPI: the QR carries the exact amount
+    env.c.patch("/api/v1/workspace", headers=env.admin, json={"account_type": "MERCHANT"})
+    assert env.c.get(f"/api/v1/pay/{env.token()}/qr.png").content != env.c.get(f"/api/v1/pay/{env.token()}/qr.png?any_amount=1").content
 
 
 def test_open_app_attempt_is_recorded(env):
