@@ -131,7 +131,8 @@ QR_SCALES = {"standard": 10, "large": 26}
 
 
 @router.get("/pay/{secure_token}/qr.png", dependencies=[Depends(rate_limit("public_read", 60))])
-def upi_qr_png(secure_token: str, download: bool = False, size: str = "standard", db: Session = Depends(get_db)):
+def upi_qr_png(secure_token: str, download: bool = False, size: str = "standard", any_amount: bool = False,
+               db: Session = Depends(get_db)):
     """PNG so parents can save it to the gallery and use 'Scan QR -> upload from gallery' in any UPI app."""
     if size not in QR_SCALES:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail="size must be standard or large")
@@ -140,12 +141,13 @@ def upi_qr_png(secure_token: str, download: bool = False, size: str = "standard"
     db.commit()
     if not view["can_pay"] or not view["upi"]:
         raise HTTPException(status.HTTP_409_CONFLICT, detail="Payment is not available for this link")
-    uri = _validated_qr_uri(db, link, view)
+    # any_amount=1: QR without a pre-filled amount - most reliable for personal UPI IDs (parent types the amount).
+    uri = _validated_qr_uri(db, link, view, any_amount)
     buf = io.BytesIO()
     segno.make(uri, error="m").save(buf, kind="png", scale=QR_SCALES[size], border=4)
     headers = {"Cache-Control": "no-store"}
     if download:
-        safe = "".join(c for c in view["payment_reference"] if c.isalnum() or c in "-_")
+        safe = "".join(c for c in view["payment_reference"] if c.isalnum() or c in "-_") + ("-no-amount" if any_amount else "")
         headers["Content-Disposition"] = f'attachment; filename="FeeFlow-UPI-QR-{safe}.png"'
     return Response(buf.getvalue(), media_type="image/png", headers=headers)
 

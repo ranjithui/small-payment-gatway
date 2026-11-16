@@ -51,49 +51,72 @@
     <p class="banner info hidden" id="desktopNote">You're on a computer. Scan the QR code below with any UPI app
       on your phone, or open this payment link on your phone.</p>
 
-    <button class="btn" id="payUpiBtn">Pay using UPI</button>
-    <p class="muted small" id="payUpiHint" style="text-align:center;margin:6px 0 0">Opens Google Pay, PhonePe, Paytm
-      or any UPI app on this phone. The amount and reference are filled in.</p>
-    <p class="banner hidden" id="intentMsg" style="margin-top:10px"></p>
-    <p class="banner info hidden" id="personalTip" style="margin-top:10px">If your UPI app shows an error such as
-      "bank limit" or "server issues", use <b>Show QR Code</b> or <b>Pay Manually</b>.</p>
-
-    <div class="actions" style="margin-top:12px">
-      <button class="btn secondary" style="flex:1" id="showQrBtn">Show QR Code</button>
-      <button class="btn secondary" style="flex:1" id="showManualBtn">Pay Manually</button>
-    </div>
-
-    <div id="qrBlock" class="panel hidden">
-      <div class="qr"><img id="qrImg" alt="UPI QR code for this fee">
-        <p class="muted small">Scan with any UPI app &middot; pays <b id="qrPayee"></b> (<span id="vpa"></span>)</p>
-        <div class="actions" style="justify-content:center">
-          <a class="btn secondary sm" id="qrSave" download>Save QR</a>
-          <a class="btn ghost sm" id="qrSaveHi" download>High-resolution QR</a>
-        </div>
-        <p class="muted small" style="margin-top:8px">On this phone: save the QR, then open your UPI app &rarr; <b>Scan QR</b>
-          &rarr; tap the gallery/photo icon &rarr; choose the saved image. The amount is already filled in.<br>
-          If the image opens instead of downloading, press and hold it and choose <b>Download / Save image</b>.</p>
+    <div id="payWays">
+      <!-- One-tap UPI intent (primary for business UPI IDs; "try" option for personal UPI IDs) -->
+      <div id="oneTapBlock">
+        <button class="btn" id="payUpiBtn">Pay using UPI</button>
+        <p class="muted small" id="payUpiHint" style="text-align:center;margin:6px 0 0">Opens Google Pay, PhonePe, Paytm
+          or any UPI app on this phone. The amount and reference are filled in.</p>
+        <p class="banner hidden" id="intentMsg" style="margin-top:10px"></p>
       </div>
-    </div>
 
-    <div id="manualBlock" class="panel hidden">
-      <h3 style="margin-top:0">Pay manually</h3>
-      <div class="copyrow"><span class="muted small">Centre</span><b id="mCentre"></b></div>
-      <div class="copyrow"><span class="muted small">Pay to</span><b id="mPayee"></b></div>
-      <div class="copyrow"><span class="muted small">UPI ID</span><b id="mVpa"></b><button class="btn secondary sm copy" data-copy="vpa" data-label="Copy UPI ID">Copy UPI ID</button></div>
-      <div class="copyrow"><span class="muted small">Amount</span><b id="mAmt"></b><button class="btn secondary sm copy" data-copy="amount" data-label="Copy amount">Copy amount</button></div>
-      <div class="copyrow"><span class="muted small">Reference</span><b id="mRef"></b><button class="btn secondary sm copy" data-copy="reference" data-label="Copy reference">Copy reference</button></div>
-      <div class="copyrow"><span class="muted small">Student</span><b id="mStudent"></b></div>
-      <div class="copyrow"><span class="muted small">Fee month</span><b id="mMonth"></b></div>
-      <button class="btn secondary copy" data-copy="all" data-label="Copy payment details" style="margin-top:10px">Copy payment details</button>
-      <ol class="small steps">
-        <li>Open Google Pay, PhonePe, Paytm or another UPI app.</li>
-        <li>Choose <b>Pay UPI ID or number</b> (PhonePe: <b>To Mobile / UPI ID</b>) and enter the centre's UPI ID.</li>
-        <li>Check the beneficiary name shown is <b id="mPayee2"></b>.</li>
-        <li>Enter the fee amount and add the reference in the note.</li>
-        <li>Complete the payment in your UPI app.</li>
-        <li>Return to FeeFlow and tap <b>I have paid</b>.</li>
-      </ol>
+      <div class="actions" id="choiceRow">
+        <button class="btn secondary" style="flex:1" id="showQrBtn">Show QR Code</button>
+        <button class="btn secondary" style="flex:1" id="showManualBtn">Pay Manually</button>
+      </div>
+
+      <div id="qrBlock" class="panel hidden">
+        <div class="qr">
+          <div class="actions" id="qrModeRow" style="justify-content:center;margin-bottom:8px">
+            <button class="btn secondary sm" id="qrModeAny">Without amount (most reliable)</button>
+            <button class="btn secondary sm" id="qrModeAmt">With amount</button>
+          </div>
+          <img id="qrImg" alt="UPI QR code for this fee">
+          <p class="muted small">Scan with any UPI app &middot; pays <b id="qrPayee"></b> (<span id="vpa"></span>)</p>
+          <p class="banner warn small hidden" id="qrAmountNote">This QR has no amount: enter <b id="qrAmtText"></b> in your UPI
+            app and add reference <b id="qrRefText"></b> in the note.</p>
+          <div class="actions" style="justify-content:center">
+            <a class="btn secondary sm" id="qrSave" download>Save QR</a>
+            <a class="btn ghost sm" id="qrSaveHi" download>High-resolution QR</a>
+          </div>
+          <p class="muted small" style="margin-top:8px">On this phone: save the QR, then open your UPI app &rarr; <b>Scan QR</b>
+            &rarr; tap the gallery/photo icon &rarr; choose the saved image.<br>
+            If the image opens instead of downloading, press and hold it and choose <b>Download / Save image</b>.</p>
+        </div>
+      </div>
+
+      <div id="manualBlock" class="panel hidden">
+        <h3 style="margin-top:0" id="manualTitle">Pay manually</h3>
+        <p class="small muted hidden" id="personalNote" style="margin:-4px 0 8px">This centre receives fees on a personal UPI ID.
+          Pay it from inside your UPI app as below - it works in every UPI app.</p>
+        <div class="copyrow"><span class="muted small">Centre</span><b id="mCentre"></b></div>
+        <div class="copyrow"><span class="muted small">Pay to</span><b id="mPayee"></b></div>
+        <div class="copyrow"><span class="muted small">UPI ID</span><b id="mVpa"></b><button class="btn secondary sm copy" data-copy="vpa" data-label="Copy UPI ID">Copy UPI ID</button></div>
+        <div class="copyrow hidden" id="mMobileRow"><span class="muted small">Or mobile</span><b id="mMobile"></b><button class="btn secondary sm copy" data-copy="mobile" data-label="Copy number">Copy number</button></div>
+        <div class="copyrow"><span class="muted small">Amount</span><b id="mAmt"></b><button class="btn secondary sm copy" data-copy="amount" data-label="Copy amount">Copy amount</button></div>
+        <div class="copyrow"><span class="muted small">Reference</span><b id="mRef"></b><button class="btn secondary sm copy" data-copy="reference" data-label="Copy reference">Copy reference</button></div>
+        <div class="copyrow"><span class="muted small">Student</span><b id="mStudent"></b></div>
+        <div class="copyrow"><span class="muted small">Fee month</span><b id="mMonth"></b></div>
+        <button class="btn secondary copy" data-copy="all" data-label="Copy payment details" style="margin-top:10px">Copy payment details</button>
+        <div id="openAppBlock" class="hidden" style="margin-top:12px">
+          <p class="small" style="margin:0 0 6px"><b>Open your UPI app</b> (it opens the app only - no payment is started):</p>
+          <div class="apps" id="openAppButtons">
+            <button class="app" data-open="GPAY"><span class="ico" style="background:#1a73e8">G</span>Google Pay</button>
+            <button class="app" data-open="PHONEPE"><span class="ico" style="background:#5f259f">Pe</span>PhonePe</button>
+            <button class="app" data-open="PAYTM"><span class="ico" style="background:#00baf2">P</span>Paytm</button>
+            <button class="app" data-open="BHIM"><span class="ico" style="background:#f07c00">B</span>BHIM</button>
+          </div>
+        </div>
+        <ol class="small steps">
+          <li>Tap <b>Copy UPI ID</b><span id="stepMobile" class="hidden"> (or <b>Copy number</b>)</span>.</li>
+          <li>Open Google Pay, PhonePe, Paytm or another UPI app.</li>
+          <li>Choose <b>Pay UPI ID or number</b> (Google Pay), <b>To Mobile Number / UPI ID</b> (PhonePe) or
+            <b>UPI Money Transfer</b> (Paytm) and paste it.</li>
+          <li>Check the beneficiary name shown is <b id="mPayee2"></b>.</li>
+          <li>Enter <b id="mAmt2"></b> and add the reference in the note.</li>
+          <li>Complete the payment, then return to FeeFlow and tap <b>I have paid</b>.</li>
+        </ol>
+      </div>
     </div>
 
     <details>

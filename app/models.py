@@ -52,6 +52,8 @@ class Tenant(Base):
     # Business (merchant) UPI ID: payment links then include the merchant code + a transaction reference.
     upi_is_merchant: Mapped[bool] = mapped_column(Boolean, default=False)
     merchant_code: Mapped[Optional[str]] = mapped_column(String(4))
+    # Mobile number linked to the centre's UPI (parents can pay it via "Pay phone number").
+    upi_mobile: Mapped[Optional[str]] = mapped_column(String(15))
     verification_grace_hours: Mapped[int] = mapped_column(Integer, default=24)
     reminder_frequency_hours: Mapped[int] = mapped_column(Integer, default=72)
     ack_sms_enabled: Mapped[bool] = mapped_column(Boolean, default=True)

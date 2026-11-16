@@ -84,6 +84,8 @@ UPGRADES = [
     # v2.4: payment reference per fee (filled in for existing fees on start-up) + payment_attempts table.
     "ALTER TABLE installments ADD COLUMN IF NOT EXISTS payment_reference VARCHAR(60)",
     "CREATE UNIQUE INDEX IF NOT EXISTS uq_installment_payment_reference ON installments (tenant_id, payment_reference)",
+    # v2.5: UPI-linked mobile number (personal UPI payments by phone number).
+    "ALTER TABLE tenants ADD COLUMN IF NOT EXISTS upi_mobile VARCHAR(15)",
 ]
 
 

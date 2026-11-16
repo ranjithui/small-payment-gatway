@@ -183,6 +183,9 @@ def public_view(db: Session, link: PaymentLink) -> Dict[str, Any]:
             "uris_any_amount": build_uris(tenant.upi_vpa, tenant.upi_payee_name, None, note, mc, txn_ref),
             # Pay-by-UPI-ID fallback (works even when an app blocks pre-filled links to personal UPI IDs)
             "is_merchant": bool(tenant.upi_is_merchant),
+            # Personal UPI IDs: apps block pre-filled links, so parents pay by UPI ID / phone number / QR.
+            "personal_mode": not tenant.upi_is_merchant,
+            "upi_mobile": _display_mobile(tenant.upi_mobile),
             "amount_text": amount_str(inst.outstanding_paise),
         }
 
@@ -237,6 +240,14 @@ def public_view(db: Session, link: PaymentLink) -> Dict[str, Any]:
         ],
         "message": message,
     }
+
+
+def _display_mobile(m: Optional[str]) -> Optional[str]:
+    """+919876543210 -> "98765 43210" (what parents type in 'Pay phone number')."""
+    if not m:
+        return None
+    d = "".join(c for c in m if c.isdigit())[-10:]
+    return f"{d[:5]} {d[5:]}" if len(d) == 10 else None
 
 
 def _iso(dt: Optional[datetime]) -> Optional[str]:

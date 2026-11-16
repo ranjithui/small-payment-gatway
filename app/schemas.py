@@ -229,6 +229,12 @@ class WorkspaceCreate(BaseModel):
                                       description="Receipt number prefix; generated if omitted")
     upi_is_merchant: bool = Field(False, description="UPI ID is a business (merchant) UPI ID")
     merchant_code: Optional[str] = Field(None, pattern=r"^\d{4}$", description="Merchant category code, e.g. 8299")
+    upi_mobile: Optional[str] = Field(None, max_length=20, description="Mobile number linked to the centre's UPI")
+
+    @field_validator("upi_mobile")
+    @classmethod
+    def _upi_mobile(cls, v: Optional[str]) -> Optional[str]:
+        return None if v is None or not v.strip() else _normalize_mobile(v)
 
     _vpa_strip = field_validator("upi_vpa", mode="before")(_clean_vpa)
 
@@ -254,6 +260,14 @@ class WorkspaceUpdate(BaseModel):
     auto_send_links: Optional[bool] = None
     upi_is_merchant: Optional[bool] = None
     merchant_code: Optional[str] = Field(None, pattern=r"^\d{4}$")
+    upi_mobile: Optional[str] = Field(None, max_length=20, description="Empty string removes it")
+
+    @field_validator("upi_mobile")
+    @classmethod
+    def _upi_mobile(cls, v: Optional[str]) -> Optional[str]:
+        if v is None or not v.strip():
+            return v  # None = unchanged, "" = remove
+        return _normalize_mobile(v)
 
     _vpa_strip = field_validator("upi_vpa", mode="before")(_clean_vpa)
 
@@ -270,7 +284,8 @@ class WorkspaceUpdate(BaseModel):
 class PaymentAttemptIn(BaseModel):
     """Diagnostics from the parent payment page. Never contains banking credentials."""
     method: Literal["UPI_INTENT", "QR", "MANUAL"]
-    event: Literal["STARTED", "APP_OPENED", "RETURNED", "NO_APP", "FAILED", "QR_SHOWN", "QR_DOWNLOADED", "COPIED"]
+    event: Literal["STARTED", "APP_OPENED", "RETURNED", "NO_APP", "FAILED", "QR_SHOWN", "QR_DOWNLOADED", "COPIED",
+                   "OPEN_APP"]
     detail: Optional[str] = Field(None, max_length=200, pattern=r"^[A-Za-z0-9 _.,:()'/-]*$")
 
     _check_detail = field_validator("detail")(_no_secrets)

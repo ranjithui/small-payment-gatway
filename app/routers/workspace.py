@@ -23,7 +23,7 @@ limit = Depends(rate_limit("admin", 240))
 
 EDITABLE = ("name", "upi_vpa", "upi_payee_name", "contact_phone", "contact_email",
             "verification_grace_hours", "reminder_frequency_hours", "ack_sms_enabled", "auto_send_links",
-            "upi_is_merchant", "merchant_code")
+            "upi_is_merchant", "merchant_code", "upi_mobile")
 
 
 def workspace_out(t: Optional[Tenant]) -> Optional[dict]:
@@ -43,6 +43,7 @@ def workspace_out(t: Optional[Tenant]) -> Optional[dict]:
         "auto_send_links": bool(t.auto_send_links),
         "upi_is_merchant": bool(t.upi_is_merchant),
         "merchant_code": t.merchant_code,
+        "upi_mobile": t.upi_mobile,
         "subscription": subscription_out(t),
     }
 
@@ -107,6 +108,7 @@ def create_workspace(body: WorkspaceCreate, session: SessionContext = Depends(re
         contact_email=(body.contact_email or "").strip() or None,
         upi_is_merchant=body.upi_is_merchant,
         merchant_code=(body.merchant_code or DEFAULT_MERCHANT_CODE) if body.upi_is_merchant else None,
+        upi_mobile=body.upi_mobile,
     )
     db.add(t)
     db.flush()
