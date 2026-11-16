@@ -251,13 +251,8 @@ def sms_resend(
         old = _tenant_sms(db, admin, sms_id)
         if old.status != "FAILED":
             raise HTTPException(status.HTTP_409_CONFLICT, detail="Only a failed message can be sent again.")
-        new = SmsOutbox(tenant_id=old.tenant_id, to_mobile=old.to_mobile, body=old.body, kind=old.kind,
-                        dedupe_key=f"resend:{old.id}:{utcnow().isoformat()}", installment_id=old.installment_id,
-                        declaration_id=old.declaration_id)
-        db.add(new)
-        db.flush()
-        audit(db, tenant_id=admin.tenant_id, actor_type="ADMIN", actor_id=admin.admin_id, action="SMS_RESENT",
-              source="admin", installment_id=old.installment_id, details={"sms_id": old.id, "new_sms_id": new.id})
+        from app.services.operations import resend
+        new = resend(db, admin, old)
         return 201, sms_out(new)
     return _idempotent(db, admin, f"sms-resend:{sms_id}", idempotency_key, {"sms_id": sms_id}, op)
 

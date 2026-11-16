@@ -75,16 +75,44 @@
     </div>
     <div id="subBanner" class="banner hidden" style="margin-top:10px"></div>
     <nav class="tabs">
-      <button class="tab active" data-tab="students">Students</button>
-      <button class="tab" data-tab="verify">Payment Verification <span class="badge hidden" id="pendingBadge"></span></button>
+      <button class="tab active" data-tab="home">Home</button>
+      <button class="tab" data-tab="students">Students</button>
       <button class="tab" data-tab="installments">Fees</button>
-      <button class="tab" data-tab="reports">Reports</button>
-      <button class="tab" data-tab="notifications">Notifications <span class="badge hidden" id="notifBadge"></span></button>
-      <button class="tab" data-tab="audit">Audit log</button>
+      <button class="tab" data-tab="verify">Payments <span class="badge hidden" id="pendingBadge"></span></button>
+      <button class="tab" data-tab="sms">SMS <span class="badge bad hidden" id="smsBadge"></span></button>
+      <button class="tab" data-tab="reports">Reports <span class="badge hidden" id="notifBadge"></span></button>
       <button class="tab" data-tab="settings">Settings</button>
     </nav>
 
-    <div id="tab-students" class="grid2">
+    <!-- Home: what needs doing today -->
+    <div id="tab-home">
+      <div class="topbar" style="margin-bottom:10px">
+        <h2 style="margin:0">Overview</h2>
+        <input type="month" id="homeMonth" style="width:auto">
+      </div>
+      <div class="stats" id="homeStats"></div>
+      <div class="grid2" style="margin-top:12px">
+        <div class="card">
+          <h2 style="margin-top:0">Pending actions</h2>
+          <div id="homeActions"></div>
+        </div>
+        <div class="card">
+          <h2 style="margin-top:0">Quick actions</h2>
+          <div class="quick">
+            <button class="qa needs-write" data-qa="addStudent"><span>&#43;</span>Add student</button>
+            <button class="qa needs-write" data-qa="bulkFees"><span>&#8377;</span>Generate fee</button>
+            <button class="qa needs-write" data-qa="collect"><span>&#10003;</span>Collect fee</button>
+            <button class="qa needs-write" data-qa="remind"><span>&#9993;</span>Send reminders</button>
+            <button class="qa" data-qa="verify"><span>&#128269;</span>Verify payments</button>
+            <button class="qa" data-qa="reports"><span>&#9776;</span>View reports</button>
+          </div>
+          <h3>Recent payments</h3>
+          <div id="homeRecent"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-students" class="grid2 hidden">
       <div class="card">
         <div class="topbar"><h2 style="margin:0">Students</h2><button class="btn sm needs-write" id="addStudent">+ Add student</button></div>
         <input id="stuSearch" placeholder="Search name, ID, class or mobile" style="margin-top:10px">
@@ -95,24 +123,59 @@
     </div>
 
     <div id="tab-verify" class="grid2 hidden">
-      <div class="card"><h2>Awaiting verification</h2><div id="queue"></div></div>
+      <div class="card">
+        <h2 style="margin-top:0">Payments</h2>
+        <form id="vSearch" class="vsearch">
+          <input id="vsQ" placeholder="Search name, ID, mobile or reference">
+          <div class="vrow">
+            <select id="vsStatus"><option value="PENDING">Waiting to verify</option><option value="VERIFIED">Confirmed</option><option value="REJECTED">Not received</option><option value="ALL">All</option></select>
+            <select id="vsClass"><option value="">All classes</option></select>
+          </div>
+          <details><summary class="small">More filters</summary>
+            <div class="vrow">
+              <input id="vsAmount" type="number" min="1" step="0.01" placeholder="Amount (Rs.)">
+              <input id="vsUtr" maxlength="64" placeholder="Transaction ID / UTR">
+            </div>
+            <div class="vrow">
+              <label class="small">From<input id="vsFrom" type="date"></label>
+              <label class="small">To<input id="vsTo" type="date"></label>
+            </div>
+          </details>
+          <div class="actions"><button class="btn sm">Search</button><button type="button" class="btn ghost sm" id="vsClear">Clear</button></div>
+        </form>
+        <div id="queue" style="margin-top:10px"></div>
+      </div>
       <div class="card" id="detail"><p class="muted">Select a payment confirmation to review it against your bank account.</p></div>
     </div>
 
     <div id="tab-installments" class="card hidden">
       <div class="topbar"><h2>Fees</h2>
         <div class="actions">
-          <button class="btn sm needs-write" id="addFeeBtn">+ One-off fee</button>
+          <button class="btn sm needs-write" id="bulkFeeBtn">+ Fee for many students</button>
+          <button class="btn secondary sm needs-write" id="remindBtn">Send reminders</button>
+          <button class="btn ghost sm needs-write" id="addFeeBtn">+ One-off fee</button>
           <select id="instFilter" style="width:auto"><option value="">All</option><option>UNPAID</option><option>PARTIALLY_PAID</option><option>PAID</option></select>
         </div>
       </div>
+      <div id="bulkPanel"></div>
       <div id="feeForms"></div>
+      <div id="excessBox"></div>
       <div style="overflow:auto"><table id="instTable"></table></div>
       <div id="instDetail"></div>
     </div>
 
+    <!-- SMS phone health -->
+    <div id="tab-sms" class="card hidden">
+      <div class="topbar"><h2>SMS service</h2><button class="btn ghost sm" id="smsRefresh">Refresh</button></div>
+      <div id="smsBody"></div>
+    </div>
+
     <div id="tab-reports" class="card hidden">
       <div class="topbar"><h2>Reports</h2>
+        <div class="actions">
+          <button class="btn ghost sm" data-goto="notifications">Notifications <span class="badge hidden" id="notifBadge2"></span></button>
+          <button class="btn ghost sm" data-goto="audit">Audit log</button>
+          <button class="btn ghost sm" id="reportCsv">Download CSV</button>
         <select id="reportSel" style="width:auto">
           <option value="payment-declarations">Payment declarations</option>
           <option value="pending-verification">Pending verification</option>
@@ -124,6 +187,7 @@
           <option value="outstanding-fees">Outstanding fees</option>
           <option value="payment-attempts">Payment attempts (diagnostics)</option>
         </select>
+        </div>
       </div>
       <div style="overflow:auto"><table id="reportTable"></table></div>
     </div>

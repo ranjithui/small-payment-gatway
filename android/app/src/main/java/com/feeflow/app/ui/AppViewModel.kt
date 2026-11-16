@@ -4,7 +4,18 @@ import android.app.Application
 import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.feeflow.app.core.AdjustmentItem
+import com.feeflow.app.core.BatchStatus
+import com.feeflow.app.core.BulkFeeRequest
+import com.feeflow.app.core.BulkFeeResult
+import com.feeflow.app.core.BulkReminderRequest
 import com.feeflow.app.core.ConfirmRequest
+import com.feeflow.app.core.Dashboard
+import com.feeflow.app.core.FeePreview
+import com.feeflow.app.core.PaymentSearch
+import com.feeflow.app.core.ReminderPreview
+import com.feeflow.app.core.SmsHealth
+import kotlinx.serialization.json.JsonObject
 import com.feeflow.app.core.Declaration
 import com.feeflow.app.core.Money
 import com.feeflow.app.core.RunReport
@@ -33,7 +44,7 @@ import kotlinx.coroutines.launch
 sealed interface Screen {
     data object Login : Screen
     data object SignUp : Screen
-    data class Main(val tab: Tab = Tab.STUDENTS) : Screen
+    data class Main(val tab: Tab = Tab.HOME) : Screen
     data class Detail(val id: String) : Screen
     /** First sign-in: the admin creates their own workspace (centre + UPI ID). */
     data object Setup : Screen
@@ -44,9 +55,15 @@ sealed interface Screen {
     data class StudentForm(val id: String?) : Screen
     /** "Payment confirmed" after verifying: thank-you message status, WhatsApp, receipt. */
     data object Confirmed : Screen
+    /** Bulk fee reminders: choose -> preview -> send in batches -> progress. */
+    data class BulkReminders(val target: String) : Screen
+    /** One-off fee (exam fee etc.) for many students: preview -> create. */
+    data object BulkFees : Screen
+    /** SMS service health + this phone as the SMS device. */
+    data object Sms : Screen
 }
 
-enum class Tab { STUDENTS, VERIFY, SMS_DEVICE }
+enum class Tab { HOME, STUDENTS, PAYMENTS, REPORTS, SETTINGS }
 
 /** Workspace setup and Payment Settings form (validated in [AppViewModel.validatePayment]). */
 data class PaymentForm(
@@ -143,6 +160,20 @@ data class UiState(
     /** Loaded on the Settings screen. */
     val workspace: com.feeflow.app.core.Workspace? = null,
     val confirmed: ConfirmedUi? = null,
+    // v2.7 owner tools
+    val dashboard: Dashboard? = null,
+    val dashMonth: String? = null,
+    val paymentSearch: PaymentSearch = PaymentSearch(),
+    /** null = showing the waiting queue ([pending]). */
+    val searchResults: List<Declaration>? = null,
+    val adjustments: List<AdjustmentItem> = emptyList(),
+    val reminderPreview: ReminderPreview? = null,
+    val batch: BatchStatus? = null,
+    val feePreview: FeePreview? = null,
+    val feeResult: BulkFeeResult? = null,
+    val smsHealth: SmsHealth? = null,
+    val reportName: String = "outstanding-fees",
+    val reportRows: List<JsonObject>? = null,
 )
 
 /** What the "Payment confirmed" screen shows. */
@@ -239,6 +270,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             it.copy(screen = if (it.screen is Screen.Main) it.screen else Screen.Main(), adminName = me.email ?: me.name,
                 centreName = ws.name, subscription = ws.subscription)
         }
+        refreshDashboard()
         refreshStudents()
         refreshPending()
     }
@@ -416,17 +448,19 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun selectTab(tab: Tab) {
         _state.update { it.copy(screen = Screen.Main(tab)) }
         when (tab) {
+            Tab.HOME -> refreshDashboard()
             Tab.STUDENTS -> refreshStudents()
-            Tab.VERIFY -> refreshPending()
-            Tab.SMS_DEVICE -> refreshDevice()
+            Tab.PAYMENTS -> { refreshPayments(); refreshAdjustments() }
+            Tab.REPORTS -> { refreshDashboard(); loadReport(_state.value.reportName) }
+            Tab.SETTINGS -> refreshDevice()
         }
     }
 
     fun back() {
         when (val s = _state.value.screen) {
             is Screen.Detail -> {
-                _state.update { it.copy(screen = Screen.Main(Tab.VERIFY), detail = null) }
-                refreshPending()
+                _state.update { it.copy(screen = Screen.Main(Tab.PAYMENTS), detail = null) }
+                refreshPayments()
             }
             is Screen.StudentDetail -> {
                 _state.update { it.copy(screen = Screen.Main(Tab.STUDENTS), student = null, lastLink = null) }
@@ -437,8 +471,13 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 else _state.update { it.copy(screen = Screen.Main(Tab.STUDENTS)) }
             }
             Screen.SignUp -> goToLogin()
-            Screen.Settings -> _state.update { it.copy(screen = Screen.Main(), workspace = null) }
+            Screen.Settings -> _state.update { it.copy(screen = Screen.Main(Tab.SETTINGS), workspace = null) }
             Screen.Confirmed -> closeConfirmed()
+            is Screen.BulkReminders, Screen.BulkFees -> {
+                _state.update { it.copy(screen = Screen.Main(Tab.HOME), reminderPreview = null, batch = null, feePreview = null, feeResult = null) }
+                refreshDashboard()
+            }
+            Screen.Sms -> _state.update { it.copy(screen = Screen.Main(Tab.SETTINGS)) }
             else -> Unit
         }
     }
@@ -540,8 +579,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun closeConfirmed() {
-        _state.update { it.copy(screen = Screen.Main(Tab.VERIFY), confirmed = null) }
-        refreshPending()
+        _state.update { it.copy(screen = Screen.Main(Tab.PAYMENTS), confirmed = null) }
+        refreshPayments()
     }
 
     fun reject(d: Declaration, reason: String, idempotencyKey: String): String? {
@@ -646,5 +685,146 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }
         _state.update { it.copy(device = it.device.copy(syncing = false, lastReport = report)) }
         refreshDevice()
+    }
+
+    // ------------------------------------------------------------- v2.7 Home dashboard
+    fun refreshDashboard() = launchBusy {
+        val d = client().dashboard(_state.value.dashMonth)
+        _state.update { it.copy(dashboard = d) }
+    }
+
+    /** Previous / next month on the dashboard ([delta] = -1 or +1). */
+    fun changeMonth(delta: Int) {
+        val cur = _state.value.dashboard?.month ?: return
+        val ym = java.time.YearMonth.parse(cur).plusMonths(delta.toLong())
+        _state.update { it.copy(dashMonth = ym.toString()) }
+        refreshDashboard()
+    }
+
+    /** The button on a "Pending actions" line. */
+    fun runPendingAction(kind: String) {
+        when (kind) {
+            "VERIFY", "EXCESS" -> selectTab(Tab.PAYMENTS)
+            "OVERDUE" -> openBulkReminders("OVERDUE")
+            "NOT_REMINDED" -> openBulkReminders("MONTH")
+            "SMS_FAILED" -> retryFailedSms(null)
+            "SMS_PHONE" -> openSms()
+            "GENERATE" -> generateMonthly()
+        }
+    }
+
+    fun generateMonthly() = launchBusy {
+        val r = client().generateMonthly(FeeFlowClient.newIdempotencyKey())
+        _state.update { it.copy(message = "${r.created} fee(s) created for ${r.billingMonth}.") }
+        refreshDashboard()
+    }
+
+    // ------------------------------------------------------------- bulk reminders
+    fun openBulkReminders(target: String) {
+        _state.update { it.copy(screen = Screen.BulkReminders(target), reminderPreview = null, batch = null) }
+        if (_state.value.dashboard == null) refreshDashboard()
+        if (target != "CLASS") previewReminders(target, null)
+    }
+
+    fun previewReminders(target: String, classGrade: String?) {
+        _state.update { it.copy(screen = Screen.BulkReminders(target), reminderPreview = null, batch = null) }
+        if (target == "CLASS" && classGrade.isNullOrBlank()) return
+        launchBusy {
+            val p = client().remindersPreview(BulkReminderRequest(target, classGrade))
+            _state.update { it.copy(reminderPreview = p) }
+        }
+    }
+
+    fun sendReminders(target: String, classGrade: String?, exclude: List<String>, idempotencyKey: String) = launchBusy {
+        val r = client().remindersSend(BulkReminderRequest(target, classGrade, excludeIds = exclude.ifEmpty { null }), idempotencyKey)
+        _state.update { it.copy(batch = client().batch(r.batchId), message = "${r.queued} reminder(s) queued.") }
+        followBatch(r.batchId)
+    }
+
+    /** Send right away from this phone (if it is the SMS phone) and keep the progress bar current. */
+    private fun followBatch(batchId: String) {
+        viewModelScope.launch {
+            repeat(60) {
+                if (prefs.deviceToken != null) runSyncOnce()
+                val b = runCatching { client().batch(batchId) }.getOrNull() ?: return@launch
+                _state.update { s -> if (s.screen is Screen.BulkReminders) s.copy(batch = b) else s }
+                if (b.done || _state.value.screen !is Screen.BulkReminders) return@launch
+                kotlinx.coroutines.delay(5_000)
+            }
+        }
+    }
+
+    fun retryBatch(batchId: String) = launchBusy {
+        val r = client().retryFailed(batchId, FeeFlowClient.newIdempotencyKey())
+        _state.update { it.copy(message = "${r.resent} message(s) queued again.") }
+        followBatch(batchId)
+    }
+
+    // ------------------------------------------------------------- bulk one-off fees
+    fun openBulkFees() {
+        _state.update { it.copy(screen = Screen.BulkFees, feePreview = null, feeResult = null) }
+        if (_state.value.dashboard == null) refreshDashboard()
+    }
+
+    fun previewFees(req: BulkFeeRequest) = launchBusy {
+        _state.update { it.copy(feePreview = client().feesPreview(req), feeResult = null) }
+    }
+
+    fun createFees(req: BulkFeeRequest, idempotencyKey: String) = launchBusy {
+        val r = client().feesCreate(req, idempotencyKey)
+        _state.update { it.copy(feeResult = r, feePreview = null, message = "${r.created} fee(s) created.") }
+    }
+
+    // ------------------------------------------------------------- SMS service
+    fun openSms() {
+        _state.update { it.copy(screen = Screen.Sms) }
+        refreshDevice()
+        refreshSmsHealth()
+    }
+
+    fun refreshSmsHealth() = launchBusy {
+        _state.update { it.copy(smsHealth = client().smsHealth()) }
+    }
+
+    fun retryFailedSms(batchId: String?) = launchBusy {
+        val r = client().retryFailed(batchId, FeeFlowClient.newIdempotencyKey())
+        _state.update { it.copy(message = "${r.resent} message(s) queued again.") }
+        if (prefs.deviceToken != null) runSyncOnce()
+        _state.update { it.copy(smsHealth = client().smsHealth()) }
+        if (_state.value.screen is Screen.Main) refreshDashboard()
+    }
+
+    // ------------------------------------------------------------- Payments tab: search + overpayments
+    fun searchPayments(search: PaymentSearch) {
+        _state.update { it.copy(paymentSearch = search) }
+        refreshPayments()
+    }
+
+    fun refreshPayments() {
+        val s = _state.value.paymentSearch
+        if (!s.active) {
+            _state.update { it.copy(searchResults = null) }
+            refreshPending()
+            return
+        }
+        launchBusy { _state.update { it.copy(searchResults = client().searchPayments(s)) } }
+    }
+
+    fun refreshAdjustments() = launchBusy {
+        _state.update { it.copy(adjustments = client().adjustments()) }
+    }
+
+    fun applyExcess(id: String, idempotencyKey: String) = launchBusy {
+        val r = client().applyExcess(id, idempotencyKey)
+        _state.update {
+            it.copy(message = "Applied to ${r.appliedTo.description} (${r.appliedTo.billingMonth}). Receipt ${r.receipt.receiptNumber}.",
+                adjustments = client().adjustments())
+        }
+    }
+
+    // ------------------------------------------------------------- reports
+    fun loadReport(name: String) {
+        _state.update { it.copy(reportName = name, reportRows = null) }
+        launchBusy { _state.update { it.copy(reportRows = client().report(name).items) } }
     }
 }

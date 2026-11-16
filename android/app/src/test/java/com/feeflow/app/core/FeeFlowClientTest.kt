@@ -211,6 +211,43 @@ class FeeFlowClientTest {
     }
 
     @Test
+    fun dashboardSearchAndBulkReminders() = runTest {
+        server.enqueue(json("""{"month":"2026-11","month_label":"Nov 2026","today":"2026-11-17",
+            "stats":{"students_total":4,"fees_generated_paise":1000000,"fees_count":4,"collected_paise":250000,"outstanding_paise":750000,
+              "paid_count":1,"awaiting_verification":2,"overdue_students":1,"overdue_paise":250000,"collected_today_paise":250000,
+              "sms_failed":1,"sms_waiting":0},
+            "sms_phone":{"connected":true,"name":"Office phone","online":false,"last_seen_at":"2026-11-17T04:00:00Z"},
+            "pending_actions":[{"kind":"VERIFY","count":2,"text":"2 payments waiting for verification","button":"Verify now","tone":"bad"}],
+            "recent_payments":[],"classes":["Class 5","Class 8"]}"""))
+        val d = client.dashboard("2026-11")
+        assertEquals(2, d.stats.awaitingVerification)
+        assertEquals("VERIFY", d.pendingActions.single().kind)
+        assertEquals(listOf("Class 5", "Class 8"), d.classes)
+        assertEquals("/api/v1/dashboard?month=2026-11", server.takeRequest().path)
+
+        server.enqueue(json("""{"items":[]}"""))
+        client.searchPayments(PaymentSearch(query = "Diya Patel", status = "ALL", amount = "2500", utr = "1234"))
+        val path = server.takeRequest().path!!
+        assertTrue(path, path.startsWith("/api/v1/payment-verification/search?status=ALL&q=Diya+Patel"))
+        assertTrue(path, path.contains("amount=2500.0") && path.contains("utr=1234"))
+
+        server.enqueue(json("""{"batch_id":"b1","queued":3,"sms_phone_active":true}""", 201))
+        val r = client.remindersSend(BulkReminderRequest("CLASS", "Class 8", excludeIds = listOf("s9")), "bulk-key")
+        assertEquals("b1", r.batchId)
+        val req = server.takeRequest()
+        assertEquals("bulk-key", req.getHeader("Idempotency-Key"))
+        val body = req.body.readUtf8()
+        assertTrue(body, body.contains("\"target\":\"CLASS\"") && body.contains("\"class_grade\":\"Class 8\"") && body.contains("\"exclude_ids\":[\"s9\"]"))
+        assertTrue(body, !body.contains("month"))  // nulls are not sent
+
+        server.enqueue(json("""{"batch_id":"b1","total":3,"queued":0,"dispatched":0,"sent":2,"failed":1,"done":true,"progress_percent":100,
+            "failed_items":[{"id":"m1","kind":"FEE_REMINDER","status":"FAILED","error":"No signal","to_mobile":"+919800000002","student_name":"Diya"}]}"""))
+        val b = client.batch("b1")
+        assertTrue(b.done)
+        assertEquals("Diya", b.failedItems.single().studentName)
+    }
+
+    @Test
     fun revokedDeviceIs401() = runTest {
         server.enqueue(json("""{"detail":"Unknown or disabled device"}""", 401))
         try {

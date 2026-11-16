@@ -247,3 +247,37 @@ becomes PAID.
 * **Statuses kept** (spec name → existing): PENDING→UNPAID, PAYMENT_DECLARED→PAYMENT_REPORTED,
   VERIFICATION_PENDING→PENDING_VERIFICATION, plus PAID / REJECTED / PARTIALLY_PAID / FAILED.
 * **Upgrade:** existing centres become Personal with all methods on. Tests: 214 on SQLite, 216 on PostgreSQL.
+
+## Owner dashboard, bulk tools, Tamil and family view (v2.7)
+
+**Owner (web admin + Android 2.7.0)** - navigation is now Home · Students · Fees (web) · Payments · Reports · Settings.
+- **Home** (`GET /api/v1/dashboard?month=`): collected / pending for the month, fees generated, collected today,
+  awaiting verification, overdue students, total students, failed SMS. **Pending actions** with one button each
+  (verify, remind overdue, remind not-yet-reminded, retry failed SMS, check SMS phone, generate missing monthly fees,
+  overpayments). Quick actions: add student, generate fee, collect fee, send reminders, verify, reports.
+- **Bulk reminders** (`/api/v1/bulk/reminders/preview|send`, `/api/v1/bulk/batches/{id}`): overdue / unpaid this month /
+  a class / all unpaid; preview with recipients (untick to exclude) and the message; one SMS per student (oldest unpaid
+  fee); parents whose payment is awaiting verification are never chased. Progress bar, **Retry failed**. The SMS
+  phone gets at most 30 messages per sync (Android asks before "many messages").
+- **Bulk one-off fees** (`/api/v1/bulk/fees/preview|create`): exam fee etc. for all students or a class, preview,
+  duplicates (same student + month + description) skipped. `POST /api/v1/fees/generate-monthly` fills missing monthly fees.
+- **SMS service** (`GET /api/v1/sms/health`, `POST /api/v1/sms/retry-failed`): phone online/offline, sent today,
+  waiting, failed list, plain-language advice.
+- **Payments search** (`GET /api/v1/payment-verification/search`): name / ID / mobile / reference, status, class,
+  amount, date range, UTR. **Warnings before confirming** (`warnings` on the declaration): transaction ID already
+  recorded, amount differs (part payments are allowed and only noted), several reports for one fee, fee already paid.
+  `GET /api/v1/verified-payments/check-reference` warns while the admin types a UTR.
+- **Overpayments** (`GET /api/v1/adjustments`, `POST /api/v1/adjustments/{id}/apply`): apply extra money to the
+  student's next unpaid fee (receipt issued; recorded as `EXCESS_TRANSFER`, never counted as new collection) or mark refunded.
+- Reports: CSV download (web) / share (Android).
+
+**Parents (payment page)**
+- English / தமிழ் switch (`static/js/i18n.js`, add languages there); class and parent name shown.
+- "I've completed the payment" opens a confirm step (amount + payee) before reporting; optional transaction ID.
+- Timeline: Payment reported → Being verified → Payment confirmed (green only after an admin confirms).
+- **Family**: children with the same parent mobile at the same centre are listed with their unpaid fees; "Pay" opens
+  that child's own link (`POST /api/v1/pay/{token}/family-link`, by payment reference - no internal ids exposed).
+  Payment history with receipts.
+
+Unchanged rules: nothing is ever marked paid without an admin confirming against the bank; no payment gateway;
+no pre-filled payments to personal UPI IDs. Database: `sms_outbox.batch_id` (added automatically on start-up).

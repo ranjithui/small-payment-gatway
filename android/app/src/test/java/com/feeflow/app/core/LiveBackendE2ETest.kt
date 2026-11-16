@@ -117,6 +117,13 @@ class LiveBackendE2ETest {
         assertEquals("MONTHLY", st.fees[0].kind)
         assertEquals("+919811122233", st.parentMobile)
         assertTrue(client.students("kavya").any { it.id == st.id })
+        // v2.7: Home dashboard and bulk reminders see the new fee
+        val dash = client.dashboard()
+        assertEquals(1, dash.stats.studentsTotal)
+        assertEquals(150000L, dash.stats.feesGeneratedPaise)
+        val preview = client.remindersPreview(BulkReminderRequest("MONTH"))
+        assertEquals("Kavya Raman", preview.recipients.single().studentName)
+        assertTrue(preview.sampleMessage!!.contains("e2etuition@okaxis"))
 
         val sms = client.sendFeeLink(st.id, "SMS", FeeFlowClient.newIdempotencyKey())
         assertTrue(sms.smsQueued)

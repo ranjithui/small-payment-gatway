@@ -152,6 +152,7 @@ def public_view(db: Session, link: PaymentLink) -> Dict[str, Any]:
             "upi_app": latest.upi_app,
             "declared_at": _iso(latest.declared_at),
             "updated_at": _iso(latest.updated_at),
+            "reviewed_at": _iso(latest.reviewed_at),
             "clarification_request": latest.clarification_request,
             "clarification_requested_at": _iso(latest.clarification_requested_at),
             "can_add_information": latest.declaration_status
@@ -215,8 +216,10 @@ def public_view(db: Session, link: PaymentLink) -> Dict[str, Any]:
             "logo_url": tenant.logo_url,
             "contact_phone": tenant.contact_phone,
             "contact_email": tenant.contact_email,
+            "verification_hours": tenant.verification_grace_hours,
         },
-        "student": {"name": student.name, "student_id": student.student_code},
+        "student": {"name": student.name, "student_id": student.student_code,
+                    "class_grade": student.class_grade, "parent_name": student.parent_name},
         "payment_reference": reference,
         "fee": {
             "description": inst.description,
@@ -245,7 +248,14 @@ def public_view(db: Session, link: PaymentLink) -> Dict[str, Any]:
             for r in receipts
         ],
         "message": message,
+        "family": _family(db, inst),
     }
+
+
+def _family(db: Session, inst: Installment) -> Dict[str, Any]:
+    from app.services.operations import family_view  # avoid an import cycle
+
+    return family_view(db, inst)
 
 
 def _display_mobile(m: Optional[str]) -> Optional[str]:

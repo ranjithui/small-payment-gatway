@@ -10,74 +10,78 @@
 </head>
 <body>
 <main class="page" id="app">
-  <div class="card"><p class="muted">Loading your fee details…</p></div>
+  <div class="card"><p class="muted" data-i18n="loading">Loading your fee details…</p></div>
 </main>
 
 <template id="tpl">
   <header class="card header">
     <div class="logo" id="logo"></div>
-    <div>
+    <div style="flex:1;min-width:0">
       <div class="brand">FeeFlow</div>
       <h1 id="centreName"></h1>
     </div>
+    <div class="lang" id="langSwitch" role="group" aria-label="Language"></div>
   </header>
 
-  <!-- Fee summary: just who, which month and how much; the rest is one tap away -->
+  <!-- Fee summary: who, which month, how much -->
   <section class="card fee-summary">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
       <h2 style="margin:0" id="studentName"></h2>
       <span class="pill" id="statusPill"></span>
     </div>
-    <p class="muted small" style="margin:2px 0 0"><span id="feeMonth"></span> &middot; <span id="feeDesc"></span></p>
-    <div class="amount-due"><span class="muted small">Amount due</span><b id="feeOutstanding"></b></div>
+    <p class="muted small" style="margin:2px 0 0"><span id="studentClass"></span><span id="feeMonth"></span> &middot; <span id="feeDesc"></span></p>
+    <div class="amount-due"><span class="muted small" data-i18n="amountDue">Amount due</span><b id="feeOutstanding"></b></div>
     <details class="fee-details">
-      <summary>Fee details</summary>
+      <summary data-i18n="feeDetails">Fee details</summary>
       <dl class="kv">
-        <dt>Student ID</dt><dd id="studentId"></dd>
-        <dt>Total fee</dt><dd id="feeTotal"></dd>
-        <dt>Amount paid</dt><dd id="feePaid"></dd>
-        <dt>Due date</dt><dd id="feeDue"></dd>
-        <dt>Payment reference</dt><dd id="feeRef"></dd>
+        <dt data-i18n="studentId">Student ID</dt><dd id="studentId"></dd>
+        <dt data-i18n="parentLbl" id="parentLbl">Parent</dt><dd id="parentName"></dd>
+        <dt data-i18n="totalFee">Total fee</dt><dd id="feeTotal"></dd>
+        <dt data-i18n="amountPaid">Amount paid</dt><dd id="feePaid"></dd>
+        <dt data-i18n="dueDate">Due date</dt><dd id="feeDue"></dd>
+        <dt data-i18n="payRef">Payment reference</dt><dd id="feeRef"></dd>
       </dl>
     </details>
   </section>
 
-  <!-- Verified by the centre -->
+  <!-- Confirmed by the centre -->
   <section class="card hidden thanks-card" id="thanksCard">
     <div class="thanks-tick" aria-hidden="true">&#10003;</div>
-    <h2 id="thanksTitle">Payment confirmed. Thank you!</h2>
+    <h2 id="thanksTitle" data-i18n="thanksTitle">Payment confirmed. Thank you!</h2>
     <p id="thanksText"></p>
-    <a class="btn ok" id="thanksReceipt" target="_blank" rel="noopener">View receipt</a>
+    <ol class="timeline" id="thanksTimeline"></ol>
+    <a class="btn ok" id="thanksReceipt" target="_blank" rel="noopener" data-i18n="viewReceipt">View receipt</a>
   </section>
 
   <section class="card hidden" id="messageCard"><div class="banner" id="messageBanner"></div></section>
   <section class="card hidden" id="upiErrorCard"><div class="banner bad" id="upiErrorMsg"></div></section>
 
-  <!-- Did you pay? (shown when the parent comes back from their UPI app) -->
+  <!-- Report the payment -->
   <section class="card hidden ask-card" id="askSection">
-    <h2 style="margin-top:0" id="askTitle">Did you pay?</h2>
-    <label for="optUtr" class="small" style="margin-top:0">UPI transaction ID <span class="muted">(optional - helps us confirm faster)</span></label>
-    <input id="optUtr" maxlength="64" autocomplete="off" placeholder="e.g. last 4 digits: 4321">
-    <button class="btn ok big-btn" id="paidBtn" style="margin-top:12px">Yes, I have paid</button>
-    <p class="muted small" style="text-align:center;margin:6px 0 0">The tuition centre will check its bank account and confirm.</p>
+    <h2 style="margin-top:0" id="askTitle"></h2>
+    <label for="optUtr" class="small" style="margin-top:0"><span data-i18n="utrLabel">UPI transaction ID</span>
+      <span class="muted" data-i18n="utrOptional">(optional - helps us confirm faster)</span></label>
+    <input id="optUtr" maxlength="64" autocomplete="off" data-i18n-ph="utrPh" placeholder="e.g. last 4 digits: 4321">
+    <button class="btn ok big-btn" id="paidBtn" style="margin-top:12px" data-i18n="paidBtn">I've completed the payment</button>
+    <p class="muted small" style="text-align:center;margin:6px 0 0" data-i18n="centreWillCheck">The tuition centre will check its bank account and confirm.</p>
     <details id="problemBox" style="margin-top:10px">
-      <summary>I had a problem</summary>
+      <summary data-i18n="problem">I had a problem</summary>
       <div class="stack" style="margin-top:8px">
-        <button class="btn secondary" id="processingBtn">Payment is still processing</button>
-        <button class="btn ghost" id="failedBtn">Payment failed / not completed</button>
-        <label class="check"><input type="checkbox" id="partialChk"> I paid only part of the amount</label>
+        <button class="btn secondary" id="processingBtn" data-i18n="processing">Payment is still processing</button>
+        <button class="btn ghost" id="failedBtn" data-i18n="failed">Payment failed / not completed</button>
+        <label class="check"><input type="checkbox" id="partialChk"> <span data-i18n="partial">I paid only part of the amount</span></label>
         <div id="partialBox" class="hidden">
-          <label for="partialAmt">Amount you actually paid (Rs.) - then tap "Yes, I have paid"</label>
-          <input id="partialAmt" type="number" inputmode="decimal" min="1" step="0.01" placeholder="e.g. 1000">
+          <label for="partialAmt" data-i18n="partialAmt">Amount you actually paid (Rs.)</label>
+          <input id="partialAmt" type="number" inputmode="decimal" min="1" step="0.01" placeholder="1000">
         </div>
         <details>
-          <summary>Add a note for the centre (optional)</summary>
-          <label for="optApp">UPI app used</label>
-          <select id="optApp"><option value="">Not sure</option><option value="GPAY">Google Pay</option><option value="PHONEPE">PhonePe</option><option value="PAYTM">Paytm</option><option value="OTHER_UPI">Other UPI app</option><option value="QR">Scanned QR</option></select>
-          <label for="optTime">Approximate payment time</label>
+          <summary data-i18n="addNote">Add a note for the centre (optional)</summary>
+          <label for="optApp" data-i18n="upiAppUsed">UPI app used</label>
+          <select id="optApp"><option value="" data-i18n="notSure">Not sure</option><option value="GPAY">Google Pay</option><option value="PHONEPE">PhonePe</option><option value="PAYTM">Paytm</option><option value="OTHER_UPI" data-i18n="otherUpi">Other UPI app</option><option value="QR" data-i18n="scannedQr">Scanned QR</option></select>
+          <label for="optTime" data-i18n="approxTime">Approximate payment time</label>
           <input id="optTime" type="time">
-          <label for="optNote">Note</label>
-          <input id="optNote" maxlength="300" placeholder="e.g. paid from my husband's account">
+          <label for="optNote" data-i18n="note">Note</label>
+          <input id="optNote" maxlength="300" data-i18n-ph="notePh" placeholder="e.g. paid from my husband's account">
         </details>
       </div>
     </details>
@@ -86,111 +90,123 @@
 
   <!-- Pay -->
   <section class="card hidden" id="paySection">
-    <h2 class="pay-title"><span id="payLead"></span>Pay <span id="payAmt"></span></h2>
-    <p class="muted small" style="margin:0 0 14px">to <b id="payPayee"></b></p>
+    <h2 class="pay-title" id="payTitle"></h2>
+    <p class="muted small" style="margin:0 0 14px" id="payPayee"></p>
 
-    <p class="banner info hidden" id="desktopNote">You're on a computer. Scan this QR with any UPI app on your phone,
-      or open this payment link on your phone.</p>
+    <p class="banner info hidden" id="desktopNote" data-i18n="desktopNote"></p>
 
     <!-- Merchant UPI: true one-tap -->
     <div id="oneTapBlock" class="hidden">
       <button class="btn big-btn" id="payUpiBtn">Pay</button>
-      <p class="muted small" style="text-align:center;margin:6px 0 0">Opens your UPI app with everything filled in.</p>
+      <p class="muted small" style="text-align:center;margin:6px 0 0" data-i18n="oneTapHint">Opens your UPI app with everything filled in.</p>
       <p class="banner hidden" id="intentMsg" style="margin-top:10px"></p>
     </div>
 
     <!-- Personal UPI: pick your app - the UPI ID is copied and the app opens -->
     <div id="appButtons" class="hidden stack">
-      <button class="appbtn" data-pay="GPAY"><span class="ico" style="background:#1a73e8">G</span>Pay with Google Pay</button>
-      <button class="appbtn" data-pay="PHONEPE"><span class="ico" style="background:#5f259f">Pe</span>Pay with PhonePe</button>
-      <button class="appbtn" data-pay="PAYTM"><span class="ico" style="background:#00baf2">P</span>Pay with Paytm</button>
-      <button class="appbtn" data-pay="OTHER"><span class="ico" style="background:#374151">UPI</span>Other UPI app</button>
+      <button class="appbtn" data-pay="GPAY"><span class="ico" style="background:#1a73e8">G</span><span data-i18n="payGpay">Pay with Google Pay</span></button>
+      <button class="appbtn" data-pay="PHONEPE"><span class="ico" style="background:#5f259f">Pe</span><span data-i18n="payPhonepe">Pay with PhonePe</span></button>
+      <button class="appbtn" data-pay="PAYTM"><span class="ico" style="background:#00baf2">P</span><span data-i18n="payPaytm">Pay with Paytm</span></button>
+      <button class="appbtn" data-pay="OTHER"><span class="ico" style="background:#374151">UPI</span><span data-i18n="payOther">Other UPI app</span></button>
     </div>
     <div id="guideCard" class="banner ok hidden" style="margin-top:12px">
       <b id="guideTitle"></b>
       <p id="guideText" style="margin:6px 0 0;font-weight:500"></p>
-      <button class="btn secondary sm hidden" id="guideOpenAgain" style="margin-top:8px">Open again</button>
+      <button class="btn secondary sm hidden" id="guideOpenAgain" style="margin-top:8px" data-i18n="openAgain">Open again</button>
     </div>
-
 
     <!-- QR -->
     <div id="qrBlock" class="panel hidden">
       <div class="qr">
-        <img id="qrImg" alt="UPI QR code for this fee">
-        <p class="muted small">Scan with any UPI app &middot; pays <b id="qrPayee"></b> (<span id="vpa"></span>)</p>
-        <p class="banner warn small hidden" id="qrAmountNote">Enter <b id="qrAmtText"></b> in your UPI app
-          (reference <b id="qrRefText"></b>).</p>
+        <img id="qrImg" alt="UPI QR">
+        <p class="muted small" id="qrCaption"></p>
+        <p class="banner warn small hidden" id="qrAmountNote"></p>
         <div class="actions" style="justify-content:center">
-          <a class="btn secondary sm" id="qrSave" download>Save QR</a>
-          <a class="btn ghost sm" id="qrSaveHi" download>High-resolution QR</a>
+          <a class="btn secondary sm" id="qrSave" download data-i18n="saveQr">Save QR</a>
+          <a class="btn ghost sm" id="qrSaveHi" download data-i18n="hiQr">High-resolution QR</a>
         </div>
-        <p class="muted small" style="margin-top:8px">On this phone: save the QR, then in your UPI app tap <b>Scan QR</b>
-          &rarr; gallery icon &rarr; choose the saved image.</p>
+        <p class="muted small" style="margin-top:8px" data-i18n="qrHelp"></p>
       </div>
     </div>
 
     <!-- Manual details -->
     <div id="manualBlock" class="panel hidden">
-      <div class="copyrow"><span class="muted small">Pay to</span><b id="mPayee"></b></div>
-      <div class="copyrow"><span class="muted small">UPI ID</span><b id="mVpa"></b><button class="btn secondary sm copy" data-copy="vpa" data-label="Copy">Copy</button></div>
-      <div class="copyrow hidden" id="mMobileRow"><span class="muted small">Or mobile</span><b id="mMobile"></b><button class="btn secondary sm copy" data-copy="mobile" data-label="Copy">Copy</button></div>
-      <div class="copyrow"><span class="muted small">Amount</span><b id="mAmt"></b><button class="btn secondary sm copy" data-copy="amount" data-label="Copy">Copy</button></div>
-      <div class="copyrow"><span class="muted small">Reference</span><b id="mRef"></b><button class="btn secondary sm copy" data-copy="reference" data-label="Copy">Copy</button></div>
-      <button class="btn ghost sm copy" data-copy="all" data-label="Copy all details" style="margin-top:8px">Copy all details</button>
-      <p class="small muted" style="margin:8px 0 0">In your UPI app choose <b>Pay to UPI ID</b>, paste, check the name is
-        <b id="mPayee2"></b>, enter <b id="mAmt2"></b> and pay. Then come back and tap <b>Yes, I have paid</b>.</p>
+      <div class="copyrow"><span class="muted small" data-i18n="payToLbl">Pay to</span><b id="mPayee"></b></div>
+      <div class="copyrow"><span class="muted small" data-i18n="upiId">UPI ID</span><b id="mVpa"></b><button class="btn secondary sm copy" data-copy="vpa" data-i18n="copy">Copy</button></div>
+      <div class="copyrow hidden" id="mMobileRow"><span class="muted small" data-i18n="orMobile">Or mobile</span><b id="mMobile"></b><button class="btn secondary sm copy" data-copy="mobile" data-i18n="copy">Copy</button></div>
+      <div class="copyrow"><span class="muted small" data-i18n="amount">Amount</span><b id="mAmt"></b><button class="btn secondary sm copy" data-copy="amount" data-i18n="copy">Copy</button></div>
+      <div class="copyrow"><span class="muted small" data-i18n="reference">Reference</span><b id="mRef"></b><button class="btn secondary sm copy" data-copy="reference" data-i18n="copy">Copy</button></div>
+      <button class="btn ghost sm copy" data-copy="all" data-i18n="copyAll" style="margin-top:8px">Copy all details</button>
+      <p class="small muted" style="margin:8px 0 0" id="manualHelp"></p>
     </div>
 
     <div class="pay-links" id="payLinks">
-      <a href="#" id="showQrLink">Scan QR instead</a>
-      <a href="#" id="showManualLink">Copy details manually</a>
+      <a href="#" id="showQrLink" data-i18n="scanQrInstead">Scan QR instead</a>
+      <a href="#" id="showManualLink" data-i18n="copyManual">Copy details manually</a>
     </div>
 
-    <p class="muted small" style="margin-top:14px">Never share your UPI PIN or OTP with anyone. FeeFlow will never ask for it.</p>
+    <p class="muted small" style="margin-top:14px" data-i18n="pinWarn"></p>
   </section>
 
-  <!-- Awaiting verification -->
+  <!-- Reported: waiting for the centre -->
   <section class="card hidden" id="waitSection">
-    <div class="banner ok"><b>Thank you! Your payment has been reported.</b></div>
+    <div class="banner ok"><b data-i18n="reported">Thank you! Your payment has been reported.</b></div>
     <p id="waitMsg" style="margin:10px 0 0"></p>
+    <ol class="timeline" id="waitTimeline"></ol>
     <dl class="kv" style="margin-top:12px">
-      <dt>Status</dt><dd>Waiting for tuition centre verification</dd>
-      <dt>Submitted</dt><dd id="declaredAt"></dd>
-      <dt>Amount</dt><dd id="declaredAmt"></dd>
-      <dt>Reference</dt><dd id="declRef"></dd>
+      <dt data-i18n="amount">Amount</dt><dd id="declaredAmt"></dd>
+      <dt data-i18n="reference">Reference</dt><dd id="declRef"></dd>
     </dl>
     <div id="clarifyBox" class="hidden panel">
-      <h3 style="margin-top:0">The tuition centre asked:</h3>
+      <h3 style="margin-top:0" data-i18n="clarifyAsked">The tuition centre asked:</h3>
       <p id="clarifyQ"></p>
-      <label for="clarifyNote">Your reply</label>
+      <label for="clarifyNote" data-i18n="yourReply">Your reply</label>
       <textarea id="clarifyNote" rows="3" maxlength="500"></textarea>
-      <label for="clarifyTime">Approximate payment time (optional)</label>
+      <label for="clarifyTime" data-i18n="clarifyTime">Approximate payment time (optional)</label>
       <input id="clarifyTime" type="time">
-      <label for="clarifyRef">UPI transaction ID (optional - only if easy to find)</label>
+      <label for="clarifyRef" data-i18n="clarifyRef">UPI transaction ID (optional)</label>
       <input id="clarifyRef" maxlength="64" autocomplete="off">
-      <button class="btn" style="margin-top:10px" id="clarifyBtn">Send details</button>
+      <button class="btn" style="margin-top:10px" id="clarifyBtn" data-i18n="sendDetails">Send details</button>
       <p class="err" id="clarifyErr"></p>
     </div>
-    <details id="addInfo"><summary>Add more information</summary>
-      <textarea id="moreNote" rows="2" maxlength="500" placeholder="Anything that helps the centre find your payment"></textarea>
-      <button class="btn secondary" style="margin-top:8px" id="moreBtn">Send</button>
+    <details id="addInfo"><summary data-i18n="addMore">Add more information</summary>
+      <textarea id="moreNote" rows="2" maxlength="500" data-i18n-ph="morePh"></textarea>
+      <button class="btn secondary" style="margin-top:8px" id="moreBtn" data-i18n="send">Send</button>
       <p class="err" id="moreErr"></p>
     </details>
   </section>
 
-  <!-- Receipts -->
-  <section class="card hidden" id="receiptSection">
-    <h2>Receipts</h2>
-    <div id="receiptList" class="stack"></div>
+  <!-- Other children of this parent -->
+  <section class="card hidden" id="familyCard">
+    <h2 style="margin-top:0" data-i18n="familyTitle">Your children's fees</h2>
+    <div id="familyList"></div>
+    <p class="err" id="familyErr"></p>
+  </section>
+
+  <!-- History and receipts -->
+  <section class="card hidden" id="historyCard">
+    <h2 style="margin-top:0" data-i18n="historyTitle">Payment history</h2>
+    <div id="historyList"></div>
   </section>
 
   <section class="card" id="contactCard">
-    <h3 style="margin-top:0">Need help?</h3>
-    <p class="muted" style="margin:0">Contact <b id="contactName"></b>: <a id="contactPhone"></a></p>
+    <h3 style="margin-top:0" data-i18n="needHelp">Need help?</h3>
+    <p class="muted" style="margin:0"><span id="contactLine"></span> <a id="contactPhone"></a></p>
   </section>
-  <p class="foot">Secured by FeeFlow · Payments are verified by your tuition centre</p>
+  <p class="foot" data-i18n="foot">Secured by FeeFlow · Payments are verified by your tuition centre</p>
+
+  <!-- "Did you really pay?" confirmation -->
+  <div class="overlay hidden" id="confirmBox" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="dialog">
+      <h2 id="confirmTitle" data-i18n="confirmTitle">Confirm your payment</h2>
+      <p id="confirmText"></p>
+      <button class="btn ok big-btn" id="confirmYes" data-i18n="confirmYes">Yes, I paid</button>
+      <button class="btn ghost" id="confirmNo" style="margin-top:8px" data-i18n="cancel">Cancel</button>
+    </div>
+  </div>
 </template>
 
+<script src="/static/js/i18n.js"></script>
 <script src="/static/js/pay.js"></script>
 </body>
 </html>

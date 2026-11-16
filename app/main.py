@@ -13,7 +13,7 @@ from sqlalchemy import text
 
 from app.bootstrap import bootstrap
 from app.db import SessionLocal, create_all, get_engine, init_engine
-from app.routers import admin, devices, pages, platform, public, students, workspace
+from app.routers import admin, devices, operations, pages, platform, public, students, workspace
 from app.routers.pages import STATIC
 from app.services.fees import generate_monthly_fees
 from app.services.references import backfill_references
@@ -100,6 +100,7 @@ def create_app(database_url: Optional[str] = None, run_jobs: Optional[bool] = No
     app.include_router(workspace.router)
     app.include_router(students.router)
     app.include_router(platform.router)
+    app.include_router(operations.router)  # before admin: /sms/health must not match /sms/{sms_id}
     app.include_router(admin.router)
     app.include_router(devices.router)
     app.include_router(pages.router)

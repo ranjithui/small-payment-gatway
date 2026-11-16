@@ -42,7 +42,7 @@ def sync(device: DeviceContext = Depends(require_device), db: Session = Depends(
             | ((SmsOutbox.status == "DISPATCHED") & (SmsOutbox.device_id == device.device_id)),
         )
         .order_by(SmsOutbox.created_at)
-        .limit(100)
+        .limit(30)  # Android asks the user to allow "many messages" beyond ~30 per 30 minutes
         .all()
     )
     for m in msgs:

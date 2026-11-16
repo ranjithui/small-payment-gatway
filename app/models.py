@@ -326,6 +326,7 @@ class SmsOutbox(Base):
     installment_id: Mapped[Optional[str]] = mapped_column(String(36))
     declaration_id: Mapped[Optional[str]] = mapped_column(String(36))
     reminder_id: Mapped[Optional[str]] = mapped_column(String(36))
+    batch_id: Mapped[Optional[str]] = mapped_column(String(36), index=True)  # bulk reminder batch
     device_id: Mapped[Optional[str]] = mapped_column(String(36))
     error: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)

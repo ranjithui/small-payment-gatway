@@ -327,3 +327,35 @@ class PaymentAttemptIn(BaseModel):
 
 class AdminRemark(BaseModel):
     remark: str = Field(min_length=2, max_length=1000)
+
+
+# ------------------------------------------------------------------ v2.7 owner tools
+class BulkReminderRequest(BaseModel):
+    target: Literal["OVERDUE", "MONTH", "CLASS", "ALL_UNPAID", "SELECTED"]
+    class_grade: Optional[str] = Field(None, max_length=40)
+    month: Optional[str] = Field(None, pattern=r"^\d{4}-\d{2}$")
+    student_ids: Optional[List[str]] = Field(None, max_length=1000)
+    exclude_ids: Optional[List[str]] = Field(None, max_length=1000)
+
+
+class BulkFeeRequest(BaseModel):
+    description: str = Field(min_length=2, max_length=200)
+    amount_paise: int = Field(gt=0, le=MAX_PAISE)
+    billing_month: str = Field(pattern=r"^\d{4}-\d{2}$")
+    due_date: date
+    target: Literal["ALL", "CLASS", "SELECTED"] = "ALL"
+    class_grade: Optional[str] = Field(None, max_length=40)
+    student_ids: Optional[List[str]] = Field(None, max_length=1000)
+    exclude_ids: Optional[List[str]] = Field(None, max_length=1000)
+
+
+class RetryFailedRequest(BaseModel):
+    batch_id: Optional[str] = Field(None, max_length=36)
+
+
+class ApplyExcessRequest(BaseModel):
+    installment_id: Optional[str] = Field(None, max_length=36)
+
+
+class FamilyLinkRequest(BaseModel):
+    reference: str = Field(min_length=3, max_length=60)

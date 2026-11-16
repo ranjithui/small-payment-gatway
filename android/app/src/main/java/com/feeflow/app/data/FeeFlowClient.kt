@@ -5,6 +5,27 @@ import com.feeflow.app.core.ClarificationRequest
 import com.feeflow.app.core.ConfirmRequest
 import com.feeflow.app.core.ConfirmResponse
 import com.feeflow.app.core.SmsStatus
+import com.feeflow.app.core.AdjustmentItem
+import com.feeflow.app.core.AdjustmentList
+import com.feeflow.app.core.ApplyExcessRequest
+import com.feeflow.app.core.ApplyExcessResult
+import com.feeflow.app.core.BatchStatus
+import com.feeflow.app.core.BulkFeeRequest
+import com.feeflow.app.core.BulkFeeResult
+import com.feeflow.app.core.BulkReminderRequest
+import com.feeflow.app.core.BulkSendResponse
+import com.feeflow.app.core.Dashboard
+import com.feeflow.app.core.FeePreview
+import com.feeflow.app.core.GenerateResult
+import com.feeflow.app.core.Money
+import com.feeflow.app.core.PaymentSearch
+import com.feeflow.app.core.RefCheck
+import com.feeflow.app.core.ReminderPreview
+import com.feeflow.app.core.ReportResponse
+import com.feeflow.app.core.RetryFailedRequest
+import com.feeflow.app.core.RetryResult
+import com.feeflow.app.core.SearchResponse
+import com.feeflow.app.core.SmsHealth
 import com.feeflow.app.core.Declaration
 import com.feeflow.app.core.DeviceAckRequest
 import com.feeflow.app.core.DeviceApi
@@ -165,6 +186,60 @@ class FeeFlowClient(
     suspend fun confirm(id: String, req: ConfirmRequest, idempotencyKey: String): ConfirmResponse =
         call("POST", "/api/v1/payment-verification/$id/confirm", Auth.ADMIN, ConfirmResponse.serializer(),
             enc(ConfirmRequest.serializer(), req), idempotencyKey)!!
+
+    // ---------------------------------------------------------------- v2.7 owner tools
+    suspend fun dashboard(month: String? = null): Dashboard =
+        call("GET", "/api/v1/dashboard" + (month?.let { "?month=$it" } ?: ""), Auth.ADMIN, Dashboard.serializer())!!
+
+    suspend fun generateMonthly(idempotencyKey: String): GenerateResult =
+        call("POST", "/api/v1/fees/generate-monthly", Auth.ADMIN, GenerateResult.serializer(), null, idempotencyKey)!!
+
+    suspend fun remindersPreview(req: BulkReminderRequest): ReminderPreview =
+        call("POST", "/api/v1/bulk/reminders/preview", Auth.ADMIN, ReminderPreview.serializer(), enc(BulkReminderRequest.serializer(), req))!!
+
+    suspend fun remindersSend(req: BulkReminderRequest, idempotencyKey: String): BulkSendResponse =
+        call("POST", "/api/v1/bulk/reminders/send", Auth.ADMIN, BulkSendResponse.serializer(),
+            enc(BulkReminderRequest.serializer(), req), idempotencyKey)!!
+
+    suspend fun batch(id: String): BatchStatus = call("GET", "/api/v1/bulk/batches/$id", Auth.ADMIN, BatchStatus.serializer())!!
+
+    suspend fun feesPreview(req: BulkFeeRequest): FeePreview =
+        call("POST", "/api/v1/bulk/fees/preview", Auth.ADMIN, FeePreview.serializer(), enc(BulkFeeRequest.serializer(), req))!!
+
+    suspend fun feesCreate(req: BulkFeeRequest, idempotencyKey: String): BulkFeeResult =
+        call("POST", "/api/v1/bulk/fees/create", Auth.ADMIN, BulkFeeResult.serializer(),
+            enc(BulkFeeRequest.serializer(), req), idempotencyKey)!!
+
+    suspend fun smsHealth(): SmsHealth = call("GET", "/api/v1/sms/health", Auth.ADMIN, SmsHealth.serializer())!!
+
+    suspend fun retryFailed(batchId: String?, idempotencyKey: String): RetryResult =
+        call("POST", "/api/v1/sms/retry-failed", Auth.ADMIN, RetryResult.serializer(),
+            enc(RetryFailedRequest.serializer(), RetryFailedRequest(batchId)), idempotencyKey)!!
+
+    suspend fun searchPayments(s: PaymentSearch): List<Declaration> {
+        val q = buildList {
+            add("status=" + enc(s.status))
+            if (s.query.isNotBlank()) add("q=" + enc(s.query.trim()))
+            if (s.classGrade.isNotBlank()) add("class_grade=" + enc(s.classGrade))
+            Money.parseToPaise(s.amount)?.let { add("amount=" + (it / 100.0)) }
+            if (s.utr.isNotBlank()) add("utr=" + enc(s.utr.trim()))
+        }.joinToString("&")
+        return call("GET", "/api/v1/payment-verification/search?$q", Auth.ADMIN, SearchResponse.serializer())!!.items
+    }
+
+    suspend fun checkReference(ref: String): RefCheck =
+        call("GET", "/api/v1/verified-payments/check-reference?ref=" + enc(ref.trim()), Auth.ADMIN, RefCheck.serializer())!!
+
+    suspend fun adjustments(): List<AdjustmentItem> =
+        call("GET", "/api/v1/adjustments?status=FLAGGED", Auth.ADMIN, AdjustmentList.serializer())!!.items
+
+    suspend fun applyExcess(id: String, idempotencyKey: String): ApplyExcessResult =
+        call("POST", "/api/v1/adjustments/$id/apply", Auth.ADMIN, ApplyExcessResult.serializer(),
+            enc(ApplyExcessRequest.serializer(), ApplyExcessRequest()), idempotencyKey)!!
+
+    suspend fun report(name: String): ReportResponse = call("GET", "/api/v1/reports/$name", Auth.ADMIN, ReportResponse.serializer())!!
+
+    private fun enc(v: String): String = java.net.URLEncoder.encode(v, "UTF-8")
 
     suspend fun smsStatus(id: String): SmsStatus =
         call("GET", "/api/v1/sms/$id", Auth.ADMIN, SmsStatus.serializer())!!

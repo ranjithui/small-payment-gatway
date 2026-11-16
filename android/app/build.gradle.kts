@@ -20,8 +20,8 @@ android {
         applicationId = "com.feeflow.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 24
-        versionName = "2.6.0"
+        versionCode = 25
+        versionName = "2.7.0"
         // Emulator -> host machine. Change in the app's sign-in screen for a real phone.
         buildConfigField("String", "DEFAULT_SERVER_URL", "\"http://10.0.2.2:8000\"")
         manifestPlaceholders["cleartext"] = "true"

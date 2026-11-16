@@ -53,7 +53,7 @@
     $("centreTitle").textContent = me.workspace.name; $("adminName").textContent = me.email || me.name;
     applySubscription(me);
     $("mainView").classList.remove("hidden");
-    loadStudents(); loadQueue(); loadNotifBadge();
+    goTab("home"); loadQueue(); loadNotifBadge();
     if (!polling) polling = setInterval(() => { if (token && !document.hidden && !$("mainView").classList.contains("hidden")) { loadQueue(false); loadNotifBadge(); } }, 30000);
   }
 
@@ -295,24 +295,43 @@
   }
 
   // ---------------- tabs
-  document.querySelectorAll(".tab").forEach((b) => b.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("active", x === b));
-    ["students", "verify", "installments", "reports", "notifications", "audit", "settings"].forEach((n) => $("tab-" + n).classList.toggle("hidden", n !== b.dataset.tab));
-    ({ students: loadStudents, verify: loadQueue, installments: loadInstallments, reports: loadReport, notifications: loadNotifications, audit: loadAudit, settings: loadSettings })[b.dataset.tab]();
-  }));
+  const TABS = ["home", "students", "verify", "installments", "sms", "reports", "notifications", "audit", "settings"];
+  const LOADERS = { home: loadHome, students: loadStudents, verify: () => loadQueue(), installments: loadInstallments, sms: loadSms,
+    reports: loadReport, notifications: loadNotifications, audit: loadAudit, settings: loadSettings };
+  function goTab(name) {
+    // Notifications and the audit log live under Reports.
+    const navName = name === "notifications" || name === "audit" ? "reports" : name;
+    document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("active", x.dataset.tab === navName));
+    TABS.forEach((n) => $("tab-" + n).classList.toggle("hidden", n !== name));
+    return Promise.resolve(LOADERS[name]()).catch((e) => console.warn(e));
+  }
+  document.querySelectorAll(".tab").forEach((b) => b.addEventListener("click", () => goTab(b.dataset.tab)));
+  document.querySelectorAll("[data-goto]").forEach((b) => b.addEventListener("click", () => goTab(b.dataset.goto)));
 
   // ---------------- verification queue
+  function searchParams() {
+    const p = new URLSearchParams();
+    const add = (k, v) => { if (v) p.set(k, v); };
+    add("q", $("vsQ").value.trim()); add("status", $("vsStatus").value); add("class_grade", $("vsClass").value);
+    add("amount", $("vsAmount").value); add("utr", $("vsUtr").value.trim()); add("date_from", $("vsFrom").value); add("date_to", $("vsTo").value);
+    return p;
+  }
+  const searching = () => [...searchParams().keys()].some((k) => k !== "status") || $("vsStatus").value !== "PENDING";
+  $("vSearch").addEventListener("submit", (e) => { e.preventDefault(); loadQueue(); });
+  $("vsClear").addEventListener("click", () => { $("vSearch").reset(); loadQueue(); });
   async function loadQueue(resetDetail = true) {
-    const { items } = await api("GET", "/api/v1/payment-verification/pending");
-    const badge = $("pendingBadge"); badge.textContent = items.length; badge.classList.toggle("hidden", !items.length);
+    const pending = (await api("GET", "/api/v1/payment-verification/pending")).items;
+    const badge = $("pendingBadge"); badge.textContent = pending.length; badge.classList.toggle("hidden", !pending.length);
+    const items = searching() ? (await api("GET", "/api/v1/payment-verification/search?" + searchParams())).items : pending;
     $("queue").innerHTML = items.length ? items.map((d) => `
       <div class="qitem ${d.id === selected ? "sel" : ""}" data-id="${esc(d.id)}">
         <div class="row"><b>${esc(d.student_name)}</b>${pill(d.verification_status)}</div>
-        <div class="row small muted"><span>${esc(d.student_id)} · ${esc(d.installment.description)} ${esc(d.installment.billing_month)}</span><span>${esc(d.payment_reference || "")}</span></div>
+        <div class="row small muted"><span>${esc(d.student_id)}${d.class_grade ? " · " + esc(d.class_grade) : ""} · ${esc(d.installment.description)} ${esc(d.installment.billing_month)}</span><span>${esc(d.payment_reference || "")}</span></div>
+        ${d.parent_upi_reference ? `<div class="small muted">Txn ID: ${esc(d.parent_upi_reference)}</div>` : ""}
         <div class="row"><span>Declared <b>${rupees(d.declared_amount_paise)}</b>${d.payment_type === "PARTIAL" ? " (partial)" : ""}</span><span class="small muted">${t(d.declared_at || d.created_at)}</span></div>
         ${d.verification_overdue ? '<div class="small" style="color:var(--bad)">Past grace period</div>' : ""}
         ${d.clarification_request ? '<div class="small muted">Clarification requested</div>' : ""}
-      </div>`).join("") : '<p class="muted">Nothing to verify right now.</p>';
+      </div>`).join("") : `<p class="muted">${searching() ? "No payments match." : "Nothing to verify right now."}</p>`;
     $("queue").querySelectorAll(".qitem").forEach((el) => el.addEventListener("click", () => openDecl(el.dataset.id)));
     if (resetDetail && selected && !items.some((d) => d.id === selected)) { selected = null; $("detail").innerHTML = '<p class="muted">Select a payment confirmation to review it.</p>'; }
   }
@@ -324,7 +343,9 @@
     const i = d.installment;
     $("detail").innerHTML = `
       <div class="topbar"><h2 style="margin:0">${esc(d.student_name)} <span class="muted small">${esc(d.student_id)}</span></h2>${pill(d.verification_status)}</div>
+      ${(d.warnings || []).length ? `<div class="warnbox">${d.warnings.map((w) => `<div class="banner ${w.level === "info" ? "info" : w.level === "bad" ? "bad" : "warn"}">${esc(w.text)}</div>`).join("")}</div>` : ""}
       <dl class="kv" style="margin-top:10px">
+        <dt>Class</dt><dd>${esc(d.class_grade || "-")} · <a href="#" id="openStu">Open student profile</a></dd>
         <dt>Parent mobile</dt><dd><a href="tel:${esc(d.parent_mobile)}">${esc(d.parent_mobile)}</a></dd>
         <dt>Installment</dt><dd>${esc(i.description)} · ${esc(i.billing_month)} (due ${esc(i.due_date)})</dd>
         <dt>Expected amount</dt><dd>${rupees(d.expected_amount_paise)}</dd>
@@ -366,6 +387,7 @@
         <button class="btn secondary sm" id="actClarify">Request clarification</button>
       </div>
       <div id="actionPanel"></div>`;
+    $("openStu").onclick = (e) => { e.preventDefault(); goTab("students").then(() => openStudent(d.student_ref)); };
     $("actConfirm").onclick = () => confirmForm(d);
     $("actReject").onclick = () => rejectForm(d);
     $("actClarify").onclick = () => clarifyForm(d);
@@ -412,6 +434,7 @@
     };
     bindDel(); checkDiff();
     txs.addEventListener("input", checkDiff);
+    txs.addEventListener("focusout", (e) => { if (e.target.classList.contains("txRef")) refWarning(e.target); });
     $("addTx").onclick = () => { txs.insertAdjacentHTML("beforeend", txRow(0, "")); bindDel(); checkDiff(); };
     const idem = newKey();
     $("cf").onsubmit = async (e) => {
@@ -504,6 +527,7 @@
   // ---------------- installments
   $("instFilter").addEventListener("change", loadInstallments);
   async function loadInstallments() {
+    loadExcess().catch(() => {});
     const f = $("instFilter").value;
     const { items } = await api("GET", "/api/v1/installments" + (f ? "?status=" + f : ""));
     $("instTable").innerHTML = `<tr><th>Student</th><th>Fee</th><th>Total</th><th>Paid</th><th>Outstanding</th><th>Status</th><th></th></tr>` +
@@ -584,7 +608,7 @@
   // ---------------- notifications / audit
   async function loadNotifBadge() {
     const { items } = await api("GET", "/api/v1/notifications?unread_only=true");
-    $("notifBadge").textContent = items.length; $("notifBadge").classList.toggle("hidden", !items.length);
+    ["notifBadge", "notifBadge2"].forEach((id) => { $(id).textContent = items.length; $(id).classList.toggle("hidden", !items.length); });
   }
   async function loadNotifications() {
     const { items } = await api("GET", "/api/v1/notifications");
@@ -597,6 +621,265 @@
       items.map((a) => `<tr><td>${t(a.timestamp)}</td><td>${esc(a.actor_type)}</td><td>${esc(a.action)}</td>
         <td>${a.previous_status || a.new_status ? `${esc(a.previous_status || "-")} → ${esc(a.new_status || "-")}` : ""}</td><td>${esc(a.reason || "")}</td><td class="small muted">${esc(a.source)}</td></tr>`).join("");
   }
+
+  // ================================================================ v2.7 owner tools
+  let classes = [];
+  const monthNow = () => { const d = new Date(Date.now() + 5.5 * 3600e3); return d.toISOString().slice(0, 7); };
+  const monthLabel = (m) => { const [y, mo] = m.split("-"); return new Date(+y, +mo - 1, 1).toLocaleString("en-IN", { month: "long", year: "numeric" }); };
+  function fillClasses(sel, first) {
+    const cur = sel.value;
+    sel.innerHTML = `<option value="">${esc(first)}</option>` + classes.map((c) => `<option>${esc(c)}</option>`).join("");
+    sel.value = cur;
+  }
+
+  // ---------------- Home
+  $("homeMonth").addEventListener("change", loadHome);
+  async function loadHome() {
+    if (!$("homeMonth").value) $("homeMonth").value = monthNow();
+    const d = await api("GET", "/api/v1/dashboard?month=" + encodeURIComponent($("homeMonth").value));
+    classes = d.classes; fillClasses($("vsClass"), "All classes");
+    const s = d.stats;
+    const tile = (lbl, val, tone, go) => `<div class="stat ${tone || ""} ${go ? "click" : ""}" ${go ? `data-go="${go}"` : ""}><div class="lbl">${esc(lbl)}</div><div class="val">${val}</div></div>`;
+    $("homeStats").innerHTML = [
+      tile(`Collected · ${d.month_label}`, rupees(s.collected_paise), "ok"),
+      tile(`Pending · ${d.month_label}`, rupees(s.outstanding_paise), s.outstanding_paise ? "warn" : ""),
+      tile("Fees generated", `${rupees(s.fees_generated_paise)} <span class="small muted">(${s.fees_count})</span>`, ""),
+      tile("Collected today", rupees(s.collected_today_paise), "ok"),
+      tile("Awaiting verification", s.awaiting_verification, s.awaiting_verification ? "bad" : "", "verify"),
+      tile("Overdue students", `${s.overdue_students} <span class="small muted">${s.overdue_paise ? rupees(s.overdue_paise) : ""}</span>`, s.overdue_students ? "bad" : "", "remind:OVERDUE"),
+      tile("Total students", s.students_total, "", "students"),
+      tile("Failed SMS", s.sms_failed, s.sms_failed ? "bad" : "", "sms"),
+    ].join("");
+    $("homeStats").querySelectorAll("[data-go]").forEach((el) => (el.onclick = () => runGo(el.dataset.go)));
+    const ACT = { VERIFY: "verify", OVERDUE: "remind:OVERDUE", SMS_FAILED: "retry", SMS_PHONE: "sms", NOT_REMINDED: "remind:MONTH",
+      GENERATE: "generate", EXCESS: "excess" };
+    $("homeActions").innerHTML = d.pending_actions.length ? d.pending_actions.map((a) => `<div class="action-row">
+        <span class="dot ${a.tone === "bad" ? "bad" : a.tone === "info" ? "info" : ""}"></span><span class="txt">${esc(a.text)}</span>
+        <button class="btn sm ${a.kind === "VERIFY" ? "" : "secondary"} needs-write" data-go="${ACT[a.kind]}">${esc(a.button)}</button></div>`).join("")
+      : '<p class="muted">All caught up. Nothing needs your attention right now.</p>';
+    $("homeActions").querySelectorAll("[data-go]").forEach((b) => (b.onclick = () => runGo(b.dataset.go, b)));
+    $("homeRecent").innerHTML = d.recent_payments.length ? `<table>${d.recent_payments.map((p) => `<tr><td>${esc(p.student_name)}<br>
+      <span class="small muted">${esc(p.description)} · ${esc(p.billing_month)}</span></td><td><b>${rupees(p.amount_paise)}</b></td>
+      <td class="small muted">${t(p.verified_at)}</td></tr>`).join("")}</table>` : '<p class="muted small">No confirmed payments yet.</p>';
+    const sb = $("smsBadge"); sb.textContent = s.sms_failed; sb.classList.toggle("hidden", !s.sms_failed);
+  }
+
+  async function runGo(go, btn) {
+    const [what, arg] = go.split(":");
+    if (what === "verify") return goTab("verify");
+    if (what === "students") return goTab("students");
+    if (what === "sms") return goTab("sms");
+    if (what === "remind") { await goTab("installments"); return openBulkReminders(arg); }
+    if (what === "excess") { await goTab("installments"); return $("excessBox").scrollIntoView({ behavior: "smooth" }); }
+    if (what === "retry") {
+      if (btn) btn.disabled = true;
+      try { const r = await api("POST", "/api/v1/sms/retry-failed", {}, newKey()); alert(`${r.resent} message(s) queued again.`); }
+      catch (e) { alert(e.message); }
+      return loadHome();
+    }
+    if (what === "generate") {
+      if (!confirm("Create this month's fee for every student on a monthly fee plan who doesn't have one yet?")) return;
+      try { const r = await api("POST", "/api/v1/fees/generate-monthly", null, newKey()); alert(`${r.created} fee(s) created for ${monthLabel(r.billing_month)}.`); }
+      catch (e) { alert(e.message); }
+      return loadHome();
+    }
+  }
+
+  document.querySelectorAll("[data-qa]").forEach((b) => b.addEventListener("click", async () => {
+    const qa = b.dataset.qa;
+    if (qa === "addStudent") { await goTab("students"); return $("addStudent").click(); }
+    if (qa === "bulkFees") { await goTab("installments"); return openBulkFees(); }
+    if (qa === "collect") { await goTab("installments"); $("instFilter").value = "UNPAID"; return loadInstallments(); }
+    if (qa === "remind") { await goTab("installments"); return openBulkReminders("OVERDUE"); }
+    if (qa === "verify") return goTab("verify");
+    if (qa === "reports") return goTab("reports");
+  }));
+
+  // ---------------- Bulk reminders: choose -> preview -> send in batches -> progress -> retry
+  $("remindBtn").addEventListener("click", () => openBulkReminders("OVERDUE"));
+  async function openBulkReminders(target) {
+    if (!classes.length) { try { classes = (await api("GET", "/api/v1/dashboard")).classes; } catch (_) { /* ignore */ } }
+    const p = $("bulkPanel");
+    p.innerHTML = `<div class="panel"><div class="topbar"><h3 style="margin:0">Send fee reminders</h3><button class="btn ghost sm" id="brClose">Close</button></div>
+      <div class="vrow" style="display:flex;gap:8px;margin-top:8px">
+        <select id="brTarget"><option value="OVERDUE">Students with overdue fees</option><option value="MONTH">Unpaid fees this month</option>
+          <option value="CLASS">A whole class</option><option value="ALL_UNPAID">Everyone with unpaid fees</option></select>
+        <select id="brClass" class="hidden"></select>
+      </div>
+      <p class="small muted">Parents who have already reported paying are left out. One message per student, from your SMS phone.</p>
+      <div id="brBody"><p class="muted">Loading...</p></div></div>`;
+    fillClasses($("brClass"), "Choose a class");
+    $("brTarget").value = target || "OVERDUE";
+    $("brClose").onclick = () => (p.innerHTML = "");
+    const refresh = async () => {
+      const tg = $("brTarget").value;
+      $("brClass").classList.toggle("hidden", tg !== "CLASS");
+      if (tg === "CLASS" && !$("brClass").value) { $("brBody").innerHTML = '<p class="muted">Choose a class.</p>'; return; }
+      const body = { target: tg, class_grade: $("brClass").value || null };
+      let pv;
+      try { pv = await api("POST", "/api/v1/bulk/reminders/preview", body); }
+      catch (e) { $("brBody").innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
+      if (!pv.count) { $("brBody").innerHTML = '<p class="muted">No students to remind for this choice.</p>'; return; }
+      $("brBody").innerHTML = `<p><b id="brCount">${pv.count}</b> student(s) will get a reminder${pv.sms_parts ? ` · about ${pv.sms_parts} SMS part(s) each` : ""}.</p>
+        <div class="recip">${pv.recipients.map((r) => `<label><input type="checkbox" checked data-sid="${esc(r.student_id)}">
+          <span style="flex:1">${esc(r.student_name)} <span class="small muted">${esc(r.class_grade || "")} · ${esc(r.parent_mobile)}</span></span>
+          <span>${rupees(r.amount_paise)}${r.overdue ? ' <span class="pill bad">overdue</span>' : ""}</span></label>`).join("")}</div>
+        <h4>Message preview</h4><div class="msgpreview">${esc(pv.sample_message)}</div>
+        ${pv.sms_phone_active ? "" : '<p class="banner warn" style="margin-top:8px">No SMS phone is connected. Messages will wait until the centre&#39;s phone opens the FeeFlow app.</p>'}
+        <button class="btn" id="brSend" style="margin-top:10px">Send ${pv.count} reminder(s)</button><p class="err" id="brErr"></p><div id="brProg"></div>`;
+      const boxes = () => [...$("brBody").querySelectorAll("[data-sid]")];
+      $("brBody").querySelector(".recip").addEventListener("change", () => {
+        const n = boxes().filter((b) => b.checked).length; $("brCount").textContent = n; $("brSend").textContent = `Send ${n} reminder(s)`;
+      });
+      const idem = newKey();
+      $("brSend").onclick = async () => {
+        const exclude = boxes().filter((b) => !b.checked).map((b) => b.dataset.sid);
+        if (exclude.length === boxes().length) { $("brErr").textContent = "Select at least one student."; return; }
+        $("brSend").disabled = true; $("brErr").textContent = "";
+        try {
+          const r = await api("POST", "/api/v1/bulk/reminders/send", { ...body, exclude_ids: exclude }, idem);
+          trackBatch(r.batch_id, $("brProg"));
+        } catch (e) { $("brErr").textContent = e.message; $("brSend").disabled = false; }
+      };
+    };
+    $("brTarget").onchange = refresh; $("brClass").onchange = refresh;
+    refresh();
+  }
+
+  function trackBatch(batchId, el) {
+    const tick = async () => {
+      let s;
+      try { s = await api("GET", "/api/v1/bulk/batches/" + encodeURIComponent(batchId)); } catch (e) { el.innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
+      el.innerHTML = `<div class="progress"><div style="width:${s.progress_percent}%"></div></div>
+        <p class="small"><b>${s.sent}</b> sent · ${s.queued + s.dispatched} waiting for the SMS phone · <span style="color:var(--bad)">${s.failed} failed</span> (of ${s.total})</p>
+        ${s.failed ? `<p class="small">${s.failed_items.map((f) => esc(f.student_name || f.to_mobile)).join(", ")}</p>
+          <button class="btn secondary sm" id="brRetry">Retry failed</button>` : ""}
+        ${s.done && !s.failed ? '<p class="banner ok">All reminders sent.</p>' : ""}`;
+      const rb = el.querySelector("#brRetry");
+      if (rb) rb.onclick = async () => { rb.disabled = true; await api("POST", "/api/v1/sms/retry-failed", { batch_id: batchId }, newKey()); tick(); };
+      if (!s.done && el.isConnected) setTimeout(tick, 5000);
+    };
+    tick();
+  }
+
+  // ---------------- Bulk one-off fees: choose -> preview -> create
+  $("bulkFeeBtn").addEventListener("click", openBulkFees);
+  async function openBulkFees() {
+    if (!classes.length) { try { classes = (await api("GET", "/api/v1/dashboard")).classes; } catch (_) { /* ignore */ } }
+    const p = $("bulkPanel");
+    p.innerHTML = `<form class="panel" id="bf"><div class="topbar"><h3 style="margin:0">Fee for many students</h3><button type="button" class="btn ghost sm" id="bfClose">Close</button></div>
+      <p class="small muted">For exam fees, book fees, trips and so on. Monthly tuition fees are created automatically from each student's plan.</p>
+      <label>What is the fee for?</label><input id="bfDesc" required minlength="2" maxlength="200" placeholder="e.g. Exam fee">
+      <div style="display:flex;gap:8px">
+        <div style="flex:1"><label>Amount (Rs.)</label><input id="bfAmt" type="number" min="1" step="0.01" required></div>
+        <div style="flex:1"><label>Fee month</label><input id="bfMonth" type="month" required value="${monthNow()}"></div>
+        <div style="flex:1"><label>Due date</label><input id="bfDue" type="date" required></div>
+      </div>
+      <label>Students</label>
+      <div style="display:flex;gap:8px"><select id="bfTarget"><option value="ALL">All active students</option><option value="CLASS">A whole class</option></select>
+        <select id="bfClass" class="hidden"></select></div>
+      <button class="btn secondary" type="submit" style="margin-top:10px">Preview</button>
+      <p class="err" id="bfErr"></p><div id="bfPrev"></div></form>`;
+    fillClasses($("bfClass"), "Choose a class");
+    $("bfClose").onclick = () => (p.innerHTML = "");
+    $("bfTarget").onchange = () => $("bfClass").classList.toggle("hidden", $("bfTarget").value !== "CLASS");
+    const body = () => ({ description: $("bfDesc").value.trim(), amount_paise: toPaise($("bfAmt").value), billing_month: $("bfMonth").value,
+      due_date: $("bfDue").value, target: $("bfTarget").value, class_grade: $("bfClass").value || null });
+    const idem = newKey();
+    $("bf").onsubmit = async (e) => {
+      e.preventDefault(); $("bfErr").textContent = "";
+      let pv;
+      try { pv = await api("POST", "/api/v1/bulk/fees/preview", body()); } catch (err) { $("bfErr").textContent = err.message; return; }
+      $("bfPrev").innerHTML = `<p><b id="bfCount">${pv.count}</b> new fee(s) · total ${rupees(pv.total_paise)}${pv.duplicates ? ` · ${pv.duplicates} skipped (already have this fee)` : ""}</p>
+        <div class="recip">${pv.rows.map((r) => `<label><input type="checkbox" ${r.duplicate ? "disabled" : "checked"} data-sid="${esc(r.student_id)}">
+          <span style="flex:1">${esc(r.student_name)} <span class="small muted">${esc(r.class_grade || "")}</span></span>
+          <span>${r.duplicate ? '<span class="pill">already added</span>' : rupees(r.amount_paise)}</span></label>`).join("")}</div>
+        <button type="button" class="btn" id="bfCreate" style="margin-top:10px" ${pv.count ? "" : "disabled"}>Create ${pv.count} fee(s)</button>`;
+      const boxes = () => [...$("bfPrev").querySelectorAll("[data-sid]:not([disabled])")];
+      $("bfPrev").querySelector(".recip").addEventListener("change", () => {
+        const n = boxes().filter((b) => b.checked).length; $("bfCount").textContent = n; $("bfCreate").textContent = `Create ${n} fee(s)`;
+      });
+      $("bfCreate").onclick = async () => {
+        const exclude = boxes().filter((b) => !b.checked).map((b) => b.dataset.sid);
+        $("bfCreate").disabled = true;
+        try {
+          const r = await api("POST", "/api/v1/bulk/fees/create", { ...body(), exclude_ids: exclude }, idem);
+          $("bfPrev").innerHTML = `<p class="banner ok">${r.created} fee(s) created${r.skipped_duplicates ? `, ${r.skipped_duplicates} skipped` : ""}.
+            <a href="#" id="bfRemind">Send reminders for them</a></p>`;
+          $("bfRemind").onclick = (ev) => { ev.preventDefault(); openBulkReminders("ALL_UNPAID"); };
+          loadInstallments();
+        } catch (err) { $("bfErr").textContent = err.message; $("bfCreate").disabled = false; }
+      };
+    };
+  }
+
+  // ---------------- Overpayments: apply to the next fee or mark refunded
+  async function loadExcess() {
+    const { items } = await api("GET", "/api/v1/adjustments?status=FLAGGED");
+    $("excessBox").innerHTML = items.length ? `<div class="panel"><h3 style="margin-top:0">Overpayments to sort out</h3>
+      ${items.map((a) => `<div class="action-row"><span class="dot info"></span><span class="txt">${esc(a.student_name)} paid ${rupees(a.amount_paise)} extra
+        <span class="small muted">(${esc(a.description)} · ${esc(a.billing_month)})</span></span>
+        <button class="btn sm needs-write" data-apply="${esc(a.id)}">Apply to next fee</button>
+        <button class="btn ghost sm needs-write" data-refund="${esc(a.id)}">Refunded</button></div>`).join("")}</div>` : "";
+    $("excessBox").querySelectorAll("[data-apply]").forEach((b) => (b.onclick = async () => {
+      if (!confirm("Use this extra money for the student's next unpaid fee? A receipt is issued for that fee.")) return;
+      try { const r = await api("POST", `/api/v1/adjustments/${encodeURIComponent(b.dataset.apply)}/apply`, {}, newKey());
+        alert(`Applied to ${r.applied_to.description} (${r.applied_to.billing_month}). Receipt ${r.receipt.receipt_number}.`); loadInstallments(); }
+      catch (e) { alert(e.message); }
+    }));
+    $("excessBox").querySelectorAll("[data-refund]").forEach((b) => (b.onclick = async () => {
+      const note = prompt("How was it refunded? (e.g. UPI refund ref 1234)"); if (!note) return;
+      try { await api("POST", `/api/v1/adjustments/${encodeURIComponent(b.dataset.refund)}/resolve`, { status: "REFUNDED", note }); loadInstallments(); }
+      catch (e) { alert(e.message); }
+    }));
+  }
+
+  // ---------------- SMS health
+  $("smsRefresh").addEventListener("click", () => loadSms());
+  async function loadSms() {
+    const h = await api("GET", "/api/v1/sms/health");
+    const ph = h.phone;
+    $("smsBody").innerHTML = `
+      <div class="stats">
+        <div class="stat ${ph.online ? "ok" : "bad"}"><div class="lbl">SMS phone</div><div class="val" style="font-size:17px">${ph.connected ? (ph.online ? "Online" : "Offline") : "Not connected"}</div>
+          <div class="small muted">${esc(ph.name || "")}${ph.last_seen_at ? " · seen " + t(ph.last_seen_at) : ""}</div></div>
+        <div class="stat ok"><div class="lbl">Sent today</div><div class="val">${h.sent_today}</div></div>
+        <div class="stat ${h.waiting ? "warn" : ""}"><div class="lbl">Waiting to send</div><div class="val">${h.waiting}</div></div>
+        <div class="stat ${h.failed_count ? "bad" : ""}"><div class="lbl">Failed</div><div class="val">${h.failed_count}</div></div>
+      </div>
+      <p class="banner ${h.failed_count || !ph.online ? "warn" : "ok"}" style="margin-top:10px">${esc(h.advice)}</p>
+      ${h.failed_count ? `<div class="topbar" style="margin-top:12px"><h3 style="margin:0">Failed messages</h3><button class="btn sm needs-write" id="smsRetryAll">Retry all</button></div>
+        <table><tr><th>Parent</th><th>Message</th><th>Error</th><th>When</th></tr>${h.failed.map((m) => `<tr><td>${esc(m.student_name || "")}<br><span class="small muted">${esc(m.to_mobile)}</span></td>
+          <td class="small">${esc(m.kind.replace(/_/g, " ").toLowerCase())}</td><td class="small" style="color:var(--bad)">${esc(m.error || "")}</td><td class="small muted">${t(m.created_at)}</td></tr>`).join("")}</table>` : ""}
+      <p class="small muted" style="margin-top:12px">${esc(h.limit_note)}</p>`;
+    const rb = $("smsRetryAll");
+    if (rb) rb.onclick = async () => { rb.disabled = true; try { const r = await api("POST", "/api/v1/sms/retry-failed", {}, newKey()); alert(`${r.resent} message(s) queued again.`); } catch (e) { alert(e.message); } loadSms(); };
+    const sb = $("smsBadge"); sb.textContent = h.failed_count; sb.classList.toggle("hidden", !h.failed_count);
+  }
+
+  // ---------------- Confirm form: warn as soon as a transaction ID that is already recorded is typed
+  async function refWarning(input) {
+    const old = input.parentElement.querySelector(".refwarn"); if (old) old.remove();
+    const ref = input.value.trim(); if (ref.length < 4) return;
+    try {
+      const r = await api("GET", "/api/v1/verified-payments/check-reference?ref=" + encodeURIComponent(ref));
+      if (r.used) input.insertAdjacentHTML("afterend", `<p class="small refwarn" style="color:var(--bad);margin:4px 0 0">${esc(r.message)}</p>`);
+    } catch (_) { /* ignore */ }
+  }
+
+  // ---------------- Reports: CSV download
+  $("reportCsv").addEventListener("click", async () => {
+    const name = $("reportSel").value;
+    const { items } = await api("GET", "/api/v1/reports/" + name);
+    if (!items.length) { alert("No records."); return; }
+    const cols = Object.keys(items[0]);
+    const cell = (v) => { const s = v == null ? "" : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+    const rows = items.map((r) => cols.map((c) => cell(/_paise$/.test(c) && r[c] != null ? (r[c] / 100).toFixed(2) : r[c])).join(","));
+    const csv = [cols.map((c) => c.replace(/_paise$/, "_rs")).join(","), ...rows].join("\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv" }));
+    a.download = `feeflow-${name}-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+  });
 
   if (token) start();
 })();

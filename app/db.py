@@ -92,6 +92,9 @@ UPGRADES = [
     "ALTER TABLE tenants ADD COLUMN IF NOT EXISTS pay_intent_enabled BOOLEAN NOT NULL DEFAULT TRUE",
     "ALTER TABLE tenants ADD COLUMN IF NOT EXISTS pay_qr_enabled BOOLEAN NOT NULL DEFAULT TRUE",
     "ALTER TABLE tenants ADD COLUMN IF NOT EXISTS pay_manual_enabled BOOLEAN NOT NULL DEFAULT TRUE",
+    # v2.7: bulk reminder batches.
+    "ALTER TABLE sms_outbox ADD COLUMN IF NOT EXISTS batch_id VARCHAR(36)",
+    "CREATE INDEX IF NOT EXISTS ix_sms_outbox_batch_id ON sms_outbox (batch_id)",
 ]
 
 

@@ -24,6 +24,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
@@ -99,7 +101,13 @@ fun FeeFlowRoot(vm: AppViewModel) {
         is Screen.StudentDetail -> StudentDetailScreen(state, vm, snackbar)
         is Screen.StudentForm -> StudentFormScreen(state, s.id, vm, snackbar)
         Screen.Confirmed -> ConfirmedScreen(state, vm, snackbar)
+        is Screen.BulkReminders -> BulkRemindersScreen(state, s.target, vm, snackbar)
+        Screen.BulkFees -> BulkFeesScreen(state, vm, snackbar)
+        Screen.Sms -> SmsScreen(state, vm, snackbar)
         Screen.Confirmed -> ConfirmedScreen(state, vm, snackbar)
+        is Screen.BulkReminders -> BulkRemindersScreen(state, s.target, vm, snackbar)
+        Screen.BulkFees -> BulkFeesScreen(state, vm, snackbar)
+        Screen.Sms -> SmsScreen(state, vm, snackbar)
     }
 }
 
@@ -155,37 +163,17 @@ private fun MainScreen(state: UiState, tab: Tab, vm: AppViewModel, snackbar: Sna
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Brand, titleContentColor = Color.White, actionIconContentColor = Color.White),
                 actions = {
-                    IconButton(onClick = {
-                        when (tab) {
-                            Tab.STUDENTS -> vm.refreshStudents()
-                            Tab.VERIFY -> vm.refreshPending()
-                            Tab.SMS_DEVICE -> vm.refreshDevice()
-                        }
-                    }) {
-                        Icon(Icons.Default.Refresh, "Refresh")
-                    }
-                    IconButton(onClick = { vm.openSettings() }) { Icon(Icons.Default.Settings, "Settings") }
-                    IconButton(onClick = { vm.logout() }) { Icon(Icons.AutoMirrored.Filled.ExitToApp, "Sign out") }
+                    IconButton(onClick = { vm.selectTab(tab) }) { Icon(Icons.Default.Refresh, "Refresh") }
                 },
             )
         },
         bottomBar = {
             NavigationBar {
-                NavigationBarItem(
-                    selected = tab == Tab.STUDENTS, onClick = { vm.selectTab(Tab.STUDENTS) },
-                    icon = { Icon(Icons.Default.Person, null) },
-                    label = { Text("Students") },
-                )
-                NavigationBarItem(
-                    selected = tab == Tab.VERIFY, onClick = { vm.selectTab(Tab.VERIFY) },
-                    icon = { Icon(Icons.AutoMirrored.Filled.List, null) },
-                    label = { Text("Verify (${state.pending.size})") },
-                )
-                NavigationBarItem(
-                    selected = tab == Tab.SMS_DEVICE, onClick = { vm.selectTab(Tab.SMS_DEVICE) },
-                    icon = { Icon(Icons.AutoMirrored.Filled.Send, null) },
-                    label = { Text("SMS phone") },
-                )
+                NavItem(tab == Tab.HOME, "Home", Icons.Default.Home) { vm.selectTab(Tab.HOME) }
+                NavItem(tab == Tab.STUDENTS, "Students", Icons.Default.Person) { vm.selectTab(Tab.STUDENTS) }
+                NavItem(tab == Tab.PAYMENTS, "Payments", Icons.AutoMirrored.Filled.List, badge = state.pending.size) { vm.selectTab(Tab.PAYMENTS) }
+                NavItem(tab == Tab.REPORTS, "Reports", Icons.Default.Info) { vm.selectTab(Tab.REPORTS) }
+                NavItem(tab == Tab.SETTINGS, "Settings", Icons.Default.Settings, badge = state.dashboard?.stats?.smsFailed ?: 0) { vm.selectTab(Tab.SETTINGS) }
             }
         },
     ) { pad ->
@@ -193,25 +181,32 @@ private fun MainScreen(state: UiState, tab: Tab, vm: AppViewModel, snackbar: Sna
             if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
             TrialBanner(state.subscription)
             when (tab) {
+                Tab.HOME -> HomeTab(state, vm)
                 Tab.STUDENTS -> StudentsTab(state, vm)
-                Tab.VERIFY -> PendingList(state, vm)
-                Tab.SMS_DEVICE -> DeviceScreen(state, vm)
+                Tab.PAYMENTS -> PaymentsTab(state, vm)
+                Tab.REPORTS -> ReportsTab(state, vm)
+                Tab.SETTINGS -> SettingsTab(state, vm)
             }
         }
     }
 }
 
 @Composable
-private fun PendingList(state: UiState, vm: AppViewModel) {
-    if (state.pending.isEmpty() && !state.busy) {
-        Column(Modifier.fillMaxSize().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            Icon(Icons.Default.CheckCircle, null, tint = Ok, modifier = Modifier.width(48.dp).height(48.dp))
-            Text("Nothing to verify right now", fontWeight = FontWeight.SemiBold)
-        }
-        return
-    }
-    LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        items(state.pending, key = { it.id }) { d ->
+private fun androidx.compose.foundation.layout.RowScope.NavItem(
+    selected: Boolean, label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, badge: Int = 0, onClick: () -> Unit,
+) {
+    NavigationBarItem(
+        selected = selected, onClick = onClick,
+        icon = {
+            if (badge > 0) androidx.compose.material3.BadgedBox(badge = { androidx.compose.material3.Badge { Text("$badge") } }) { Icon(icon, null) }
+            else Icon(icon, null)
+        },
+        label = { Text(label, fontSize = 11.sp, maxLines = 1) },
+    )
+}
+
+@Composable
+internal fun PaymentCard(d: Declaration, vm: AppViewModel) {
             Card(
                 Modifier.fillMaxWidth().clickable { vm.openDetail(d.id) },
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -221,8 +216,9 @@ private fun PendingList(state: UiState, vm: AppViewModel) {
                         Text(d.studentName, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                         StatusPill(d.verificationStatus)
                     }
-                    Text("${d.studentId} · ${d.installment.description} ${d.installment.billingMonth}", color = Color.Gray, fontSize = 13.sp)
-                    d.paymentReference?.let { Text("Ref $it", color = Color.Gray, fontSize = 12.sp) }
+                    Text(listOfNotNull(d.studentId, d.classGrade, "${d.installment.description} ${d.installment.billingMonth}").joinToString(" · "),
+                        color = Color.Gray, fontSize = 13.sp)
+                    d.paymentReference?.let { Text("Ref $it" + (d.parentUpiReference?.let { r -> " · Txn $r" } ?: ""), color = Color.Gray, fontSize = 12.sp) }
                     Row(Modifier.padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text("Declared ", fontSize = 14.sp)
                         Text(Money.format(d.declaredAmountPaise), fontWeight = FontWeight.Bold)
@@ -234,8 +230,6 @@ private fun PendingList(state: UiState, vm: AppViewModel) {
                     if (d.clarificationRequest != null) Text("Clarification requested", color = Warn, fontSize = 12.sp)
                 }
             }
-        }
-    }
 }
 
 // ------------------------------------------------------------------ detail
@@ -271,9 +265,19 @@ private fun DetailScreen(state: UiState, vm: AppViewModel, snackbar: SnackbarHos
                 Text("${d.studentId} · ${d.reference}", color = Color.Gray, modifier = Modifier.weight(1f))
                 StatusPill(d.verificationStatus)
             }
+            d.warnings.forEach { w ->
+                Spacer(Modifier.height(6.dp))
+                Card(colors = CardDefaults.cardColors(containerColor = when (w.level) {
+                    "bad" -> Color(0xFFFEE2E2); "info" -> Color(0xFFE0E7FF); else -> Color(0xFFFEF3C7) })) {
+                    Text(w.text, Modifier.padding(10.dp), fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+                        color = when (w.level) { "bad" -> Bad; "info" -> Brand; else -> Warn })
+                }
+            }
             Spacer(Modifier.height(8.dp))
             Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    d.classGrade?.let { Kv("Class", it) }
+                    d.studentRef?.let { ref -> TextButton({ vm.openStudent(ref) }) { Text("Open student profile") } }
                     d.paymentReference?.let { Kv("Payment reference", it) }
                     Kv("Parent mobile", d.parentMobile)
                     Kv("Installment", "${d.installment.description} · ${d.installment.billingMonth}")
@@ -500,7 +504,7 @@ private fun TextActionDialog(
 
 // ------------------------------------------------------------------ SMS device
 @Composable
-private fun DeviceScreen(state: UiState, vm: AppViewModel) {
+internal fun DeviceScreen(state: UiState, vm: AppViewModel) {
     val dev = state.device
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { vm.onPermissionResult() }
     var confirmRegister by remember { mutableStateOf(false) }

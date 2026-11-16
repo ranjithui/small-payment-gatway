@@ -69,6 +69,8 @@ def serialize_declaration(db: Session, decl: PaymentDeclaration, detail: bool = 
         "reference": decl.public_ref,
         "student_name": student.name,
         "student_id": student.student_code,
+        "student_ref": student.id,
+        "class_grade": student.class_grade,
         "parent_mobile": student.parent_mobile,
         "installment": {
             "id": inst.id,
@@ -125,6 +127,7 @@ def serialize_declaration(db: Session, decl: PaymentDeclaration, detail: bool = 
         attempts = (db.query(PaymentAttempt).filter(PaymentAttempt.installment_id == inst.id)
                     .order_by(PaymentAttempt.created_at.desc()).limit(50).all())
         from app.services.reconciliation import suggest_matches
+        from app.services.operations import declaration_warnings
 
         out.update(
             {
@@ -158,6 +161,7 @@ def serialize_declaration(db: Session, decl: PaymentDeclaration, detail: bool = 
                     for r in rems
                 ],
                 "suggested_bank_matches": suggest_matches(db, decl),
+                "warnings": declaration_warnings(db, decl),
                 "payment_attempts": [
                     {"method": a.method, "event": a.event, "device": a.device, "declared": a.declared,
                      "detail": a.error_detail, "at": _iso(a.created_at)}
