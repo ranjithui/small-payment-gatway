@@ -52,7 +52,7 @@ class LiveBackendE2ETest {
         val sentBefore = sim.sent.size
         val r1 = engine.runOnce()
         assertTrue(r1.synced && r1.acked)
-        assertTrue(sim.sent.drop(sentBefore).any { it.second.contains("received your payment confirmation") })
+        assertTrue(sim.sent.drop(sentBefore).any { it.second.contains("We received your payment report") })
 
         // 5. Admin verifies from the phone
         val pending = client.pending()
@@ -73,7 +73,7 @@ class LiveBackendE2ETest {
         val sentMid = sim.sent.size
         engine.runOnce()
         val verifiedSms = sim.sent.drop(sentMid).map { it.second }
-        assertTrue(verifiedSms.toString(), verifiedSms.any { it.contains("verified successfully") && it.contains("/receipt/") })
+        assertTrue(verifiedSms.toString(), verifiedSms.any { it.contains("is confirmed. Thank you!") && it.contains("/r/") })
         assertTrue(store.state.schedules.values.filter { it.toMobile == decl.parentMobile && it.status == "SCHEDULED" && res.outstandingPaise == 0L }.isEmpty())
 
         // 7. Nothing left to do on the next run

@@ -11,30 +11,88 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from app.models import SmsOutbox, Tenant
+import calendar
 
+from app.models import Installment, SmsOutbox, Tenant
+
+# Professional, short messages. "Rs." (not the rupee sign) keeps an SMS in the 160-character GSM
+# encoding; the rupee sign would switch it to 70-character parts.
 TEMPLATES = {
     "DECLARATION_ACK": (
-        "Dear Parent, we have received your payment confirmation for {student_name}. "
-        "Our team is verifying the transaction. Please wait for confirmation. - {centre_name}"
+        "{centre_name}: We received your payment report of Rs.{amount} for {student_name} ({month}). "
+        "We will confirm after checking our bank account, usually within {hours} hours. Ref: {reference}"
     ),
     "PAYMENT_VERIFIED": (
-        "Dear Parent, your payment of Rs. {amount} for {student_name} has been verified successfully. "
-        "Your receipt: {receipt_link}. - {centre_name}"
+        "{centre_name}: Payment of Rs.{amount} for {student_name} ({month}) is confirmed. Thank you!"
+        "{balance_line} Receipt: {receipt_link}"
     ),
     "PAYMENT_REJECTED": (
-        "Dear Parent, we could not verify your payment for {student_name}. "
-        "Please contact {centre_name} for assistance."
+        "{centre_name}: We could not find your payment for {student_name} ({month}) in our bank account. "
+        "Please contact us{contact_line} before paying again."
     ),
     "CLARIFICATION_REQUESTED": (
-        "Dear Parent, {centre_name} needs a few more details to verify your payment for {student_name}. "
-        "Please open your payment link: {payment_link}"
+        "{centre_name}: We need a few more details to verify your payment for {student_name} ({month}). "
+        "Please open: {payment_link}"
     ),
-    "FEE_REMINDER": (
-        "Dear Parent, fee of Rs. {amount} for {student_name} ({description}) is due on {due_date}. "
-        "Pay here: {payment_link} - {centre_name}"
-    ),
+    # Fee requests and reminders are built by fee_request_text() (UPI details are optional lines).
+    "FEE_REMINDER": "{body}",
 }
+
+
+def month_label(billing_month: Optional[str]) -> str:
+    """'2026-11' -> 'Nov 2026'."""
+    try:
+        y, m = (int(x) for x in (billing_month or "").split("-"))
+        return f"{calendar.month_abbr[m]} {y}"
+    except (ValueError, IndexError):
+        return billing_month or ""
+
+
+def display_mobile(m: Optional[str]) -> Optional[str]:
+    """+919876543210 -> "98765 43210" (what parents type in 'Pay phone number')."""
+    if not m:
+        return None
+    d = "".join(c for c in m if c.isdigit())[-10:]
+    return f"{d[:5]} {d[5:]}" if len(d) == 10 else None
+
+
+def fee_request_text(inst: Installment, url: str) -> str:
+    """Fee link / reminder SMS: the parent can pay from any UPI app without opening the link,
+    then taps the link to confirm."""
+    t = inst.tenant
+    lines = [
+        f"{t.name}: Fee of Rs.{format_rupees(inst.outstanding_paise)} for {inst.student.name} "
+        f"({month_label(inst.billing_month)}) is due on {inst.due_date.strftime('%d-%b')}.",
+        "",
+    ]
+    if t.upi_vpa:
+        lines.append("Pay using any UPI app to:")
+        lines.append(f"UPI ID: {t.upi_vpa}")
+        mobile = display_mobile(t.upi_mobile)
+        if mobile:
+            lines.append(f"or Mobile: {mobile}")
+        lines.append(f"Name shown: {t.upi_payee_name or t.name}")
+        if inst.payment_reference:
+            lines.append(f"Note: {inst.payment_reference}")
+        lines += ["", "After paying, tap to confirm:", url]
+    else:
+        lines += ["Pay and confirm here:", url]
+    lines += ["", "Never share your UPI PIN or OTP."]
+    return "\n".join(lines)
+
+
+def _standard_params(db: Session, tenant: Tenant, installment_id: Optional[str]) -> dict:
+    """Values every message may use, taken from the fee itself."""
+    out = {"hours": tenant.verification_grace_hours,
+           "contact_line": f" on {tenant.contact_phone}" if tenant.contact_phone else "",
+           "month": "", "reference": "", "balance_line": ""}
+    inst = db.get(Installment, installment_id) if installment_id else None
+    if inst is not None:
+        out["month"] = month_label(inst.billing_month)
+        out["reference"] = inst.payment_reference or ""
+        if inst.outstanding_paise > 0:
+            out["balance_line"] = f" Balance due: Rs.{format_rupees(inst.outstanding_paise)}."
+    return out
 
 
 def format_rupees(paise: int) -> str:
@@ -62,7 +120,9 @@ def enqueue_sms(
     for obj in db.new:
         if isinstance(obj, SmsOutbox) and obj.dedupe_key == dedupe_key:
             return None
-    body = TEMPLATES[kind].format(centre_name=tenant.name, **params)
+    values = _standard_params(db, tenant, installment_id)
+    values.update(params)
+    body = TEMPLATES[kind].format(centre_name=tenant.name, **values)
     msg = SmsOutbox(
         tenant_id=tenant.id,
         to_mobile=to_mobile,

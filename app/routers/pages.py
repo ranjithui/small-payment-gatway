@@ -55,6 +55,7 @@ def root():
 
 
 @router.get("/pay/{secure_token}")
+@router.get("/p/{secure_token}")  # short link used in SMS
 def pay_page(secure_token: str):
     # The token is read client-side from the URL; the page never embeds data server-side.
     return page("pay.html")
@@ -70,6 +71,7 @@ def platform_page():
     return page("platform.html")
 
 
+@router.get("/r/{receipt_token}", response_class=HTMLResponse, dependencies=[Depends(rate_limit("public_read", 60))])
 @router.get("/receipt/{receipt_token}", response_class=HTMLResponse, dependencies=[Depends(rate_limit("public_read", 60))])
 def receipt_page(receipt_token: str, db: Session = Depends(get_db)):
     r = receipt_payload(db, receipt_token)

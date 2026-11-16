@@ -32,7 +32,7 @@ def test_create_student_and_fee_sends_link_and_schedules_reminders(env):
     assert v["student"]["name"] == "Ishaan Rao" and v["fee"]["outstanding_paise"] == 300000 and v["can_pay"]
 
     msgs = [m for m in env.sync()["sms"] if m["to_mobile"] == "+919876512345"]
-    assert len(msgs) == 1 and "Rs. 3,000" in msgs[0]["body"] and "/pay/" in msgs[0]["body"]
+    assert len(msgs) == 1 and "Rs.3,000" in msgs[0]["body"] and "/p/" in msgs[0]["body"]
     status = env.c.get(f"/api/v1/installments/{r.json()['id']}/payment-status", headers=env.admin).json()
     assert len([x for x in status["reminders"] if x["status"] == "SCHEDULED"]) == 3
     assert len(env.c.get("/api/v1/students", headers=env.admin).json()["items"]) == 5

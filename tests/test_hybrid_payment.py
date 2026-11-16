@@ -112,8 +112,8 @@ def test_declaration_message_and_amount_from_server(env):
     assert r.status_code == 201
     v = r.json()
     assert v["declaration"]["declared_amount_paise"] == 250000
-    assert v["message"].startswith("Your payment declaration has been submitted successfully. The tuition centre will "
-                                   "verify the bank transaction and update your payment status.")
+    assert v["message"].startswith("Thank you! Your payment has been reported. ")
+    assert "within 24 hours" in v["message"] and "SMS with your receipt" in v["message"]
     assert v["fee"]["paid_paise"] == 0 and v["installment_status"] == "UNPAID"
     assert env.declare(action="PAID").json()["duplicate"] is True
     failed = env.declare("BM-1002", action="FAILED").json()

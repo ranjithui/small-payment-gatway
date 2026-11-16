@@ -10,7 +10,7 @@ from app.security import new_secret_token
 
 
 def receipt_url(receipt: Receipt) -> str:
-    return f"{settings.public_base_url}/receipt/{receipt.public_token}"
+    return f"{settings.public_base_url}/r/{receipt.public_token}"
 
 
 def issue_receipt(

@@ -24,9 +24,20 @@ class DeclarationCreate(BaseModel):
     upi_app: Optional[str] = Field(None, max_length=30)
     approximate_payment_time: Optional[str] = Field(None, max_length=50)
     note: Optional[str] = Field(None, max_length=500)
+    upi_reference: Optional[str] = Field(None, max_length=64, description="Optional UPI transaction ID (or its last digits)")
     idempotency_key: Optional[str] = Field(None, max_length=100)
 
     _check_note = field_validator("note")(_no_secrets)
+
+    @field_validator("upi_reference")
+    @classmethod
+    def _utr(cls, v: Optional[str]) -> Optional[str]:
+        v = (v or "").replace(" ", "").strip()
+        if not v:
+            return None
+        if not v.isalnum():
+            raise ValueError("UPI transaction ID can only contain letters and numbers.")
+        return v
 
 
 class ParentClarification(BaseModel):

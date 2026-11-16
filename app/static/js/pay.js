@@ -10,6 +10,9 @@
   // Desktop browsers can't open UPI apps: lead with the QR code.
   const IS_DESKTOP = !/Android|iPhone|iPad|iPod|Mobile/i.test(UA) && !(navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));
   const IS_IOS = /iPhone|iPad|iPod/.test(UA);
+  // Short links (/p/...) come from the fee SMS, which already shows the UPI details:
+  // most parents open it after paying, so "Already paid?" comes first.
+  const CONFIRM_FIRST = location.pathname.startsWith("/p/");
   let state = null;
   let intentNotice = null; // { text, tone } shown under the one-tap button
   let initialPanelDone = false;
@@ -101,8 +104,11 @@
 
     const launched = sessionStorage.getItem(RETURN_FLAG) === "1";
     const midFlow = d && (d.status === "PAYMENT_INITIATED" || d.status === "PAYMENT_PROCESSING");
-    show($("askSection"), s.can_pay && !!s.upi && (launched || midFlow || IS_DESKTOP));
-    $("askAmt").textContent = rupees(s.fee.outstanding_paise);
+    show($("askSection"), s.can_pay && !!s.upi && (launched || midFlow || IS_DESKTOP || CONFIRM_FIRST));
+    const amt = rupees(s.fee.outstanding_paise);
+    const fromSms = CONFIRM_FIRST && !launched && !midFlow;
+    $("askTitle").textContent = fromSms && s.upi ? `Already paid ${amt} to ${s.upi.payee_name}?` : `Did you pay ${amt}?`;
+    $("payLead").textContent = fromSms ? "Not paid yet? " : "";
     $("processingBtn").classList.toggle("hidden", d && d.status === "PAYMENT_PROCESSING");
 
     // Awaiting verification
@@ -110,7 +116,8 @@
     if (s.awaiting_verification && d) {
       $("declaredAt").textContent = fmtTime(d.declared_at);
       $("declaredAmt").textContent = rupees(d.declared_amount_paise) + (d.payment_type === "PARTIAL" ? " (partial)" : "");
-      $("declRef").textContent = d.reference;
+      $("declRef").textContent = s.payment_reference || d.reference;
+      $("waitMsg").textContent = (s.message || "").replace(/^Thank you! Your payment has been reported\.\s*/, "");
       show($("clarifyBox"), !!d.clarification_request);
       show($("addInfo"), !d.clarification_request);
       if (d.clarification_request) $("clarifyQ").textContent = d.clarification_request;
@@ -310,6 +317,7 @@
       body.payment_type = "PARTIAL"; body.declared_amount_paise = amt;
     }
     if ($("optTime").value) body.approximate_payment_time = $("optTime").value;
+    if (action === "PAID" && $("optUtr").value.trim()) body.upi_reference = $("optUtr").value.replace(/\s/g, "");
     if ($("optNote").value.trim()) body.note = $("optNote").value.trim();
     const buttons = [$("paidBtn"), $("processingBtn"), $("failedBtn")];
     buttons.forEach((b) => (b.disabled = true));

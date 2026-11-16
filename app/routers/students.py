@@ -195,7 +195,7 @@ def send_fee_link(
         if body.channel == "SMS":
             msg = enqueue_sms(db, tenant=tenant, to_mobile=st.parent_mobile, kind="FEE_REMINDER",
                               dedupe_key=f"fee-link-send:{inst.id}:{key}", installment_id=inst.id,
-                              **fees.link_sms_text_params(inst, url))
+                              body=fees.fee_request_text(inst, url))
             queued = msg is not None
         audit(db, tenant_id=tenant.id, actor_type="ADMIN", actor_id=admin.admin_id,
               action="FEE_LINK_SENT" if body.channel == "SMS" else "FEE_LINK_SHARED", source="students",

@@ -35,7 +35,7 @@ def test_scenario_a_normal_payment(env):
     v = r.json()
     assert v["display_status"] == "PAYMENT_REPORTED"
     assert v["awaiting_verification"] and not v["can_pay"] and v["upi"] is None
-    assert "Please do not make another payment" in v["message"]
+    assert "Please don't pay again" in v["message"]
     assert v["declaration"]["upi_app"] == "GPAY"
     assert v["fee"]["outstanding_paise"] == 250000  # not marked paid
     assert v["receipts"] == []  # no receipt yet
@@ -62,7 +62,8 @@ def test_scenario_a_normal_payment(env):
     st = env.status()
     assert all(r["status"] == "CANCELLED" and r["sync_status"] == "PENDING_SYNC" for r in st["reminders"])
     verified_sms = _sms("PAYMENT_VERIFIED")
-    assert len(verified_sms) == 1 and "Rs. 2,500" in verified_sms[0].body and "/receipt/" in verified_sms[0].body
+    assert len(verified_sms) == 1 and "Rs.2,500" in verified_sms[0].body and "/r/" in verified_sms[0].body
+    assert "is confirmed. Thank you!" in verified_sms[0].body
 
     # Receipt page renders
     rr = env.c.get(v["receipts"][0]["url"].replace("http://localhost:8000", ""))
@@ -171,7 +172,7 @@ def test_scenario_e_partial_payment(env):
     db = SessionLocal()
     bodies = [r.body for r in db.query(ReminderSchedule).filter_by(installment_id=env.inst(), status="SCHEDULED")]
     db.close()
-    assert all("Rs. 1,500" in b for b in bodies)
+    assert all("Rs.1,500" in b for b in bodies)
 
     # Admin must acknowledge when verified amount differs from declared
     env.declare(action="PAID")

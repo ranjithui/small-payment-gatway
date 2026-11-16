@@ -37,8 +37,9 @@ PARENT_ACTIONS = {
 
 PARENT_MESSAGES = {
     "REPORTED": (
-        "Your payment declaration has been submitted successfully. The tuition centre will verify the bank "
-        "transaction and update your payment status. Please do not make another payment while it is being checked."
+        "Thank you! Your payment has been reported. {centre} will check their bank account and confirm within "
+        "{hours} hours. You'll receive an SMS with your receipt once it's confirmed. Please don't pay again in "
+        "the meantime."
     ),
     "PROCESSING": (
         "Thanks for letting us know. Bank transfers can take a little time. Please do not repeat the payment "
@@ -197,7 +198,7 @@ def public_view(db: Session, link: PaymentLink) -> Dict[str, Any]:
     if disp.value in PARENT_MESSAGES:
         message = PARENT_MESSAGES[disp.value]
     elif awaiting_verification:
-        message = PARENT_MESSAGES["REPORTED"]
+        message = PARENT_MESSAGES["REPORTED"].format(centre=tenant.name, hours=tenant.verification_grace_hours)
     elif disp == "PAYMENT_PROCESSING":
         message = PARENT_MESSAGES["PROCESSING"]
     elif disp == "PARTIALLY_PAID":
@@ -275,6 +276,7 @@ def submit_parent_action(
     note: Optional[str],
     idempotency_key: str,
     parent_identifier: Optional[str] = None,
+    upi_reference: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Apply a parent action. Must be called inside run_idempotent (does not commit)."""
     now = utcnow()
@@ -355,6 +357,8 @@ def submit_parent_action(
 
     if approximate_payment_time:
         decl.approximate_payment_time = approximate_payment_time[:50]
+    if upi_reference:
+        decl.parent_upi_reference = upi_reference[:64]
     if note:
         decl.clarification_note = _append_note(decl.clarification_note, now, note)
 
@@ -387,6 +391,7 @@ def submit_parent_action(
                 installment_id=inst.id,
                 declaration_id=decl.id,
                 student_name=inst.student.name,
+                amount=format_rupees(amount),
             )
 
     audit(
@@ -485,4 +490,4 @@ def submit_parent_clarification(
 
 
 def payment_link_url(token: str) -> str:
-    return f"{settings.public_base_url}/pay/{token}"
+    return f"{settings.public_base_url}/p/{token}"

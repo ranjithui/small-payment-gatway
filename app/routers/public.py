@@ -60,6 +60,7 @@ def create_payment_declaration(
             approximate_payment_time=body.approximate_payment_time,
             note=body.note,
             idempotency_key=key,
+            upi_reference=body.upi_reference,
         )
         return (200 if view.get("duplicate") else 201), view
 

@@ -13,7 +13,7 @@ from app.security import new_secret_token, sha256_hex
 def create_payment_link(
     db: Session, installment: Installment, valid_days: int = 30, expires_at: Optional[datetime] = None
 ) -> Tuple[PaymentLink, str]:
-    token = new_secret_token(24)
+    token = new_secret_token(12)  # 16 characters, 96 random bits: short enough for an SMS
     link = PaymentLink(
         tenant_id=installment.tenant_id,
         installment_id=installment.id,
@@ -26,4 +26,4 @@ def create_payment_link(
 
 
 def link_url(token: str) -> str:
-    return f"{settings.public_base_url}/pay/{token}"
+    return f"{settings.public_base_url}/p/{token}"

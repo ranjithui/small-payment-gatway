@@ -171,7 +171,7 @@ def test_auto_send_setting_sends_link_and_schedules_reminders(env):
     fee_id = st["fees"][0]["id"]
     db = SessionLocal()
     msg = db.query(SmsOutbox).filter_by(installment_id=fee_id).one()
-    assert msg.to_mobile == "+919811122233" and "/pay/" in msg.body and "Rs. 1,500" in msg.body
+    assert msg.to_mobile == "+919811122233" and "/p/" in msg.body and "Rs.1,500" in msg.body
     assert db.query(ReminderSchedule).filter_by(installment_id=fee_id).count() == 3
     db.close()
 

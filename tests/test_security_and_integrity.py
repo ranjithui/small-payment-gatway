@@ -102,7 +102,7 @@ def test_request_clarification_and_parent_reply(env):
     assert v["declaration"]["clarification_request"].startswith("Which UPI app")
     assert v["installment_status"] == "UNPAID"
     sms = SessionLocal().query(SmsOutbox).filter_by(kind="CLARIFICATION_REQUESTED").one()
-    assert "/pay/" in sms.body
+    assert "/p/" in sms.body
 
     ref = v["declaration"]["reference"]
     r = env.c.post(

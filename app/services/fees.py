@@ -13,7 +13,7 @@ from app.models import Device, Installment, Student, Tenant
 from app.services.links import create_payment_link, link_url
 from app.services.references import ensure_reference
 from app.services.reminders import schedule_initial_reminders
-from app.services.sms import enqueue_sms, format_rupees
+from app.services.sms import enqueue_sms, fee_request_text, format_rupees
 from app.services.subscription import WRITABLE, effective_status
 
 log = logging.getLogger("feeflow.fees")
@@ -70,7 +70,7 @@ def create_fee(
         schedule_initial_reminders(db, inst, tenant, start=max(first, utcnow() + timedelta(hours=1)))
     if send_link_sms:
         enqueue_sms(db, tenant=tenant, to_mobile=student.parent_mobile, kind="FEE_REMINDER",
-                    dedupe_key=f"fee-link:{inst.id}", installment_id=inst.id, **link_sms_text_params(inst, url))
+                    dedupe_key=f"fee-link:{inst.id}", installment_id=inst.id, body=fee_request_text(inst, url))
     audit(db, tenant_id=tenant.id, actor_type="ADMIN" if actor_id else "SYSTEM", actor_id=actor_id,
           action="INSTALLMENT_CREATED", source="monthly_plan" if kind == "MONTHLY" else "admin",
           installment_id=inst.id,
@@ -152,6 +152,5 @@ def prepare_fee_link(db: Session, tenant: Tenant, student: Student, actor_id: st
 
 
 def share_message(inst: Installment, url: str, centre_name: str) -> str:
-    p = link_sms_text_params(inst, url)
-    return (f"Dear Parent, fee of Rs. {p['amount']} for {p['student_name']} ({p['description']}) is due on "
-            f"{p['due_date']}. Pay here: {url} - {centre_name}")
+    """WhatsApp / share text: same as the SMS."""
+    return fee_request_text(inst, url)

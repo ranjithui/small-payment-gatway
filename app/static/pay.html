@@ -47,8 +47,10 @@
 
   <!-- Did you pay? (shown when the parent comes back from their UPI app) -->
   <section class="card hidden ask-card" id="askSection">
-    <h2 style="margin-top:0">Did you pay <span id="askAmt"></span>?</h2>
-    <button class="btn ok big-btn" id="paidBtn">Yes, I have paid</button>
+    <h2 style="margin-top:0" id="askTitle">Did you pay?</h2>
+    <label for="optUtr" class="small" style="margin-top:0">UPI transaction ID <span class="muted">(optional - helps us confirm faster)</span></label>
+    <input id="optUtr" maxlength="64" autocomplete="off" placeholder="e.g. last 4 digits: 4321">
+    <button class="btn ok big-btn" id="paidBtn" style="margin-top:12px">Yes, I have paid</button>
     <p class="muted small" style="text-align:center;margin:6px 0 0">The tuition centre will check its bank account and confirm.</p>
     <details id="problemBox" style="margin-top:10px">
       <summary>I had a problem</summary>
@@ -76,7 +78,7 @@
 
   <!-- Pay -->
   <section class="card hidden" id="paySection">
-    <h2 class="pay-title">Pay <span id="payAmt"></span></h2>
+    <h2 class="pay-title"><span id="payLead"></span>Pay <span id="payAmt"></span></h2>
     <p class="muted small" style="margin:0 0 14px">to <b id="payPayee"></b></p>
 
     <p class="banner info hidden" id="desktopNote">You're on a computer. Scan this QR with any UPI app on your phone,
@@ -141,14 +143,14 @@
 
   <!-- Awaiting verification -->
   <section class="card hidden" id="waitSection">
-    <div class="banner ok">Payment confirmation received</div>
+    <div class="banner ok"><b>Thank you! Your payment has been reported.</b></div>
+    <p id="waitMsg" style="margin:10px 0 0"></p>
     <dl class="kv" style="margin-top:12px">
       <dt>Status</dt><dd>Waiting for tuition centre verification</dd>
       <dt>Submitted</dt><dd id="declaredAt"></dd>
       <dt>Amount</dt><dd id="declaredAmt"></dd>
       <dt>Reference</dt><dd id="declRef"></dd>
     </dl>
-    <p class="banner warn" style="margin-top:12px">Please do not pay again while this confirmation is being checked.</p>
     <div id="clarifyBox" class="hidden panel">
       <h3 style="margin-top:0">The tuition centre asked:</h3>
       <p id="clarifyQ"></p>

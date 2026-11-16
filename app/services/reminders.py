@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from app.audit import audit, notify_admin
 from app.db import utcnow
 from app.models import Installment, PaymentDeclaration, ReminderSchedule, Tenant
-from app.services.sms import TEMPLATES, format_rupees
+from app.services.sms import fee_request_text, format_rupees
 from app.states import DeclarationStatus as D
 
 
@@ -28,14 +28,7 @@ def _render(db: Session, inst: Installment, amount_paise: int) -> str:
     from app.services.links import create_payment_link, link_url
 
     link, token = create_payment_link(db, inst, valid_days=45)
-    return TEMPLATES["FEE_REMINDER"].format(
-        amount=format_rupees(amount_paise),
-        student_name=inst.student.name,
-        description=inst.description,
-        due_date=inst.due_date.strftime("%d %b %Y"),
-        payment_link=link_url(token),
-        centre_name=inst.tenant.name,
-    )
+    return fee_request_text(inst, link_url(token))
 
 
 def active_reminders(db: Session, installment_id: str) -> List[ReminderSchedule]:
