@@ -68,6 +68,8 @@ pre.notes { white-space: pre-wrap; background: #f9fafb; padding: 8px; border-rad
 .steps li + li { margin-top: 4px; }
 #payWays > * + * { margin-top: 12px; }
 #qrDetails summary { margin: 0; }
+.btn.secondary.active-choice { background: var(--brand); color: #fff; }
+#qrBlock, #manualBlock { margin-top: 12px; }
 
 /* read-only workspace (trial ended) */
 .readonly .needs-write { opacity: .45; pointer-events: none; }

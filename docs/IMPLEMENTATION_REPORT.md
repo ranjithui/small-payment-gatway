@@ -205,3 +205,22 @@ even for Rs. 1. No money is debited.
   one-tap app buttons last. For merchant IDs, the one-tap buttons come first.
 * **Tests:** backend 185 on SQLite and 187 on PostgreSQL. The browser check covered both page orders,
   Copy, the QR download and the Settings switch.
+
+
+## UPI Intent + Dynamic QR + Manual payment (v2.4)
+
+Built per the "UPI Intent + Dynamic QR Payment System" spec, extending the existing modules without
+rewriting them. No payment gateway was added, and manual bank verification is still the only way a fee
+becomes PAID.
+
+| Phase | Result |
+|---|---|
+| 2 – UPI link + validation | New `installments.payment_reference` (e.g. `ST-0001-2026-11`, `-2`/`-3` on clashes, unique per centre) used as `tn`. Every link is checked before display (`validate_upi_uri`: scheme, payee UPI ID and name, INR, server amount, reference). An invalid centre UPI ID shows a "contact the centre" message instead of a broken link. Files: `app/services/references.py`, `app/services/upi.py`, `app/services/declarations.py`. |
+| 3 – Dynamic QR | The same validated link is encoded with segno, generated on our server. `qr.png?size=large` gives a ~1,000 px image, and the download filename is the payment reference. File: `app/routers/public.py`. |
+| 4 – Payment page | Primary **Pay using UPI** (generic `upi://pay`, so Android offers every installed UPI app; no app is forced). Secondary **Show QR Code** and **Pay Manually**. Desktop browsers get the QR first. If no app opens within about 2.5 s, the page shows "No compatible UPI application was detected...", tries only once, and opens the QR. On return: "Please complete the payment in your UPI application and return here." Manual panel: centre, payee, UPI ID, amount, reference, student and fee month, with Copy UPI ID / amount / reference / payment details and 6 steps. Files: `app/static/pay.html`, `app/static/js/pay.js`, `app/static/css/app.css`. |
+| 5 – Declaration | The existing workflow is kept, with the message updated to the spec text. Duplicate taps return the same declaration, and an already-PAID fee shows its receipt. |
+| 6 – Admin | The payment reference shows in the queue and detail. **Add internal remark** (appended with time and admin name, audited, never shown to parents): `POST /api/v1/payment-verification/{id}/remarks`. Confirm and reject are unchanged. Files: `app/services/verification.py`, `app/routers/admin.py`, `app/static/js/admin.js`. |
+| 7 – Diagnostics, security, migration | New `payment_attempts` table and `POST /api/v1/pay/{token}/attempts` (link token, rate-limited, capped at 300 per fee). It stores method, event, device category (never the user-agent), whether the parent later declared payment, and a short validated detail; PIN/OTP-like text is rejected. Admins see it per declaration and in the "Payment attempts" report. PostgreSQL upgrade adds the column, the unique index and the table, and fills in references for existing fees. |
+| 8 – Tests | Backend: 198 on SQLite, 200 on PostgreSQL, plus the upgrade of a previous-version database. Browser: desktop mode (QR first), emulated Android (Pay using UPI → no app → fallback, a double tap logged once), manual copy, declaration, admin reference, attempts and remarks. |
+
+**Still to test on real phones** with ₹1 payments and the centre's permission: Android Chrome with Google Pay, PhonePe and Paytm installed; Android with no UPI app; iPhone Safari; and QR scanning from another phone and from the gallery. Personal UPI IDs may still be refused by some apps. That is bank/app policy, and the page never claims otherwise.

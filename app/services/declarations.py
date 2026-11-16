@@ -1,4 +1,5 @@
 """Parent-side payment declaration workflow ("I have paid", processing, failed)."""
+import logging
 from datetime import datetime
 from typing import Any, Dict, Optional
 
@@ -8,12 +9,13 @@ from sqlalchemy.orm import Session
 from app.audit import audit, notify_admin
 from app.config import settings
 from app.db import utcnow
-from app.models import Installment, PaymentDeclaration, PaymentLink, Receipt, Tenant
+from app.models import Installment, PaymentAttempt, PaymentDeclaration, PaymentLink, Receipt, Tenant
 from app.security import new_secret_token
 from app.services import reminders
 from app.services.receipts import receipt_url
 from app.services.sms import enqueue_sms, format_rupees
-from app.services.upi import DEFAULT_MERCHANT_CODE, UPI_APPS, amount_str, build_uris
+from app.services.references import ensure_reference
+from app.services.upi import DEFAULT_MERCHANT_CODE, UPI_APPS, amount_str, build_uris, validate_upi_uri
 from app.states import (
     ACTIVE_STATUS_VALUES,
     DeclarationStatus as D,
@@ -24,6 +26,8 @@ from app.states import (
     display_status,
 )
 
+log = logging.getLogger("feeflow.payments")
+
 PARENT_ACTIONS = {
     "INITIATED": D.PAYMENT_INITIATED,
     "PROCESSING": D.PAYMENT_PROCESSING,
@@ -33,9 +37,8 @@ PARENT_ACTIONS = {
 
 PARENT_MESSAGES = {
     "REPORTED": (
-        "Thank you! Your payment confirmation has been submitted. The tuition centre is checking the "
-        "transaction. You will receive confirmation once the payment has been verified. Please do not make "
-        "another payment while this confirmation is being checked."
+        "Thank you! Your payment declaration has been submitted. The tuition centre will verify your payment "
+        "and update your fee status. Please do not make another payment while it is being checked."
     ),
     "PROCESSING": (
         "Thanks for letting us know. Bank transfers can take a little time. Please do not repeat the payment "
@@ -43,8 +46,8 @@ PARENT_MESSAGES = {
         "money has been debited."
     ),
     "FAILED": (
-        "No problem. If money was NOT debited from your account, you can try the payment again. If money was "
-        "debited, please wait for your bank to update and contact the tuition centre."
+        "Your payment could not be completed. Please try again or use another payment method. If money was "
+        "debited from your account, please wait for your bank to update and contact the tuition centre."
     ),
     "VERIFIED": "Payment successfully verified!",
     "REJECTED": (
@@ -154,17 +157,29 @@ def public_view(db: Session, link: PaymentLink) -> Dict[str, Any]:
             in (D.PAYMENT_REPORTED.value, D.PENDING_VERIFICATION.value),
         }
 
-    note = f"{student.student_code} {inst.billing_month} fee"
+    reference = ensure_reference(db, inst)  # also the UPI transaction note (tn)
+    note = reference
     upi = None
+    upi_error = None
     mc = (tenant.merchant_code or DEFAULT_MERCHANT_CODE) if tenant.upi_is_merchant else None
     txn_ref = "FF" + inst.id.replace("-", "")[:24].upper()  # stable per fee, alphanumeric, <= 35 chars
     if can_pay:
+        uris = build_uris(tenant.upi_vpa, tenant.upi_payee_name, inst.outstanding_paise, note, mc, txn_ref)
+        problems = validate_upi_uri(uris["OTHER_UPI"], vpa=tenant.upi_vpa, payee_name=tenant.upi_payee_name,
+                                    amount_paise=inst.outstanding_paise, reference=reference)
+        if problems:
+            # Never show a broken or wrong payment link/QR: the centre must fix its UPI settings.
+            log.error("Invalid UPI payment details for tenant %s: %s", tenant.id, problems)
+            upi_error = ("This tuition centre's UPI payment details are not set up correctly. "
+                         "Please contact the tuition centre.")
+    if can_pay and upi_error is None:
         upi = {
             "payee_vpa": tenant.upi_vpa,
             "payee_name": tenant.upi_payee_name,
             "amount_paise": inst.outstanding_paise,
             "note": note,
-            "uris": build_uris(tenant.upi_vpa, tenant.upi_payee_name, inst.outstanding_paise, note, mc, txn_ref),
+            "uris": uris,
+            "reference": reference,
             "uris_any_amount": build_uris(tenant.upi_vpa, tenant.upi_payee_name, None, note, mc, txn_ref),
             # Pay-by-UPI-ID fallback (works even when an app blocks pre-filled links to personal UPI IDs)
             "is_merchant": bool(tenant.upi_is_merchant),
@@ -193,6 +208,7 @@ def public_view(db: Session, link: PaymentLink) -> Dict[str, Any]:
             "contact_email": tenant.contact_email,
         },
         "student": {"name": student.name, "student_id": student.student_code},
+        "payment_reference": reference,
         "fee": {
             "description": inst.description,
             "billing_month": inst.billing_month,
@@ -208,6 +224,7 @@ def public_view(db: Session, link: PaymentLink) -> Dict[str, Any]:
         "can_pay": can_pay,
         "awaiting_verification": awaiting_verification,
         "upi": upi,
+        "upi_error": upi_error,
         "declaration": decl_out,
         "receipts": [
             {
@@ -326,6 +343,10 @@ def submit_parent_action(
         decl.clarification_note = _append_note(decl.clarification_note, now, note)
 
     if target == D.PAYMENT_REPORTED:
+        # Diagnostics: link earlier initiation attempts to the declaration.
+        db.query(PaymentAttempt).filter(PaymentAttempt.installment_id == inst.id,
+                                        PaymentAttempt.declared.is_(False)).update(
+            {PaymentAttempt.declared: True}, synchronize_session=False)
         decl.declared_at = now
         decl.grace_expires_at = reminders.pause_for_verification(db, inst, tenant, now)
         notify_admin(

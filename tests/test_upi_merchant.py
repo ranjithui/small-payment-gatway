@@ -15,7 +15,8 @@ def test_personal_upi_link_has_no_merchant_params(env):
     p = _params(u["uris"]["OTHER_UPI"])
     assert p["pa"] == "brightminds@okaxis" and p["am"] == "2500.00" and p["cu"] == "INR"
     assert "mc" not in p and "tr" not in p
-    assert u["note"] == "BM-1001 " + v["fee"]["billing_month"] + " fee"
+    assert u["note"] == u["reference"] == v["payment_reference"] == "BM-1001-" + v["fee"]["billing_month"]
+    assert p["tn"] == u["reference"]
 
 
 def test_merchant_upi_adds_mc_and_stable_tr(env):

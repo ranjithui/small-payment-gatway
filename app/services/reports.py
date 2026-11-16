@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, List
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.models import Installment, PaymentAdjustment, PaymentDeclaration, Student, VerifiedPayment
+from app.models import Installment, PaymentAdjustment, PaymentAttempt, PaymentDeclaration, Student, VerifiedPayment
 from app.services.declarations import _iso
 from app.states import REVIEWABLE_STATUSES
 
@@ -149,6 +149,31 @@ def outstanding_report(db, tenant_id):
     return [_inst_row(i) for i in insts]
 
 
+def attempts_report(db, tenant_id):
+    """Payment initiation diagnostics (latest 500)."""
+    rows = (
+        db.query(PaymentAttempt, Installment)
+        .join(Installment, Installment.id == PaymentAttempt.installment_id)
+        .filter(PaymentAttempt.tenant_id == tenant_id)
+        .order_by(PaymentAttempt.created_at.desc())
+        .limit(500)
+        .all()
+    )
+    return [
+        {
+            "attempted_at": _iso(a.created_at),
+            "payment_reference": a.payment_reference,
+            "student_name": i.student.name,
+            "method": a.method,
+            "event": a.event,
+            "device": a.device,
+            "declared": "yes" if a.declared else "no",
+            "detail": a.error_detail,
+        }
+        for a, i in rows
+    ]
+
+
 REPORTS: Dict[str, Callable[[Session, str], List[Dict[str, Any]]]] = {
     "payment-declarations": declarations_report,
     "pending-verification": pending_report,
@@ -158,4 +183,5 @@ REPORTS: Dict[str, Callable[[Session, str], List[Dict[str, Any]]]] = {
     "duplicate-payments": duplicate_report,
     "excess-payments": excess_report,
     "outstanding-fees": outstanding_report,
+    "payment-attempts": attempts_report,
 }

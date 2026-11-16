@@ -16,6 +16,7 @@ from app.db import SessionLocal, create_all, get_engine, init_engine
 from app.routers import admin, devices, pages, platform, public, students, workspace
 from app.routers.pages import STATIC
 from app.services.fees import generate_monthly_fees
+from app.services.references import backfill_references
 from app.services.reminders import process_grace_expiry
 from app.states import InvalidTransition
 
@@ -41,6 +42,11 @@ def create_app(database_url: Optional[str] = None, run_jobs: Optional[bool] = No
         settings.validate()
     init_engine(database_url or settings.database_url)
     create_all()
+    _db = SessionLocal()
+    try:
+        backfill_references(_db)  # existing fees get a payment reference (idempotent)
+    finally:
+        _db.close()
     if database_url is None:
         db = SessionLocal()
         try:

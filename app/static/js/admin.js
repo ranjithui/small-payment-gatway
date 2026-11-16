@@ -270,7 +270,7 @@
     $("queue").innerHTML = items.length ? items.map((d) => `
       <div class="qitem ${d.id === selected ? "sel" : ""}" data-id="${esc(d.id)}">
         <div class="row"><b>${esc(d.student_name)}</b>${pill(d.verification_status)}</div>
-        <div class="row small muted"><span>${esc(d.student_id)} · ${esc(d.installment.description)} ${esc(d.installment.billing_month)}</span></div>
+        <div class="row small muted"><span>${esc(d.student_id)} · ${esc(d.installment.description)} ${esc(d.installment.billing_month)}</span><span>${esc(d.payment_reference || "")}</span></div>
         <div class="row"><span>Declared <b>${rupees(d.declared_amount_paise)}</b>${d.payment_type === "PARTIAL" ? " (partial)" : ""}</span><span class="small muted">${t(d.declared_at || d.created_at)}</span></div>
         ${d.verification_overdue ? '<div class="small" style="color:var(--bad)">Past grace period</div>' : ""}
         ${d.clarification_request ? '<div class="small muted">Clarification requested</div>' : ""}
@@ -297,7 +297,8 @@
         <dt>Parent's UPI ref (optional)</dt><dd>${esc(d.parent_upi_reference || "-")}</dd>
         <dt>Total fee / paid</dt><dd>${rupees(i.total_paise)} / ${rupees(i.paid_paise)}</dd>
         <dt>Outstanding</dt><dd>${rupees(d.outstanding_paise)}</dd>
-        <dt>Reference</dt><dd>${esc(d.reference)}</dd>
+        <dt>Payment reference</dt><dd><b>${esc(d.payment_reference || "-")}</b> <span class="small muted">(UPI note - match it in your bank statement)</span></dd>
+        <dt>Declaration ID</dt><dd>${esc(d.reference)}</dd>
       </dl>
       ${d.parent_notes ? `<h3>Parent notes</h3><pre class="notes">${esc(d.parent_notes)}</pre>` : ""}
       ${d.clarification_request ? `<p class="banner warn" style="margin-top:10px">Waiting for parent: ${esc(d.clarification_request)}</p>` : ""}
@@ -309,6 +310,17 @@
         ${d.verified_payments.map((p) => `<tr><td>This installment${p.bank_reference ? " · " + esc(p.bank_reference) : ""}</td><td>${rupees(p.amount_paise)}</td><td>${t(p.verified_at)}</td></tr>`).join("")}
         ${d.student_payment_history.map((p) => `<tr><td>${esc(p.installment)} ${esc(p.billing_month)}</td><td>${rupees(p.amount_paise)}</td><td>${t(p.verified_at)}</td></tr>`).join("")}</table>` : '<p class="muted small">No verified payments yet.</p>'}
       ${d.previous_declarations.length ? `<p class="small muted">Earlier confirmations: ${d.previous_declarations.map((p) => `${esc(p.status)} ${rupees(p.declared_amount_paise)}`).join(", ")}</p>` : ""}
+      <h3>How the parent tried to pay</h3>
+      ${d.payment_attempts && d.payment_attempts.length ? `<table><tr><th>When</th><th>Method</th><th>Event</th><th>Device</th><th>Detail</th></tr>
+        ${d.payment_attempts.map((a) => `<tr><td>${t(a.at)}</td><td>${esc(a.method.replace("_", " "))}</td><td>${esc(a.event.replace("_", " "))}</td><td>${esc(a.device)}</td><td class="small muted">${esc(a.detail || "")}</td></tr>`).join("")}</table>
+        <p class="small muted">Diagnostics only - not proof of payment. Always check your bank account.</p>` : '<p class="muted small">No payment attempts recorded.</p>'}
+      <h3>Internal remarks</h3>
+      ${d.admin_note ? `<pre class="notes">${esc(d.admin_note)}</pre>` : '<p class="muted small">No remarks yet. Remarks are never shown to parents.</p>'}
+      <form id="remarkForm" class="actions" style="margin-top:6px">
+        <input id="remarkText" maxlength="1000" placeholder="Add an internal remark" style="flex:1" required minlength="2">
+        <button class="btn secondary sm">Add remark</button>
+      </form>
+      <p class="err" id="remarkErr"></p>
 
       <div class="actions" style="margin-top:14px">
         <button class="btn ok sm" id="actConfirm">Confirm payment received</button>
@@ -319,6 +331,12 @@
     $("actConfirm").onclick = () => confirmForm(d);
     $("actReject").onclick = () => rejectForm(d);
     $("actClarify").onclick = () => clarifyForm(d);
+    const remarkKey = newKey();
+    $("remarkForm").onsubmit = async (e) => {
+      e.preventDefault(); $("remarkErr").textContent = "";
+      try { await api("POST", `/api/v1/payment-verification/${encodeURIComponent(d.id)}/remarks`, { remark: $("remarkText").value.trim() }, remarkKey); openDecl(d.id); }
+      catch (err) { $("remarkErr").textContent = err.message; }
+    };
     $("detail").querySelectorAll("[data-match]").forEach((b) => b.addEventListener("click", () => confirmForm(d, JSON.parse(b.dataset.match))));
   }
 

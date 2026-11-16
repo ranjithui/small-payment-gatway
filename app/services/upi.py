@@ -1,6 +1,7 @@
 """UPI Intent URI construction (NPCI deep-link format)."""
-from typing import Dict, Optional
-from urllib.parse import quote
+import re
+from typing import Dict, List, Optional
+from urllib.parse import parse_qs, quote, urlparse
 
 UPI_APPS = ("GPAY", "PHONEPE", "PAYTM", "OTHER_UPI", "QR")
 
@@ -36,6 +37,33 @@ def build_query(vpa: str, payee_name: str, amount_paise: Optional[int], note: st
         parts.append(("am", amount_str(amount_paise)))
     parts += [("cu", "INR"), ("tn", note[:50])]
     return "&".join(f"{k}={quote(v, safe='@.-_')}" for k, v in parts)
+
+
+VPA_RE = re.compile(r"^[A-Za-z0-9.\-_]{2,256}@[A-Za-z][A-Za-z0-9]{1,63}$")
+
+
+def validate_upi_uri(uri: str, *, vpa: str, payee_name: str, amount_paise: Optional[int], reference: str) -> List[str]:
+    """Check a generated UPI link carries exactly the server-side payment details. Returns problems."""
+    problems: List[str] = []
+    parsed = urlparse(uri)
+    if parsed.scheme != "upi" or parsed.netloc != "pay":
+        problems.append("not a upi://pay link")
+    q = {k: v[0] for k, v in parse_qs(parsed.query, keep_blank_values=True).items()}
+    if not VPA_RE.match(q.get("pa", "")):
+        problems.append("invalid payee UPI ID")
+    if q.get("pa") != vpa:
+        problems.append("payee UPI ID does not match the centre's settings")
+    if not q.get("pn") or q.get("pn") != payee_name:
+        problems.append("payee name missing or different")
+    if q.get("cu") != "INR":
+        problems.append("currency must be INR")
+    if amount_paise is not None and q.get("am") != amount_str(amount_paise):
+        problems.append("amount does not match the fee")
+    if amount_paise is None and "am" in q:
+        problems.append("open-amount link must not carry an amount")
+    if q.get("tn") != reference[:50]:
+        problems.append("payment reference missing or different")
+    return problems
 
 
 def build_uris(vpa: str, payee_name: str, amount_paise: Optional[int], note: str,

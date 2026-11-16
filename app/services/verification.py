@@ -9,6 +9,7 @@ from app.audit import audit, notify_admin
 from app.db import to_naive_utc, utcnow
 from app.models import (
     BankTransaction,
+    PaymentAttempt,
     Installment,
     PaymentAdjustment,
     PaymentDeclaration,
@@ -22,6 +23,7 @@ from app.security import AdminContext
 from app.services import reminders
 from app.services.declarations import _iso, active_declaration
 from app.services.links import create_payment_link, link_url
+from app.services.references import ensure_reference
 from app.services.receipts import issue_receipt, receipt_url
 from app.services.sms import enqueue_sms, format_rupees
 from app.states import (
@@ -78,6 +80,7 @@ def serialize_declaration(db: Session, decl: PaymentDeclaration, detail: bool = 
             "excess_paise": inst.excess_paise,
             "status": inst.status,
         },
+        "payment_reference": ensure_reference(db, inst),
         "expected_amount_paise": inst.outstanding_paise,
         "declared_amount_paise": decl.declared_amount_paise,
         "payment_type": decl.payment_type,
@@ -119,6 +122,8 @@ def serialize_declaration(db: Session, decl: PaymentDeclaration, detail: bool = 
             .all()
         )
         rems = db.query(ReminderSchedule).filter(ReminderSchedule.installment_id == inst.id).all()
+        attempts = (db.query(PaymentAttempt).filter(PaymentAttempt.installment_id == inst.id)
+                    .order_by(PaymentAttempt.created_at.desc()).limit(50).all())
         from app.services.reconciliation import suggest_matches
 
         out.update(
@@ -153,6 +158,11 @@ def serialize_declaration(db: Session, decl: PaymentDeclaration, detail: bool = 
                     for r in rems
                 ],
                 "suggested_bank_matches": suggest_matches(db, decl),
+                "payment_attempts": [
+                    {"method": a.method, "event": a.event, "device": a.device, "declared": a.declared,
+                     "detail": a.error_detail, "at": _iso(a.created_at)}
+                    for a in attempts
+                ],
             }
         )
     return out
@@ -681,3 +691,17 @@ def installment_payment_status(db: Session, admin: AdminContext, installment_id:
         ],
         "pending_sms": pending_sms,
     }
+
+
+def add_remark(db: Session, admin: AdminContext, declaration_id: str, remark: str) -> Dict[str, Any]:
+    """Internal note on a declaration (never shown to parents). Appended, never overwritten; audited."""
+    decl = get_declaration(db, admin, declaration_id, lock=True)
+    now = utcnow()
+    line = f"[{now.strftime('%Y-%m-%d %H:%M')} UTC, {admin.name}] {remark.strip()}"
+    decl.admin_note = f"{decl.admin_note}\n{line}" if decl.admin_note else line
+    decl.updated_at = now
+    audit(db, tenant_id=admin.tenant_id, actor_type="ADMIN", actor_id=admin.admin_id, action="ADMIN_REMARK_ADDED",
+          source="admin_dashboard", declaration_id=decl.id, installment_id=decl.installment_id,
+          previous_status=decl.declaration_status, new_status=decl.declaration_status, reason=remark.strip())
+    db.flush()
+    return serialize_declaration(db, decl)

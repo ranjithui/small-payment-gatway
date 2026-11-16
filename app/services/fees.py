@@ -11,6 +11,7 @@ from app.audit import audit
 from app.db import utcnow
 from app.models import Device, Installment, Student, Tenant
 from app.services.links import create_payment_link, link_url
+from app.services.references import ensure_reference
 from app.services.reminders import schedule_initial_reminders
 from app.services.sms import enqueue_sms, format_rupees
 from app.services.subscription import WRITABLE, effective_status
@@ -60,6 +61,7 @@ def create_fee(
                        status="UNPAID", kind=kind)
     db.add(inst)
     db.flush()
+    ensure_reference(db, inst)
     _, token = create_payment_link(db, inst, valid_days=link_valid_days)
     url = link_url(token)
     if schedule_reminders:

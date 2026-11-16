@@ -68,6 +68,9 @@ Per-centre settings are on `tenants`: `verification_grace_hours` (default 24),
 | `GET /api/v1/payment-declarations/public/{secure_token}` | parent (link token) | Fee + current status (survives refresh) |
 | `POST /api/v1/payment-declarations` | parent (link token) | `action`: `INITIATED` / `PROCESSING` / `PAID` / `FAILED`; optional partial amount, app, time, note |
 | `POST /api/v1/payment-declarations/{reference}/clarification` | parent (link token) | Add information when asked |
+| `GET /api/v1/pay/{token}/qr.png?size=standard\|large&download=1` | parent (link token) | Dynamic UPI QR (same validated link as the button) |
+| `POST /api/v1/pay/{token}/attempts` | parent (link token, rate-limited) | Payment-initiation diagnostics (UPI_INTENT / QR / MANUAL) |
+| `POST /api/v1/payment-verification/{id}/remarks` | admin | Internal remark on a declaration |
 | `POST /api/v1/auth/signup` | anyone (rate-limited) | New centre owner account |
 | `GET/POST/PATCH /api/v1/workspace` | admin | Create (30-day trial starts) / view / edit centre + UPI ID |
 | `GET/POST /api/v1/students`, `GET/PATCH /api/v1/students/{id}` | admin | Student profiles + monthly fee plan |

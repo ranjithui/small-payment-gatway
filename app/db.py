@@ -81,6 +81,9 @@ UPGRADES = [
     # v2.3: business (merchant) UPI IDs.
     "ALTER TABLE tenants ADD COLUMN IF NOT EXISTS upi_is_merchant BOOLEAN NOT NULL DEFAULT FALSE",
     "ALTER TABLE tenants ADD COLUMN IF NOT EXISTS merchant_code VARCHAR(4)",
+    # v2.4: payment reference per fee (filled in for existing fees on start-up) + payment_attempts table.
+    "ALTER TABLE installments ADD COLUMN IF NOT EXISTS payment_reference VARCHAR(60)",
+    "CREATE UNIQUE INDEX IF NOT EXISTS uq_installment_payment_reference ON installments (tenant_id, payment_reference)",
 ]
 
 

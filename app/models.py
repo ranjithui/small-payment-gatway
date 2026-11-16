@@ -110,6 +110,8 @@ class Installment(Base):
         CheckConstraint("paid_paise >= 0", name="ck_installment_paid_nonneg"),
         CheckConstraint("excess_paise >= 0", name="ck_installment_excess_nonneg"),
         CheckConstraint("status IN ('UNPAID','PARTIALLY_PAID','PAID')", name="ck_installment_status"),
+        # Human payment reference (UPI note / bank statement matching), unique per centre.
+        UniqueConstraint("tenant_id", "payment_reference", name="uq_installment_payment_reference"),
         # One automatically generated monthly fee per student per month.
         Index("uq_monthly_fee_per_student_month", "student_id", "billing_month", unique=True,
               sqlite_where=text("kind = 'MONTHLY'"), postgresql_where=text("kind = 'MONTHLY'")),
@@ -121,6 +123,7 @@ class Installment(Base):
     description: Mapped[str] = mapped_column(String(200))
     billing_month: Mapped[str] = mapped_column(String(7))  # YYYY-MM
     kind: Mapped[str] = mapped_column(String(10), default="ONE_OFF")  # MONTHLY (auto) / ONE_OFF
+    payment_reference: Mapped[Optional[str]] = mapped_column(String(60))  # e.g. ST-0001-2026-11
     total_paise: Mapped[int] = mapped_column(Integer)
     paid_paise: Mapped[int] = mapped_column(Integer, default=0)  # verified, applied to this installment
     excess_paise: Mapped[int] = mapped_column(Integer, default=0)  # verified money above the total
@@ -384,3 +387,25 @@ class BankTransaction(Base):
     narration: Mapped[Optional[str]] = mapped_column(Text)
     imported_by: Mapped[Optional[str]] = mapped_column(String(36))
     imported_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class PaymentAttempt(Base):
+    """Diagnostics: how a parent tried to start a payment (never proof of payment).
+
+    No banking credentials, PINs, OTPs or full user-agent strings are stored.
+    """
+
+    __tablename__ = "payment_attempts"
+    __table_args__ = (Index("ix_payment_attempts_installment_time", "installment_id", "created_at"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), index=True)
+    installment_id: Mapped[str] = mapped_column(ForeignKey("installments.id"))
+    payment_link_id: Mapped[Optional[str]] = mapped_column(ForeignKey("payment_links.id"))
+    payment_reference: Mapped[Optional[str]] = mapped_column(String(60))
+    method: Mapped[str] = mapped_column(String(20))  # UPI_INTENT / QR / MANUAL
+    event: Mapped[str] = mapped_column(String(20))  # STARTED / APP_OPENED / RETURNED / NO_APP / FAILED / ...
+    device: Mapped[str] = mapped_column(String(10))  # ANDROID / IOS / DESKTOP / OTHER
+    declared: Mapped[bool] = mapped_column(Boolean, default=False)  # parent later tapped "I have paid"
+    error_detail: Mapped[Optional[str]] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)

@@ -11,6 +11,7 @@ from app.db import get_db, utcnow
 from app.models import AdminNotification, AdminUser, AuditLog, Installment, PaymentAdjustment, Student, Tenant
 from app.ratelimit import rate_limit
 from app.schemas import (
+    AdminRemark,
     InstallmentCreate,
     BankImport,
     ClarificationRequest,
@@ -108,6 +109,21 @@ def request_clarification(
     return _idempotent(
         db, admin, f"clarify:{declaration_id}", idempotency_key, body.model_dump(),
         lambda: (200, verification.request_clarification(db, admin, declaration_id, body.message)),
+    )
+
+
+@router.post("/payment-verification/{declaration_id}/remarks", dependencies=[admin_limit])
+def add_remark(
+    declaration_id: str,
+    body: AdminRemark,
+    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
+    admin: AdminContext = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Internal remark on a payment declaration (not visible to parents)."""
+    return _idempotent(
+        db, admin, f"remark:{declaration_id}", idempotency_key, body.model_dump(),
+        lambda: (200, verification.add_remark(db, admin, declaration_id, body.remark)),
     )
 
 

@@ -265,3 +265,16 @@ class WorkspaceUpdate(BaseModel):
         if v is not None and not re.match(UPI_VPA_PATTERN, v):
             raise ValueError("Enter a valid UPI ID, e.g. centrename@okaxis")
         return v
+
+
+class PaymentAttemptIn(BaseModel):
+    """Diagnostics from the parent payment page. Never contains banking credentials."""
+    method: Literal["UPI_INTENT", "QR", "MANUAL"]
+    event: Literal["STARTED", "APP_OPENED", "RETURNED", "NO_APP", "FAILED", "QR_SHOWN", "QR_DOWNLOADED", "COPIED"]
+    detail: Optional[str] = Field(None, max_length=200, pattern=r"^[A-Za-z0-9 _.,:()'/-]*$")
+
+    _check_detail = field_validator("detail")(_no_secrets)
+
+
+class AdminRemark(BaseModel):
+    remark: str = Field(min_length=2, max_length=1000)

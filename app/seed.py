@@ -107,6 +107,9 @@ def seed(db: Session) -> Dict[str, Any]:
     out["links"]["BM-1004-expired"] = expired
 
     db.commit()
+    from app.services.references import backfill_references
+
+    backfill_references(db)  # every fee gets its payment reference, as in production
     out["tenant_ids"] = {"t1": t1.id, "t2": t2.id}
     return out
 
