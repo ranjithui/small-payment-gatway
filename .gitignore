@@ -8,3 +8,7 @@ seed_output.txt
 *.jks
 keystore.properties
 rehearsal.log
+
+# Not part of FeeFlow
+ksbakers-react/
+node_modules/
