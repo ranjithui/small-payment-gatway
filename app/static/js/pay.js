@@ -93,6 +93,18 @@
     else if (s.display_status === "PAYMENT_PROCESSING" || s.display_status === "FAILED") tone = "warn";
     if (d && d.status === "VERIFIED" && s.display_status === "PARTIALLY_PAID") { msg = "Payment successfully verified! " + (s.message || ""); tone = "ok"; }
     if (s.awaiting_verification) msg = null; // dedicated section
+    // Verified: a clear thank-you with the receipt (partial payments also show the balance)
+    const verifiedPartial = d && d.status === "VERIFIED" && s.display_status === "PARTIALLY_PAID";
+    const thanks = (s.display_status === "PAID" || verifiedPartial) && s.receipts.length > 0;
+    show($("thanksCard"), thanks);
+    if (thanks) {
+      const latest = s.receipts[0]; // newest first
+      $("thanksText").textContent = s.display_status === "PAID"
+        ? `${c.name} has received ${rupees(s.fee.paid_paise)} for ${s.student.name} (${fmtMonth(s.fee.billing_month)}). This fee is fully paid.`
+        : `${c.name} has received ${rupees(latest.amount_paise)} for ${s.student.name}. Balance due: ${rupees(s.fee.outstanding_paise)}.`;
+      $("thanksReceipt").href = latest.url;
+      msg = null;
+    }
     show($("messageCard"), !!msg);
     if (msg) { $("messageBanner").textContent = msg; $("messageBanner").className = "banner " + tone; }
 

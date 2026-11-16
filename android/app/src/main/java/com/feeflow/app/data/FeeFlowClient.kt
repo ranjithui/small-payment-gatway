@@ -4,6 +4,7 @@ import com.feeflow.app.core.AdminRemarkRequest
 import com.feeflow.app.core.ClarificationRequest
 import com.feeflow.app.core.ConfirmRequest
 import com.feeflow.app.core.ConfirmResponse
+import com.feeflow.app.core.SmsStatus
 import com.feeflow.app.core.Declaration
 import com.feeflow.app.core.DeviceAckRequest
 import com.feeflow.app.core.DeviceApi
@@ -164,6 +165,13 @@ class FeeFlowClient(
     suspend fun confirm(id: String, req: ConfirmRequest, idempotencyKey: String): ConfirmResponse =
         call("POST", "/api/v1/payment-verification/$id/confirm", Auth.ADMIN, ConfirmResponse.serializer(),
             enc(ConfirmRequest.serializer(), req), idempotencyKey)!!
+
+    suspend fun smsStatus(id: String): SmsStatus =
+        call("GET", "/api/v1/sms/$id", Auth.ADMIN, SmsStatus.serializer())!!
+
+    /** Queue a FAILED message again; returns the new message. */
+    suspend fun resendSms(id: String, idempotencyKey: String): SmsStatus =
+        call("POST", "/api/v1/sms/$id/resend", Auth.ADMIN, SmsStatus.serializer(), null, idempotencyKey)!!
 
     suspend fun reject(id: String, reason: String, idempotencyKey: String) {
         call<Unit>("POST", "/api/v1/payment-verification/$id/reject", Auth.ADMIN, null,

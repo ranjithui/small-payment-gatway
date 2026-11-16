@@ -68,3 +68,54 @@ def test_bad_transaction_id_rejected(env):
 
 def test_month_label():
     assert month_label("2026-11") == "Nov 2026"
+
+
+def test_confirm_returns_thank_you_with_sms_status_and_whatsapp(env):
+    env.declare(action="PAID")
+    r = env.confirm(env.decl_id(), [{"amount_paise": 250000, "bank_reference": "UTR-TY-1"}])
+    assert r.status_code == 200, r.text
+    out = r.json()
+    t = out["thank_you"]
+    assert out["student_name"] == "Aarav Sharma" and out["amount_paise"] == 250000
+    assert t["status"] == "QUEUED" and t["kind"] == "PAYMENT_VERIFIED"
+    assert "is confirmed. Thank you!" in t["message"]
+    assert t["whatsapp_url"].startswith("https://wa.me/91") and "Thank%20you" in t["whatsapp_url"]
+
+    s = env.c.get(f"/api/v1/sms/{t['id']}", headers=env.admin)
+    assert s.status_code == 200 and s.json()["status"] == "QUEUED"
+    # Only a failed message can be resent
+    assert env.c.post(f"/api/v1/sms/{t['id']}/resend", headers={**env.admin, "Idempotency-Key": key()}).status_code == 409
+    db = SessionLocal()
+    db.get(SmsOutbox, t["id"]).status = "FAILED"
+    db.commit(); db.close()
+    k = key()
+    again = env.c.post(f"/api/v1/sms/{t['id']}/resend", headers={**env.admin, "Idempotency-Key": k})
+    assert again.status_code == 201 and again.json()["status"] == "QUEUED" and again.json()["id"] != t["id"]
+    replay = env.c.post(f"/api/v1/sms/{t['id']}/resend", headers={**env.admin, "Idempotency-Key": k})
+    assert replay.json()["id"] == again.json()["id"]  # double tap = one new message
+    db = SessionLocal()
+    assert db.query(SmsOutbox).filter_by(kind="PAYMENT_VERIFIED").count() == 2
+    db.close()
+
+
+def test_sms_status_needs_admin_of_same_centre(env):
+    env.declare(action="PAID")
+    t = env.confirm(env.decl_id(), [{"amount_paise": 250000, "bank_reference": "UTR-TY-2"}]).json()["thank_you"]
+    assert env.c.get(f"/api/v1/sms/{t['id']}").status_code == 401
+    assert env.c.get("/api/v1/sms/not-a-real-id", headers=env.admin).status_code == 404
+
+
+def test_manual_payment_also_returns_thank_you(env):
+    r = env.c.post(f"/api/v1/installments/{env.inst()}/payments", json={
+        "confirm": True, "bank_transaction_checked": True, "belongs_to_centre": True,
+        "transactions": [{"amount_paise": 100000, "bank_reference": "UTR-TY-3"}]},
+        headers={**env.admin, "Idempotency-Key": key()})
+    assert r.status_code == 201, r.text
+    t = r.json()["thank_you"]
+    assert "Rs.1,000" in t["message"] and "Balance due: Rs.1,500." in t["message"]
+
+
+def test_other_centre_cannot_see_sms(env):
+    env.declare(action="PAID")
+    t = env.confirm(env.decl_id(), [{"amount_paise": 250000, "bank_reference": "UTR-TY-4"}]).json()["thank_you"]
+    assert env.c.get(f"/api/v1/sms/{t['id']}", headers=env.other_admin).status_code == 404

@@ -185,6 +185,32 @@ class FeeFlowClientTest {
     }
 
     @Test
+    fun confirmReturnsThankYouAndSmsCanBeCheckedAndResent() = runTest {
+        server.enqueue(json("""{"installment_status":"PAID","outstanding_paise":0,"receipt":{"receipt_number":"BM-000007","url":"https://x/r/abc"},
+            "excess_flagged_paise":0,"payments":[],"student_name":"Diya Patel","amount_paise":250000,
+            "thank_you":{"id":"s1","kind":"PAYMENT_VERIFIED","status":"QUEUED","error":null,"to_mobile":"+919800000002","sent_at":null,
+            "message":"Bright Minds: Payment of Rs.2,500 for Diya Patel (Nov 2026) is confirmed. Thank you! Receipt: https://x/r/abc",
+            "whatsapp_url":"https://wa.me/919800000002?text=Bright"}}"""))
+        val res = client.confirm("d1", ConfirmRequest(true, true, true, listOf(TransactionIn(250000, "UTR9"))), "k-9")
+        assertEquals("Diya Patel", res.studentName)
+        assertEquals(250000L, res.amountPaise)
+        assertEquals("QUEUED", res.thankYou!!.status)
+        assertTrue(res.thankYou!!.message.contains("Thank you!"))
+        assertTrue(res.thankYou!!.whatsappUrl.startsWith("https://wa.me/91"))
+        server.takeRequest()
+
+        server.enqueue(json("""{"id":"s1","kind":"PAYMENT_VERIFIED","status":"FAILED","error":"Generic failure","to_mobile":"+919800000002","sent_at":null}"""))
+        assertEquals("FAILED", client.smsStatus("s1").status)
+        assertEquals("/api/v1/sms/s1", server.takeRequest().path)
+
+        server.enqueue(json("""{"id":"s2","kind":"PAYMENT_VERIFIED","status":"QUEUED","error":null,"to_mobile":"+919800000002","sent_at":null}""", 201))
+        assertEquals("s2", client.resendSms("s1", "resend-key").id)
+        val req = server.takeRequest()
+        assertEquals("/api/v1/sms/s1/resend", req.path)
+        assertEquals("resend-key", req.getHeader("Idempotency-Key"))
+    }
+
+    @Test
     fun revokedDeviceIs401() = runTest {
         server.enqueue(json("""{"detail":"Unknown or disabled device"}""", 401))
         try {

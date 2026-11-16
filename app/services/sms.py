@@ -7,7 +7,8 @@ phone sends them from its physical SIM and acknowledges the result.
 Every message has a ``dedupe_key`` with a UNIQUE constraint so retries, double taps or
 repeated jobs can never queue the same acknowledgement twice.
 """
-from typing import Optional
+from typing import Any, Dict, Optional
+from urllib.parse import quote
 
 from sqlalchemy.orm import Session
 
@@ -135,3 +136,28 @@ def enqueue_sms(
     )
     db.add(msg)
     return msg
+
+
+def whatsapp_url(to_mobile: str, text: str) -> str:
+    """wa.me link that opens WhatsApp to the parent with the message filled in."""
+    digits = "".join(c for c in to_mobile if c.isdigit())
+    if len(digits) == 10:
+        digits = "91" + digits
+    return f"https://wa.me/{digits}?text={quote(text)}"
+
+
+def sms_out(msg: SmsOutbox) -> Dict[str, Any]:
+    return {"id": msg.id, "kind": msg.kind, "status": msg.status, "error": msg.error,
+            "to_mobile": msg.to_mobile, "sent_at": msg.sent_at.isoformat() + "Z" if msg.sent_at else None}
+
+
+def thank_you_out(db: Session, dedupe_key: str) -> Optional[Dict[str, Any]]:
+    """The thank-you message sent to the parent after a verified payment, for the admin's
+    'Payment confirmed' screen: SMS status plus a WhatsApp link with the same text."""
+    msg = next((o for o in db.new if isinstance(o, SmsOutbox) and o.dedupe_key == dedupe_key), None)
+    if msg is None:
+        msg = db.query(SmsOutbox).filter(SmsOutbox.dedupe_key == dedupe_key).first()
+    if msg is None:
+        return None
+    db.flush()
+    return {**sms_out(msg), "message": msg.body, "whatsapp_url": whatsapp_url(msg.to_mobile, msg.body)}

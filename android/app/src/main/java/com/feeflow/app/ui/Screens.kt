@@ -98,6 +98,8 @@ fun FeeFlowRoot(vm: AppViewModel) {
         is Screen.Detail -> DetailScreen(state, vm, snackbar)
         is Screen.StudentDetail -> StudentDetailScreen(state, vm, snackbar)
         is Screen.StudentForm -> StudentFormScreen(state, s.id, vm, snackbar)
+        Screen.Confirmed -> ConfirmedScreen(state, vm, snackbar)
+        Screen.Confirmed -> ConfirmedScreen(state, vm, snackbar)
     }
 }
 

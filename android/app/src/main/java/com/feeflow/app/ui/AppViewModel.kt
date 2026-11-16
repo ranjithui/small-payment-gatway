@@ -42,6 +42,8 @@ sealed interface Screen {
     data class StudentDetail(val id: String) : Screen
     /** id == null: add a new student. */
     data class StudentForm(val id: String?) : Screen
+    /** "Payment confirmed" after verifying: thank-you message status, WhatsApp, receipt. */
+    data object Confirmed : Screen
 }
 
 enum class Tab { STUDENTS, VERIFY, SMS_DEVICE }
@@ -140,6 +142,25 @@ data class UiState(
     val shareText: String? = null,
     /** Loaded on the Settings screen. */
     val workspace: com.feeflow.app.core.Workspace? = null,
+    val confirmed: ConfirmedUi? = null,
+)
+
+/** What the "Payment confirmed" screen shows. */
+data class ConfirmedUi(
+    val studentName: String,
+    val amountPaise: Long,
+    val installmentStatus: String,
+    val outstandingPaise: Long,
+    val receiptNumber: String,
+    val receiptUrl: String,
+    val excessFlaggedPaise: Long,
+    val thankYou: com.feeflow.app.core.ThankYou?,
+    /** Latest known SMS state: QUEUED / DISPATCHED / SENT / FAILED. */
+    val smsStatus: String?,
+    val smsError: String? = null,
+    val smsId: String? = thankYou?.id,
+    val thisPhoneSends: Boolean = false,
+    val checking: Boolean = false,
 )
 
 /** Collected confirm-form input (validated in [AppViewModel.confirm]). */
@@ -417,6 +438,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             }
             Screen.SignUp -> goToLogin()
             Screen.Settings -> _state.update { it.copy(screen = Screen.Main(), workspace = null) }
+            Screen.Confirmed -> closeConfirmed()
             else -> Unit
         }
     }
@@ -466,15 +488,60 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 ),
                 idempotencyKey,
             )
-            val excess = if (res.excessFlaggedPaise > 0) " Excess ${Money.format(res.excessFlaggedPaise)} flagged for refund/adjustment." else ""
-            _state.update {
-                it.copy(
-                    message = "Verified. Fee is ${res.installmentStatus.replace('_', ' ')}, outstanding ${Money.format(res.outstandingPaise)}. Receipt ${res.receipt.receiptNumber}.$excess",
-                )
-            }
-            back()
+            val ui = ConfirmedUi(
+                studentName = res.studentName ?: d.studentName,
+                amountPaise = res.amountPaise ?: txs.sumOf { it.amountPaise },
+                installmentStatus = res.installmentStatus,
+                outstandingPaise = res.outstandingPaise,
+                receiptNumber = res.receipt.receiptNumber,
+                receiptUrl = res.receipt.url,
+                excessFlaggedPaise = res.excessFlaggedPaise,
+                thankYou = res.thankYou,
+                smsStatus = res.thankYou?.status,
+                thisPhoneSends = prefs.deviceToken != null,
+            )
+            _state.update { it.copy(screen = Screen.Confirmed, confirmed = ui, detail = null) }
+            sendThankYouNow()
         }
         return null
+    }
+
+    /** Send the thank-you SMS right away when this phone is the SMS phone, then show its delivery state. */
+    private fun sendThankYouNow() {
+        viewModelScope.launch {
+            if (prefs.deviceToken != null) runSyncOnce()
+            refreshThankYouStatus()
+            // Another phone sends it: look again shortly.
+            if (prefs.deviceToken == null && _state.value.confirmed?.smsStatus in setOf("QUEUED", "DISPATCHED")) {
+                kotlinx.coroutines.delay(5_000)
+                refreshThankYouStatus()
+            }
+        }
+    }
+
+    fun refreshThankYouStatus() {
+        val id = _state.value.confirmed?.smsId ?: return
+        viewModelScope.launch {
+            _state.update { s -> s.copy(confirmed = s.confirmed?.copy(checking = true)) }
+            runCatching { client().smsStatus(id) }
+                .onSuccess { st -> _state.update { s -> s.copy(confirmed = s.confirmed?.copy(smsStatus = st.status, smsError = st.error)) } }
+            _state.update { s -> s.copy(confirmed = s.confirmed?.copy(checking = false)) }
+        }
+    }
+
+    /** Failed thank-you SMS: queue it again and (on the SMS phone) send it now. */
+    fun resendThankYou(idempotencyKey: String) {
+        val id = _state.value.confirmed?.smsId ?: return
+        launchBusy {
+            val st = client().resendSms(id, idempotencyKey)
+            _state.update { s -> s.copy(confirmed = s.confirmed?.copy(smsId = st.id, smsStatus = st.status, smsError = null)) }
+            sendThankYouNow()
+        }
+    }
+
+    fun closeConfirmed() {
+        _state.update { it.copy(screen = Screen.Main(Tab.VERIFY), confirmed = null) }
+        refreshPending()
     }
 
     fun reject(d: Declaration, reason: String, idempotencyKey: String): String? {
@@ -564,16 +631,20 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     fun syncNow() {
         if (prefs.deviceToken == null) return
-        viewModelScope.launch {
-            _state.update { it.copy(device = it.device.copy(syncing = true)) }
-            val report = SmsEngine(client(), SyncWorker.stateStore(getApplication()), sender).runOnce()
-            if (report.syncErrorCode == 401) {
-                prefs.deviceToken = null
-                SyncScheduler.cancel(getApplication())
-                _state.update { it.copy(error = "This phone is no longer the registered SMS device.") }
-            }
-            _state.update { it.copy(device = it.device.copy(syncing = false, lastReport = report)) }
-            refreshDevice()
+        viewModelScope.launch { runSyncOnce() }
+    }
+
+    /** One SMS-engine run (fetch, send from the SIM, acknowledge). Safe to call any time: the engine is locked. */
+    private suspend fun runSyncOnce() {
+        if (prefs.deviceToken == null) return
+        _state.update { it.copy(device = it.device.copy(syncing = true)) }
+        val report = SmsEngine(client(), SyncWorker.stateStore(getApplication()), sender).runOnce()
+        if (report.syncErrorCode == 401) {
+            prefs.deviceToken = null
+            SyncScheduler.cancel(getApplication())
+            _state.update { it.copy(error = "This phone is no longer the registered SMS device.") }
         }
+        _state.update { it.copy(device = it.device.copy(syncing = false, lastReport = report)) }
+        refreshDevice()
     }
 }

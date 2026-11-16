@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app import idempotency
 from app.audit import audit
 from app.db import get_db, utcnow
-from app.models import AdminNotification, AdminUser, AuditLog, Installment, PaymentAdjustment, Student, Tenant
+from app.models import AdminNotification, AdminUser, AuditLog, Installment, PaymentAdjustment, SmsOutbox, Student, Tenant
 from app.ratelimit import rate_limit
 from app.schemas import (
     AdminRemark,
@@ -26,6 +26,7 @@ from app.security import AdminContext, issue_admin_token, require_admin, require
 from app.services import fees, reconciliation, reports, verification
 from app.services.declarations import _iso
 from app.services.links import create_payment_link, link_url
+from app.services.sms import sms_out
 
 router = APIRouter(prefix="/api/v1", tags=["admin"])
 admin_limit = Depends(rate_limit("admin", 240))
@@ -223,6 +224,42 @@ def record_payment(
         db, admin, f"manual-payment:{installment_id}", idempotency_key, data,
         lambda: (201, verification.record_manual_payment(db, admin, installment_id, data)),
     )
+
+
+# ------------------------------------------------------------------ SMS status (thank-you message etc.)
+def _tenant_sms(db: Session, admin: AdminContext, sms_id: str) -> SmsOutbox:
+    msg = db.get(SmsOutbox, sms_id)
+    if msg is None or msg.tenant_id != admin.tenant_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Message not found")
+    return msg
+
+
+@router.get("/sms/{sms_id}", dependencies=[admin_limit])
+def sms_status(sms_id: str, admin: AdminContext = Depends(require_admin), db: Session = Depends(get_db)):
+    return sms_out(_tenant_sms(db, admin, sms_id))
+
+
+@router.post("/sms/{sms_id}/resend", dependencies=[admin_limit])
+def sms_resend(
+    sms_id: str,
+    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
+    admin: AdminContext = Depends(require_writable_admin),
+    db: Session = Depends(get_db),
+):
+    """Queue a failed message again (same text, same parent). Only FAILED messages can be resent."""
+    def op():
+        old = _tenant_sms(db, admin, sms_id)
+        if old.status != "FAILED":
+            raise HTTPException(status.HTTP_409_CONFLICT, detail="Only a failed message can be sent again.")
+        new = SmsOutbox(tenant_id=old.tenant_id, to_mobile=old.to_mobile, body=old.body, kind=old.kind,
+                        dedupe_key=f"resend:{old.id}:{utcnow().isoformat()}", installment_id=old.installment_id,
+                        declaration_id=old.declaration_id)
+        db.add(new)
+        db.flush()
+        audit(db, tenant_id=admin.tenant_id, actor_type="ADMIN", actor_id=admin.admin_id, action="SMS_RESENT",
+              source="admin", installment_id=old.installment_id, details={"sms_id": old.id, "new_sms_id": new.id})
+        return 201, sms_out(new)
+    return _idempotent(db, admin, f"sms-resend:{sms_id}", idempotency_key, {"sms_id": sms_id}, op)
 
 
 @router.post("/installments/{installment_id}/payment-links", dependencies=[admin_limit])

@@ -25,7 +25,7 @@ from app.services.declarations import _iso, active_declaration
 from app.services.links import create_payment_link, link_url
 from app.services.references import ensure_reference
 from app.services.receipts import issue_receipt, receipt_url
-from app.services.sms import enqueue_sms, format_rupees
+from app.services.sms import enqueue_sms, format_rupees, thank_you_out
 from app.states import (
     REVIEWABLE_STATUSES,
     DeclarationStatus as D,
@@ -471,6 +471,9 @@ def confirm(db: Session, admin: AdminContext, declaration_id: str, body: Dict[st
         "receipt": {"receipt_number": receipt.receipt_number, "url": receipt_url(receipt)},
         "payments": [_payment_out(p) for p in result["payments"]],
         "excess_flagged_paise": sum(a.amount_paise for a in result["adjustments"]),
+        "student_name": inst.student.name,
+        "amount_paise": result["total_paise"],
+        "thank_you": thank_you_out(db, f"verified:{decl.id}"),
     }
 
 
@@ -520,6 +523,9 @@ def record_manual_payment(
         "receipt": {"receipt_number": receipt.receipt_number, "url": receipt_url(receipt)},
         "payments": [_payment_out(p) for p in result["payments"]],
         "excess_flagged_paise": sum(a.amount_paise for a in result["adjustments"]),
+        "student_name": inst.student.name,
+        "amount_paise": result["total_paise"],
+        "thank_you": thank_you_out(db, f"verified-manual:{result['payments'][0].id}"),
     }
 
 

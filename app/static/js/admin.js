@@ -427,10 +427,21 @@
           evidence_note: $("cfEvidence").value.trim() || null, admin_note: $("cfNote").value.trim() || null }, idem);
         p.innerHTML = `<div class="banner ok" style="margin-top:10px">Verified. Fee is now ${esc(r.installment_status.replace("_", " "))}; outstanding ${rupees(r.outstanding_paise)}.
           Receipt <a href="${esc(r.receipt.url)}" target="_blank" rel="noopener">${esc(r.receipt.receipt_number)}</a>.
-          ${r.excess_flagged_paise ? `<br>Excess ${rupees(r.excess_flagged_paise)} flagged for refund/adjustment.` : ""}</div>`;
+          ${r.excess_flagged_paise ? `<br>Excess ${rupees(r.excess_flagged_paise)} flagged for refund/adjustment.` : ""}</div>${thankYouHtml(r)}`;
         selected = null; loadQueue(false);
       } catch (err) { $("cfErr").textContent = err.message; }
     };
+  }
+
+  // Thank-you message sent to the parent after a verified payment: SMS status + WhatsApp with the same text.
+  function thankYouHtml(r) {
+    const t = r.thank_you;
+    if (!t) return "";
+    const st = { SENT: "sent ✓", FAILED: "failed", QUEUED: "waiting for the SMS phone", DISPATCHED: "sending" }[t.status] || t.status;
+    return `<div class="panel" style="margin-top:10px"><b>Thank-you message to the parent</b>
+      <p class="small muted" style="margin:4px 0">SMS: ${esc(st)}</p>
+      <p class="small" style="white-space:pre-wrap;margin:6px 0">${esc(t.message)}</p>
+      <a class="btn secondary sm" href="${esc(t.whatsapp_url)}" target="_blank" rel="noopener">Send on WhatsApp</a></div>`;
   }
 
   function rejectForm(d) {
@@ -537,7 +548,7 @@
         const r = await api("POST", `/api/v1/installments/${encodeURIComponent(id)}/payments`, { confirm: true,
           bank_transaction_checked: $("mpChecked").checked, belongs_to_centre: $("mpMine").checked, transactions: [tx],
           evidence_note: $("mpEvidence").value.trim() || null }, idem);
-        $("instDetail").innerHTML = `<div class="banner ok">Recorded. Status ${esc(r.installment_status)}. Receipt ${esc(r.receipt.receipt_number)}.${r.excess_flagged_paise ? " Excess " + rupees(r.excess_flagged_paise) + " flagged." : ""}</div>`;
+        $("instDetail").innerHTML = `<div class="banner ok">Recorded. Status ${esc(r.installment_status)}. Receipt ${esc(r.receipt.receipt_number)}.${r.excess_flagged_paise ? " Excess " + rupees(r.excess_flagged_paise) + " flagged." : ""}</div>${thankYouHtml(r)}`;
         loadInstallments();
       } catch (err) { $("mpErr").textContent = err.message; }
     };

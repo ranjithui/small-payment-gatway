@@ -69,9 +69,14 @@ class LiveBackendE2ETest {
         val replay = client.confirm(decl.id, req, key) // same key -> same answer, no double credit
         assertEquals(res, replay)
 
+        val thanks = res.thankYou!!
+        assertTrue(thanks.message, thanks.message.contains("Thank you!") && thanks.whatsappUrl.startsWith("https://wa.me/"))
+        assertEquals("QUEUED", client.smsStatus(thanks.id).status)
+
         // 6. SIM engine sends the "verified" SMS with the receipt link; reminders are cancelled locally
         val sentMid = sim.sent.size
         engine.runOnce()
+        assertEquals("SENT", client.smsStatus(thanks.id).status)
         val verifiedSms = sim.sent.drop(sentMid).map { it.second }
         assertTrue(verifiedSms.toString(), verifiedSms.any { it.contains("is confirmed. Thank you!") && it.contains("/r/") })
         assertTrue(store.state.schedules.values.filter { it.toMobile == decl.parentMobile && it.status == "SCHEDULED" && res.outstandingPaise == 0L }.isEmpty())

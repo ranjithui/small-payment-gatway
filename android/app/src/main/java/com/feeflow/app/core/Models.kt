@@ -265,7 +265,25 @@ data class ConfirmResponse(
     @SerialName("outstanding_paise") val outstandingPaise: Long,
     val receipt: ReceiptRef,
     @SerialName("excess_flagged_paise") val excessFlaggedPaise: Long = 0,
+    @SerialName("student_name") val studentName: String? = null,
+    @SerialName("amount_paise") val amountPaise: Long? = null,
+    /** The thank-you message sent to the parent (SMS from the centre's phone; WhatsApp link with the same text). */
+    @SerialName("thank_you") val thankYou: ThankYou? = null,
 )
+
+@Serializable
+data class ThankYou(
+    val id: String,
+    val status: String,
+    val error: String? = null,
+    @SerialName("to_mobile") val toMobile: String = "",
+    val message: String = "",
+    @SerialName("whatsapp_url") val whatsappUrl: String = "",
+)
+
+/** Delivery state of one SMS: QUEUED (waiting for the SMS phone), DISPATCHED, SENT or FAILED. */
+@Serializable
+data class SmsStatus(val id: String, val status: String, val error: String? = null)
 
 @Serializable
 data class RejectRequest(val reason: String)
