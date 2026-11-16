@@ -92,6 +92,16 @@ class LiveBackendE2ETest {
         token = client.signup("E2E Owner", email, "e2e-password-123").accessToken
         assertEquals(false, client.me().hasWorkspace)
         client.createWorkspace(WorkspaceCreateRequest("E2E Tuition Centre", "e2etuition@okaxis", "E2E Tuition"))
+        // New centres start as Personal UPI: no one-tap; QR + copy
+        val ws0 = client.workspace()
+        assertEquals("PERSONAL", ws0.accountType)
+        assertEquals(PaymentMethods(upiApp = false, qr = true, copy = true), ws0.methods)
+        // Switch to merchant from the app's Settings and back
+        val ws1 = client.updateWorkspace(WorkspaceUpdateRequest(accountType = "MERCHANT", upiBankName = "Axis Bank"))
+        assertEquals("MERCHANT", ws1.accountType)
+        assertEquals(true, ws1.methods.upiApp)
+        assertEquals("8299", ws1.merchantCode)
+        assertEquals("PERSONAL", client.updateWorkspace(WorkspaceUpdateRequest(accountType = "PERSONAL")).accountType)
         val sub = client.me().workspace!!.subscription
         assertEquals("TRIAL", sub.status)
         assertEquals(30, sub.trialDaysLeft)

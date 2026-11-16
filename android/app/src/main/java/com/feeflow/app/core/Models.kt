@@ -71,8 +71,49 @@ data class Workspace(
     @SerialName("upi_vpa") val upiVpa: String,
     @SerialName("upi_payee_name") val upiPayeeName: String,
     @SerialName("contact_phone") val contactPhone: String? = null,
+    @SerialName("contact_email") val contactEmail: String? = null,
     @SerialName("auto_send_links") val autoSendLinks: Boolean = false,
     val subscription: Subscription = Subscription(),
+    /** PERSONAL (default, no business documents) or MERCHANT (optional). */
+    @SerialName("account_type") val accountType: String = "PERSONAL",
+    @SerialName("upi_bank_name") val upiBankName: String? = null,
+    @SerialName("business_name") val businessName: String? = null,
+    @SerialName("merchant_code") val merchantCode: String? = null,
+    @SerialName("upi_mobile") val upiMobile: String? = null,
+    /** Switches as saved. */
+    @SerialName("payment_methods_settings") val methodSettings: PaymentMethods = PaymentMethods(),
+    /** What parents actually see (one-tap is never offered for personal UPI IDs). */
+    @SerialName("payment_methods") val methods: PaymentMethods = PaymentMethods(),
+    @SerialName("upi_config_status") val configStatus: UpiConfigStatus = UpiConfigStatus(),
+)
+
+@Serializable
+data class PaymentMethods(
+    @SerialName("upi_app") val upiApp: Boolean = true,
+    val qr: Boolean = true,
+    val copy: Boolean = true,
+)
+
+/** Format/completeness check only - FeeFlow cannot confirm the account can receive money. */
+@Serializable
+data class UpiConfigStatus(val status: String = "READY", val message: String = "")
+
+/** Fields sent are changed; null fields are left as they are. Blank text removes optional values. */
+@Serializable
+data class WorkspaceUpdateRequest(
+    val name: String? = null,
+    @SerialName("account_type") val accountType: String? = null,
+    @SerialName("upi_vpa") val upiVpa: String? = null,
+    @SerialName("upi_payee_name") val upiPayeeName: String? = null,
+    @SerialName("upi_bank_name") val upiBankName: String? = null,
+    @SerialName("business_name") val businessName: String? = null,
+    @SerialName("merchant_code") val merchantCode: String? = null,
+    @SerialName("upi_mobile") val upiMobile: String? = null,
+    @SerialName("pay_intent_enabled") val payIntentEnabled: Boolean? = null,
+    @SerialName("pay_qr_enabled") val payQrEnabled: Boolean? = null,
+    @SerialName("pay_manual_enabled") val payManualEnabled: Boolean? = null,
+    @SerialName("contact_phone") val contactPhone: String? = null,
+    @SerialName("contact_email") val contactEmail: String? = null,
 )
 
 @Serializable
@@ -92,6 +133,10 @@ data class WorkspaceCreateRequest(
     @SerialName("upi_vpa") val upiVpa: String,
     @SerialName("upi_payee_name") val upiPayeeName: String,
     @SerialName("contact_phone") val contactPhone: String? = null,
+    @SerialName("account_type") val accountType: String = "PERSONAL",
+    @SerialName("upi_bank_name") val upiBankName: String? = null,
+    @SerialName("business_name") val businessName: String? = null,
+    @SerialName("upi_mobile") val upiMobile: String? = null,
 )
 
 /** Same rule as the server: name@bank handle. */

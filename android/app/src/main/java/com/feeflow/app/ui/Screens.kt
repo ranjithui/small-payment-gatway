@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Refresh
@@ -92,6 +93,7 @@ fun FeeFlowRoot(vm: AppViewModel) {
         Screen.Login -> LoginScreen(state, vm, snackbar)
         Screen.SignUp -> SignUpScreen(state, vm, snackbar)
         Screen.Setup -> SetupScreen(state, vm, snackbar)
+        Screen.Settings -> SettingsScreen(state, vm, snackbar)
         is Screen.Main -> MainScreen(state, s.tab, vm, snackbar)
         is Screen.Detail -> DetailScreen(state, vm, snackbar)
         is Screen.StudentDetail -> StudentDetailScreen(state, vm, snackbar)
@@ -135,53 +137,6 @@ private fun LoginScreen(state: UiState, vm: AppViewModel, snackbar: SnackbarHost
 }
 
 
-// ------------------------------------------------------------------ workspace setup (first sign-in)
-@Composable
-private fun SetupScreen(state: UiState, vm: AppViewModel, snackbar: SnackbarHostState) {
-    var name by rememberSaveable { mutableStateOf("") }
-    var vpa by rememberSaveable { mutableStateOf("") }
-    var vpa2 by rememberSaveable { mutableStateOf("") }
-    var payee by rememberSaveable { mutableStateOf("") }
-    var phone by rememberSaveable { mutableStateOf("") }
-    var error by remember { mutableStateOf<String?>(null) }
-    var confirming by remember { mutableStateOf(false) }
-    Scaffold(snackbarHost = { SnackbarHost(snackbar) }) { pad ->
-        Column(Modifier.padding(pad).padding(24.dp).fillMaxSize().imePadding().verticalScroll(rememberScrollState())) {
-            Text("FeeFlow", color = Brand, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
-            Text("Create your workspace", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Text("Parents pay directly to the UPI ID you enter here. You can change it later in Settings on the web dashboard.",
-                color = Color.Gray, fontSize = 14.sp)
-            Spacer(Modifier.height(16.dp))
-            OutlinedTextField(name, { name = it }, label = { Text("Tuition centre name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(vpa, { vpa = it }, label = { Text("Centre UPI ID (e.g. name@okaxis)") }, singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(vpa2, { vpa2 = it }, label = { Text("Confirm UPI ID") }, singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(payee, { payee = it }, label = { Text("Payee name shown in UPI apps") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(phone, { phone = it }, label = { Text("Contact phone (optional)") }, singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), modifier = Modifier.fillMaxWidth())
-            error?.let { Text(it, color = Bad, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp)) }
-            Spacer(Modifier.height(16.dp))
-            Button({ confirming = true }, Modifier.fillMaxWidth().height(50.dp), enabled = !state.busy) { Text("Create workspace") }
-            TextButton({ vm.logout() }, Modifier.fillMaxWidth()) { Text("Sign out") }
-        }
-    }
-    if (confirming) {
-        AlertDialog(
-            onDismissRequest = { confirming = false },
-            title = { Text("Is this UPI ID correct?") },
-            text = { Text("Parents will pay to ${vpa.trim()}. Make sure it belongs to the centre's own bank account.") },
-            confirmButton = {
-                Button({
-                    confirming = false
-                    error = vm.createWorkspace(name, vpa, vpa2, payee, phone)
-                }) { Text("Yes, create") }
-            },
-            dismissButton = { TextButton({ confirming = false }) { Text("Check again") } },
-        )
-    }
-}
-
 // ------------------------------------------------------------------ main (tabs)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -207,6 +162,7 @@ private fun MainScreen(state: UiState, tab: Tab, vm: AppViewModel, snackbar: Sna
                     }) {
                         Icon(Icons.Default.Refresh, "Refresh")
                     }
+                    IconButton(onClick = { vm.openSettings() }) { Icon(Icons.Default.Settings, "Settings") }
                     IconButton(onClick = { vm.logout() }) { Icon(Icons.AutoMirrored.Filled.ExitToApp, "Sign out") }
                 },
             )

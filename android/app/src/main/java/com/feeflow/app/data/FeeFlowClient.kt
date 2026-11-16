@@ -26,6 +26,7 @@ import com.feeflow.app.core.StudentRequest
 import com.feeflow.app.core.SyncResponse
 import com.feeflow.app.core.Workspace
 import com.feeflow.app.core.WorkspaceCreateRequest
+import com.feeflow.app.core.WorkspaceUpdateRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
@@ -125,6 +126,11 @@ class FeeFlowClient(
     suspend fun createWorkspace(req: WorkspaceCreateRequest): Workspace =
         call("POST", "/api/v1/workspace", Auth.ADMIN, Workspace.serializer(),
             enc(WorkspaceCreateRequest.serializer(), req))!!
+
+    suspend fun workspace(): Workspace = call("GET", "/api/v1/workspace", Auth.ADMIN, Workspace.serializer())!!
+
+    suspend fun updateWorkspace(req: WorkspaceUpdateRequest): Workspace =
+        call("PATCH", "/api/v1/workspace", Auth.ADMIN, Workspace.serializer(), enc(WorkspaceUpdateRequest.serializer(), req))!!
 
     /** New centre owner account (30-day trial starts when the workspace is created). */
     suspend fun signup(name: String, email: String, password: String): LoginResponse =

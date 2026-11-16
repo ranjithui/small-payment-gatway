@@ -17,6 +17,7 @@ import com.feeflow.app.core.Subscription
 import com.feeflow.app.core.TransactionIn
 import com.feeflow.app.core.UPI_VPA_REGEX
 import com.feeflow.app.core.WorkspaceCreateRequest
+import com.feeflow.app.core.WorkspaceUpdateRequest
 import com.feeflow.app.data.ApiException
 import com.feeflow.app.data.FeeFlowClient
 import com.feeflow.app.data.SecurePrefs
@@ -36,12 +37,44 @@ sealed interface Screen {
     data class Detail(val id: String) : Screen
     /** First sign-in: the admin creates their own workspace (centre + UPI ID). */
     data object Setup : Screen
+    /** Payment Settings (UPI account type, UPI ID, payment methods) + centre contact. */
+    data object Settings : Screen
     data class StudentDetail(val id: String) : Screen
     /** id == null: add a new student. */
     data class StudentForm(val id: String?) : Screen
 }
 
 enum class Tab { STUDENTS, VERIFY, SMS_DEVICE }
+
+/** Workspace setup and Payment Settings form (validated in [AppViewModel.validatePayment]). */
+data class PaymentForm(
+    val accountType: String = "PERSONAL", // PERSONAL (default) / MERCHANT
+    val centreName: String = "",
+    val payee: String = "",
+    val upiVpa: String = "",
+    val upiVpaConfirm: String = "",
+    val bankName: String = "",
+    val businessName: String = "",
+    val merchantCode: String = "8299",
+    val upiMobile: String = "",
+    val contactPhone: String = "",
+    val contactEmail: String = "",
+    val payUpiApp: Boolean = true,
+    val payQr: Boolean = true,
+    val payCopy: Boolean = true,
+) {
+    val merchant get() = accountType == "MERCHANT"
+
+    companion object {
+        fun from(w: com.feeflow.app.core.Workspace) = PaymentForm(
+            accountType = w.accountType, centreName = w.name, payee = w.upiPayeeName, upiVpa = w.upiVpa,
+            upiVpaConfirm = w.upiVpa, bankName = w.upiBankName.orEmpty(), businessName = w.businessName.orEmpty(),
+            merchantCode = w.merchantCode ?: "8299", upiMobile = w.upiMobile?.removePrefix("+91").orEmpty(),
+            contactPhone = w.contactPhone.orEmpty(), contactEmail = w.contactEmail.orEmpty(),
+            payUpiApp = w.methodSettings.upiApp, payQr = w.methodSettings.qr, payCopy = w.methodSettings.copy,
+        )
+    }
+}
 
 /** Text fields of the student form (validated in [AppViewModel.saveStudent]). */
 data class StudentFormInput(
@@ -105,6 +138,8 @@ data class UiState(
     val lastLink: SendFeeLinkResponse? = null,
     /** One-shot: text the UI should hand to Android's share sheet (WhatsApp etc.). */
     val shareText: String? = null,
+    /** Loaded on the Settings screen. */
+    val workspace: com.feeflow.app.core.Workspace? = null,
 )
 
 /** Collected confirm-form input (validated in [AppViewModel.confirm]). */
@@ -293,16 +328,59 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun shareHandled() = _state.update { it.copy(shareText = null) }
 
     /** Returns a validation error, or null when the request was sent. */
-    fun createWorkspace(name: String, upiVpa: String, upiVpaConfirm: String, payee: String, phone: String): String? {
-        val vpa = upiVpa.trim()
-        if (name.trim().length < 2) return "Enter the tuition centre name"
-        if (!UPI_VPA_REGEX.matches(vpa)) return "Enter a valid UPI ID, e.g. centrename@okaxis"
-        if (!vpa.equals(upiVpaConfirm.trim(), ignoreCase = true)) return "The two UPI IDs do not match"
-        if (payee.trim().length < 2) return "Enter the payee name shown in UPI apps"
+    /** Same rules as the server. Returns an error message or null. */
+    fun validatePayment(f: PaymentForm, checkConfirm: Boolean): String? {
+        if (f.centreName.trim().length < 2) return "Enter the centre display name"
+        if (f.payee.trim().length < 2) return if (f.merchant) "Enter the merchant display name" else "Enter the account holder name"
+        if (!UPI_VPA_REGEX.matches(f.upiVpa.trim())) return "Enter a valid UPI ID, e.g. yourname@okhdfcbank"
+        if (checkConfirm && !f.upiVpa.trim().equals(f.upiVpaConfirm.trim(), ignoreCase = true)) return "The two UPI IDs do not match"
+        if (f.merchant && !Regex("^\\d{4}$").matches(f.merchantCode.trim())) return "Merchant category code must be 4 digits (e.g. 8299)"
+        if (!f.merchant && f.upiMobile.isNotBlank() && !StudentInput.mobileOk(f.upiMobile)) return "Enter a valid 10-digit mobile number"
+        if (!(f.payQr || f.payCopy || (f.merchant && f.payUpiApp))) return "Keep at least one payment method on"
+        return null
+    }
+
+    /** Returns a validation error, or null when the request was sent. */
+    fun createWorkspace(f: PaymentForm): String? {
+        validatePayment(f, checkConfirm = true)?.let { return it }
         launchBusy {
-            val ws = client().createWorkspace(WorkspaceCreateRequest(name.trim(), vpa, payee.trim(), phone.trim().ifEmpty { null }))
+            val ws = client().createWorkspace(WorkspaceCreateRequest(
+                name = f.centreName.trim(), upiVpa = f.upiVpa.trim(), upiPayeeName = f.payee.trim(),
+                contactPhone = f.contactPhone.trim().ifEmpty { null }, accountType = f.accountType,
+                upiBankName = f.bankName.trim().ifEmpty { null },
+                businessName = if (f.merchant) f.businessName.trim().ifEmpty { null } else null,
+                upiMobile = if (f.merchant) null else f.upiMobile.trim().ifEmpty { null },
+            ))
             _state.update { it.copy(message = "Workspace created. Parents will pay to ${ws.upiVpa}.") }
             routeAfterSignIn()
+        }
+        return null
+    }
+
+    // ------------------------------------------------------------- Payment Settings
+    fun openSettings() {
+        _state.update { it.copy(screen = Screen.Settings, workspace = null) }
+        launchBusy {
+            val w = client().workspace()
+            _state.update { it.copy(workspace = w) }
+        }
+    }
+
+    /** Returns a validation error, or null when the request was sent. */
+    fun saveSettings(f: PaymentForm): String? {
+        validatePayment(f, checkConfirm = false)?.let { return it }
+        launchBusy {
+            val w = client().updateWorkspace(WorkspaceUpdateRequest(
+                name = f.centreName.trim(), accountType = f.accountType, upiVpa = f.upiVpa.trim(),
+                upiPayeeName = f.payee.trim(), upiBankName = f.bankName.trim(),
+                businessName = if (f.merchant) f.businessName.trim() else null,
+                merchantCode = if (f.merchant) f.merchantCode.trim() else null,
+                upiMobile = if (f.merchant) null else f.upiMobile.trim(),
+                payIntentEnabled = if (f.merchant) f.payUpiApp else null, payQrEnabled = f.payQr, payManualEnabled = f.payCopy,
+                contactPhone = f.contactPhone.trim(), contactEmail = f.contactEmail.trim(),
+            ))
+            prefs.centreName = w.name
+            _state.update { it.copy(workspace = w, centreName = w.name, message = "Payment settings saved.") }
         }
         return null
     }
@@ -338,6 +416,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 else _state.update { it.copy(screen = Screen.Main(Tab.STUDENTS)) }
             }
             Screen.SignUp -> goToLogin()
+            Screen.Settings -> _state.update { it.copy(screen = Screen.Main(), workspace = null) }
             else -> Unit
         }
     }

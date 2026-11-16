@@ -159,6 +159,32 @@ class FeeFlowClientTest {
     }
 
     @Test
+    fun paymentSettingsReadAndSave() = runTest {
+        server.enqueue(json("""{"name":"Lakshmi Home Tuition","short_code":"LHT","upi_vpa":"lakshmi.r@okhdfcbank",
+            "upi_payee_name":"LAKSHMI R","account_type":"PERSONAL","upi_bank_name":"HDFC Bank","business_name":null,
+            "merchant_code":null,"upi_mobile":"+919876543210",
+            "payment_methods_settings":{"upi_app":true,"qr":true,"copy":true},
+            "payment_methods":{"upi_app":false,"qr":true,"copy":true},
+            "upi_config_status":{"status":"READY","message":"UPI ID format checked."},
+            "subscription":{"status":"TRIAL","trial_days_left":30,"read_only":false}}"""))
+        val w = client.workspace()
+        assertEquals("PERSONAL", w.accountType)
+        assertEquals(false, w.methods.upiApp)
+        assertEquals("READY", w.configStatus.status)
+        assertEquals("HDFC Bank", w.upiBankName)
+        server.takeRequest()
+
+        server.enqueue(json("""{"name":"Lakshmi Home Tuition","upi_vpa":"lakshmi.r@okhdfcbank","upi_payee_name":"LAKSHMI R",
+            "account_type":"MERCHANT"}"""))
+        client.updateWorkspace(WorkspaceUpdateRequest(accountType = "MERCHANT", payQrEnabled = false))
+        val req = server.takeRequest()
+        assertEquals("PATCH", req.method)
+        val body = req.body.readUtf8()
+        assertTrue(body, body.contains("\"account_type\":\"MERCHANT\"") && body.contains("\"pay_qr_enabled\":false"))
+        assertTrue(body, !body.contains("upi_vpa"))  // fields not sent are left unchanged
+    }
+
+    @Test
     fun revokedDeviceIs401() = runTest {
         server.enqueue(json("""{"detail":"Unknown or disabled device"}""", 401))
         try {
