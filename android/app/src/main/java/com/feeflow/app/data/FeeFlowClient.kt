@@ -1,5 +1,6 @@
 package com.feeflow.app.data
 
+import com.feeflow.app.core.AdminRemarkRequest
 import com.feeflow.app.core.ClarificationRequest
 import com.feeflow.app.core.ConfirmRequest
 import com.feeflow.app.core.ConfirmResponse
@@ -161,6 +162,12 @@ class FeeFlowClient(
     suspend fun reject(id: String, reason: String, idempotencyKey: String) {
         call<Unit>("POST", "/api/v1/payment-verification/$id/reject", Auth.ADMIN, null,
             enc(RejectRequest.serializer(), RejectRequest(reason)), idempotencyKey)
+    }
+
+    /** Internal remark on a declaration (appended, audited, never shown to parents). */
+    suspend fun addRemark(id: String, remark: String, idempotencyKey: String) {
+        call<Unit>("POST", "/api/v1/payment-verification/$id/remarks", Auth.ADMIN, null,
+            enc(AdminRemarkRequest.serializer(), AdminRemarkRequest(remark)), idempotencyKey)
     }
 
     suspend fun requestClarification(id: String, message: String, idempotencyKey: String) {

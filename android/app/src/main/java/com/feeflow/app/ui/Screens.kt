@@ -264,6 +264,7 @@ private fun PendingList(state: UiState, vm: AppViewModel) {
                         StatusPill(d.verificationStatus)
                     }
                     Text("${d.studentId} · ${d.installment.description} ${d.installment.billingMonth}", color = Color.Gray, fontSize = 13.sp)
+                    d.paymentReference?.let { Text("Ref $it", color = Color.Gray, fontSize = 12.sp) }
                     Row(Modifier.padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text("Declared ", fontSize = 14.sp)
                         Text(Money.format(d.declaredAmountPaise), fontWeight = FontWeight.Bold)
@@ -288,6 +289,9 @@ private fun DetailScreen(state: UiState, vm: AppViewModel, snackbar: SnackbarHos
     BackHandler { vm.back() }
     var action by remember { mutableStateOf(Action.NONE) }
     var match by remember { mutableStateOf<BankMatch?>(null) }
+    var remark by remember { mutableStateOf("") }
+    var remarkError by remember { mutableStateOf<String?>(null) }
+    var remarkKey by remember { mutableStateOf(FeeFlowClient.newIdempotencyKey()) }
     val d = state.detail
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
@@ -312,6 +316,7 @@ private fun DetailScreen(state: UiState, vm: AppViewModel, snackbar: SnackbarHos
             Spacer(Modifier.height(8.dp))
             Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    d.paymentReference?.let { Kv("Payment reference", it) }
                     Kv("Parent mobile", d.parentMobile)
                     Kv("Installment", "${d.installment.description} · ${d.installment.billingMonth}")
                     Kv("Due date", d.installment.dueDate)
@@ -351,6 +356,33 @@ private fun DetailScreen(state: UiState, vm: AppViewModel, snackbar: SnackbarHos
                     Text("Earlier confirmations: " + d.previousDeclarations.joinToString { "${it.status.replace('_', ' ')} ${Money.format(it.declaredAmountPaise)}" },
                         fontSize = 12.sp, color = Color.Gray)
                 }
+            }
+            Section("How the parent tried to pay") {
+                if (d.paymentAttempts.isEmpty()) Text("No payment attempts recorded.", color = Color.Gray, fontSize = 13.sp)
+                d.paymentAttempts.forEach { a ->
+                    Row(Modifier.fillMaxWidth().padding(vertical = 3.dp)) {
+                        Column(Modifier.weight(1f)) {
+                            Text("${attemptMethod(a.method)} · ${a.event.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() }}",
+                                fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                            Text(listOfNotNull(Times.display(a.at), a.device.lowercase().replaceFirstChar { it.uppercase() }, a.detail)
+                                .joinToString(" · "), fontSize = 12.sp, color = Color.Gray)
+                        }
+                    }
+                }
+                if (d.paymentAttempts.isNotEmpty()) {
+                    Text("Diagnostics only - not proof of payment. Always check your bank account.", fontSize = 12.sp, color = Color.Gray)
+                }
+            }
+            Section("Internal remarks") {
+                Text(d.adminNote ?: "No remarks yet. Remarks are never shown to parents.",
+                    fontSize = 13.sp, color = if (d.adminNote == null) Color.Gray else Color.Unspecified)
+                OutlinedTextField(remark, { remark = it; remarkError = null }, label = { Text("Add an internal remark") },
+                    minLines = 2, modifier = Modifier.fillMaxWidth().padding(top = 6.dp))
+                remarkError?.let { Text(it, color = Bad, fontSize = 13.sp) }
+                OutlinedButton({
+                    remarkError = vm.addRemark(d, remark, remarkKey)
+                    if (remarkError == null) { remark = ""; remarkKey = FeeFlowClient.newIdempotencyKey() }
+                }, Modifier.padding(top = 6.dp), enabled = !state.busy && remark.isNotBlank()) { Text("Add remark") }
             }
             Spacer(Modifier.height(16.dp))
             Button({ match = null; action = Action.CONFIRM }, Modifier.fillMaxWidth().height(48.dp), enabled = !state.busy,
@@ -573,4 +605,11 @@ private fun DeviceScreen(state: UiState, vm: AppViewModel) {
             dismissButton = { TextButton({ confirmRegister = false }) { Text("Cancel") } },
         )
     }
+}
+
+private fun attemptMethod(m: String) = when (m) {
+    "UPI_INTENT" -> "Pay using UPI"
+    "QR" -> "QR code"
+    "MANUAL" -> "Manual UPI ID"
+    else -> m
 }

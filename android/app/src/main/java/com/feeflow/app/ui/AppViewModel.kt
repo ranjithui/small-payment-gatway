@@ -418,6 +418,17 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         return null
     }
 
+    /** Returns a validation error, or null when the request was sent. */
+    fun addRemark(d: Declaration, remark: String, idempotencyKey: String): String? {
+        if (remark.trim().length < 2) return "Write a remark first"
+        launchBusy {
+            client().addRemark(d.id, remark.trim(), idempotencyKey)
+            val fresh = client().declaration(d.id)
+            _state.update { it.copy(detail = fresh, message = "Remark added.") }
+        }
+        return null
+    }
+
     // ------------------------------------------------------------- SMS device
     fun refreshDeviceLocal() {
         val s = SyncWorker.stateStore(getApplication()).load()

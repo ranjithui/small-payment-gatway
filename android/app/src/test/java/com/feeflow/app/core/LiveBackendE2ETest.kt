@@ -59,6 +59,9 @@ class LiveBackendE2ETest {
         val decl = pending.first { it.verificationStatus == "PAYMENT_REPORTED" || it.verificationStatus == "PENDING_VERIFICATION" }
         val detail = client.declaration(decl.id)
         assertEquals("PENDING_VERIFICATION", detail.verificationStatus)
+        assertTrue(detail.paymentReference!!.isNotBlank())
+        client.addRemark(decl.id, "E2E: checked bank app", FeeFlowClient.newIdempotencyKey())
+        assertTrue(client.declaration(decl.id).adminNote!!.contains("E2E: checked bank app"))
         val key = FeeFlowClient.newIdempotencyKey()
         val utr = "E2E" + System.currentTimeMillis()
         val req = ConfirmRequest(true, true, true, listOf(TransactionIn(detail.declaredAmountPaise, utr)))

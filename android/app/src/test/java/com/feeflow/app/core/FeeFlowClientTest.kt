@@ -134,6 +134,31 @@ class FeeFlowClientTest {
     }
 
     @Test
+    fun parsesReferenceAttemptsAndRemarksAndAddsRemark() = runTest {
+        server.enqueue(json("""{"id":"d1","reference":"PD-1","student_name":"Aarav","student_id":"BM-1001","parent_mobile":"+919800000001",
+            "installment":{"id":"i1","description":"Monthly tuition fee","billing_month":"2026-11","due_date":"2026-11-21",
+            "total_paise":250000,"paid_paise":0,"status":"UNPAID"},"payment_reference":"BM-1001-2026-11",
+            "expected_amount_paise":250000,"declared_amount_paise":250000,"outstanding_paise":250000,
+            "verification_status":"PENDING_VERIFICATION","admin_note":"[2026-11-16 05:59 UTC, Priya] Credit seen",
+            "payment_attempts":[{"method":"UPI_INTENT","event":"NO_APP","device":"ANDROID","declared":true,"detail":null,
+            "at":"2026-11-16T05:58:00.123000Z"},{"method":"MANUAL","event":"COPIED","device":"ANDROID","declared":true,
+            "detail":"all","at":"2026-11-16T05:58:30Z"}]}"""))
+        val d = client.declaration("d1")
+        assertEquals("BM-1001-2026-11", d.paymentReference)
+        assertEquals(2, d.paymentAttempts.size)
+        assertEquals("NO_APP", d.paymentAttempts[0].event)
+        assertTrue(d.adminNote!!.contains("Credit seen"))
+        server.takeRequest()
+
+        server.enqueue(json("""{"id":"d1"}"""))
+        client.addRemark("d1", "Checked bank", "android-k-1")
+        val req = server.takeRequest()
+        assertEquals("/api/v1/payment-verification/d1/remarks", req.path)
+        assertEquals("android-k-1", req.getHeader("Idempotency-Key"))
+        assertTrue(req.body.readUtf8().contains("\"remark\":\"Checked bank\""))
+    }
+
+    @Test
     fun revokedDeviceIs401() = runTest {
         server.enqueue(json("""{"detail":"Unknown or disabled device"}""", 401))
         try {

@@ -164,12 +164,31 @@ data class Declaration(
     @SerialName("verification_status") val verificationStatus: String,
     @SerialName("clarification_request") val clarificationRequest: String? = null,
     @SerialName("verification_overdue") val verificationOverdue: Boolean = false,
+    /** Fee's payment reference (UPI note), e.g. "BM-1001-2026-11": match it in the bank statement. */
+    @SerialName("payment_reference") val paymentReference: String? = null,
+    /** Internal remarks (never shown to parents). */
+    @SerialName("admin_note") val adminNote: String? = null,
     // detail-only fields
+    @SerialName("payment_attempts") val paymentAttempts: List<PaymentAttemptInfo> = emptyList(),
     @SerialName("verified_payments") val verifiedPayments: List<VerifiedPaymentInfo> = emptyList(),
     @SerialName("previous_declarations") val previousDeclarations: List<PreviousDeclaration> = emptyList(),
     @SerialName("student_payment_history") val studentPaymentHistory: List<HistoryItem> = emptyList(),
     @SerialName("suggested_bank_matches") val suggestedBankMatches: List<BankMatch> = emptyList(),
 )
+
+/** How the parent tried to start the payment (diagnostics only - not proof of payment). */
+@Serializable
+data class PaymentAttemptInfo(
+    val method: String, // UPI_INTENT / QR / MANUAL
+    val event: String,
+    val device: String = "OTHER",
+    val declared: Boolean = false,
+    val detail: String? = null,
+    val at: String? = null,
+)
+
+@Serializable
+data class AdminRemarkRequest(val remark: String)
 
 @Serializable
 data class PendingResponse(val items: List<Declaration>)
