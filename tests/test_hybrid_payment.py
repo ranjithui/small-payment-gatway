@@ -205,3 +205,34 @@ def test_reject_keeps_fee_outstanding(env):
     r = env.reject(env.decl_id(), reason="No credit in bank statement")
     assert r.status_code == 200 and r.json()["installment_status"] == "UNPAID"
     assert env.view().json()["can_pay"] is True
+
+
+# ------------------------------------------------------------------ cache-busting (old cached script + new page)
+def test_pages_reference_content_versioned_assets(env):
+    import re
+
+    for path in (f"/pay/{env.token()}", "/admin", "/platform"):
+        r = env.c.get(path)
+        assert r.status_code == 200 and r.headers["cache-control"] == "no-store"
+        refs = re.findall(r'(/static/[^"\']+\.(?:js|css))(\?v=[0-9a-f]{12})?', r.text)
+        assert refs and all(v for _, v in refs), (path, refs)  # every script/style is versioned
+    html = env.c.get(f"/pay/{env.token()}").text
+    js = re.search(r'/static/js/pay\.js\?v=[0-9a-f]{12}', html).group(0)
+    assert env.c.get(js).headers["cache-control"] == "public, max-age=31536000, immutable"
+    assert env.c.get("/static/js/pay.js").headers["cache-control"] == "no-cache"
+
+
+def test_asset_version_changes_when_file_changes(tmp_path, monkeypatch):
+    from app.routers import pages
+
+    monkeypatch.setattr(pages, "STATIC", tmp_path)
+    (tmp_path / "js").mkdir()
+    f = tmp_path / "js" / "x.js"
+    f.write_text("v1")
+    a = pages.versioned('<script src="/static/js/x.js"></script>')
+    import os, time
+    f.write_text("v2")
+    os.utime(f, ns=(time.time_ns() + 10**9, time.time_ns() + 10**9))
+    b = pages.versioned('<script src="/static/js/x.js"></script>')
+    assert a != b and "?v=" in a and "?v=" in b
+    assert pages.versioned('<script src="/static/js/missing.js"></script>') == '<script src="/static/js/missing.js"></script>'

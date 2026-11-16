@@ -82,6 +82,10 @@ def create_app(database_url: Optional[str] = None, run_jobs: Optional[bool] = No
         response.headers.setdefault("Referrer-Policy", "no-referrer")
         if request.url.path.startswith("/api/"):
             response.headers.setdefault("Cache-Control", "no-store")
+        if request.url.path.startswith("/static/"):
+            response.headers["Cache-Control"] = (
+                "public, max-age=31536000, immutable" if request.query_params.get("v") else "no-cache"
+            )
         if settings.public_base_url.startswith("https://"):
             response.headers.setdefault("Strict-Transport-Security", "max-age=31536000")
         return response
