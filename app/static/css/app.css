@@ -66,10 +66,25 @@ pre.notes { white-space: pre-wrap; background: #f9fafb; padding: 8px; border-rad
 .copyrow .copy.done { background: var(--ok-bg); color: var(--ok); }
 .steps { margin: 10px 0 0; padding-left: 20px; color: var(--ink); }
 .steps li + li { margin-top: 4px; }
-#payWays > * + * { margin-top: 12px; }
+#paySection .panel { margin-top: 14px; }
 #qrDetails summary { margin: 0; }
 .btn.secondary.active-choice { background: var(--brand); color: #fff; }
 #qrBlock, #manualBlock { margin-top: 12px; }
+
+/* parent payment page (simple flow) */
+.fee-summary .amount-due { display: flex; justify-content: space-between; align-items: baseline; margin-top: 12px; }
+.fee-summary .amount-due b { font-size: 26px; font-weight: 800; }
+.fee-details summary { margin: 10px 0 0; font-size: 14px; }
+.fee-details .kv { margin-top: 8px; }
+.pay-title { font-size: 22px; margin: 0; }
+.big-btn { padding: 16px; font-size: 18px; }
+.appbtn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; border: 1px solid var(--line);
+  border-radius: 14px; background: #fff; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; text-align: left; }
+.appbtn:active { background: #f3f4f6; }
+.appbtn .ico { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: #fff; font-size: 13px; flex: none; }
+.pay-links { display: flex; justify-content: center; gap: 18px; margin-top: 14px; font-size: 14px; font-weight: 600; }
+.pay-links a { color: var(--brand); text-decoration: none; }
+.ask-card { border: 2px solid var(--ok); }
 
 /* UPI account type cards */
 .acct-choice { display: grid; gap: 8px; }
@@ -88,3 +103,4 @@ pre.notes { white-space: pre-wrap; background: #f9fafb; padding: 8px; border-rad
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 12px 0; }
 .cards .card { margin: 0; text-align: center; }
 .cards .big { display: block; }
+#askSection .err:empty { display: none; }

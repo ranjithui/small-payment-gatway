@@ -22,118 +22,121 @@
     </div>
   </header>
 
-  <section class="card">
+  <!-- Fee summary: just who, which month and how much; the rest is one tap away -->
+  <section class="card fee-summary">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
       <h2 style="margin:0" id="studentName"></h2>
       <span class="pill" id="statusPill"></span>
     </div>
-    <p class="muted small" style="margin:2px 0 12px">Student ID <span id="studentId"></span></p>
-    <dl class="kv">
-      <dt>Fee</dt><dd id="feeDesc"></dd>
-      <dt>Month</dt><dd id="feeMonth"></dd>
-      <dt>Total fee</dt><dd id="feeTotal"></dd>
-      <dt>Amount paid</dt><dd id="feePaid"></dd>
-      <dt>Due date</dt><dd id="feeDue"></dd>
-      <dt>Payment reference</dt><dd id="feeRef"></dd>
-      <dt>Outstanding</dt><dd class="big" id="feeOutstanding"></dd>
-    </dl>
+    <p class="muted small" style="margin:2px 0 0"><span id="feeMonth"></span> &middot; <span id="feeDesc"></span></p>
+    <div class="amount-due"><span class="muted small">Amount due</span><b id="feeOutstanding"></b></div>
+    <details class="fee-details">
+      <summary>Fee details</summary>
+      <dl class="kv">
+        <dt>Student ID</dt><dd id="studentId"></dd>
+        <dt>Total fee</dt><dd id="feeTotal"></dd>
+        <dt>Amount paid</dt><dd id="feePaid"></dd>
+        <dt>Due date</dt><dd id="feeDue"></dd>
+        <dt>Payment reference</dt><dd id="feeRef"></dd>
+      </dl>
+    </details>
   </section>
 
   <section class="card hidden" id="messageCard"><div class="banner" id="messageBanner"></div></section>
-
-  <!-- Payment options -->
   <section class="card hidden" id="upiErrorCard"><div class="banner bad" id="upiErrorMsg"></div></section>
 
-  <section class="card hidden" id="paySection">
-    <h2 style="margin-bottom:2px">Pay <span id="payAmt"></span></h2>
-    <p class="muted small" style="margin:0 0 12px">To <b id="payPayee"></b> &middot; Reference <b id="payRef"></b></p>
-
-    <p class="banner info hidden" id="desktopNote">You're on a computer. Scan the QR code with any UPI app on your
-      phone, or open this payment link on your phone.</p>
-
-    <div id="payWays">
-      <!-- 1. Pay using UPI app (one-tap) - merchant UPI IDs only -->
-      <div id="oneTapBlock" class="hidden">
-        <button class="btn" id="payUpiBtn">Pay using UPI app</button>
-        <p class="muted small" style="text-align:center;margin:6px 0 0">Opens your UPI app with the amount filled in.</p>
-        <p class="banner hidden" id="intentMsg" style="margin-top:10px"></p>
-      </div>
-
-      <!-- 3. Copy UPI ID (pay from inside your UPI app) -->
-      <div id="manualBlock" class="panel hidden">
-        <h3 style="margin-top:0">Pay to this UPI ID</h3>
-        <div class="copyrow"><span class="muted small">Pay to</span><b id="mPayee"></b></div>
-        <div class="copyrow"><span class="muted small">UPI ID</span><b id="mVpa"></b><button class="btn secondary sm copy" data-copy="vpa" data-label="Copy">Copy</button></div>
-        <div class="copyrow hidden" id="mMobileRow"><span class="muted small">Or mobile</span><b id="mMobile"></b><button class="btn secondary sm copy" data-copy="mobile" data-label="Copy">Copy</button></div>
-        <div class="copyrow"><span class="muted small">Amount</span><b id="mAmt"></b><button class="btn secondary sm copy" data-copy="amount" data-label="Copy">Copy</button></div>
-        <div class="copyrow"><span class="muted small">Reference</span><b id="mRef"></b><button class="btn secondary sm copy" data-copy="reference" data-label="Copy">Copy</button></div>
-        <button class="btn ghost sm copy" data-copy="all" data-label="Copy all details" style="margin-top:8px">Copy all details</button>
-        <div id="openAppBlock" class="hidden" style="margin-top:12px">
-          <p class="small" style="margin:0 0 6px"><b>Then open your UPI app:</b></p>
-          <div class="apps">
-            <button class="app" data-open="GPAY"><span class="ico" style="background:#1a73e8">G</span>Google Pay</button>
-            <button class="app" data-open="PHONEPE"><span class="ico" style="background:#5f259f">Pe</span>PhonePe</button>
-            <button class="app" data-open="PAYTM"><span class="ico" style="background:#00baf2">P</span>Paytm</button>
-            <button class="app" data-open="BHIM"><span class="ico" style="background:#f07c00">B</span>BHIM</button>
-          </div>
+  <!-- Did you pay? (shown when the parent comes back from their UPI app) -->
+  <section class="card hidden ask-card" id="askSection">
+    <h2 style="margin-top:0">Did you pay <span id="askAmt"></span>?</h2>
+    <button class="btn ok big-btn" id="paidBtn">Yes, I have paid</button>
+    <p class="muted small" style="text-align:center;margin:6px 0 0">The tuition centre will check its bank account and confirm.</p>
+    <details id="problemBox" style="margin-top:10px">
+      <summary>I had a problem</summary>
+      <div class="stack" style="margin-top:8px">
+        <button class="btn secondary" id="processingBtn">Payment is still processing</button>
+        <button class="btn ghost" id="failedBtn">Payment failed / not completed</button>
+        <label class="check"><input type="checkbox" id="partialChk"> I paid only part of the amount</label>
+        <div id="partialBox" class="hidden">
+          <label for="partialAmt">Amount you actually paid (Rs.) - then tap "Yes, I have paid"</label>
+          <input id="partialAmt" type="number" inputmode="decimal" min="1" step="0.01" placeholder="e.g. 1000">
         </div>
-        <ol class="small steps">
-          <li>In your UPI app tap <b>Pay UPI ID or number</b> (PhonePe: <b>To Mobile Number / UPI ID</b>).</li>
-          <li>Paste the UPI ID<span id="stepMobile" class="hidden"> or mobile number</span> and check the name is <b id="mPayee2"></b>.</li>
-          <li>Enter <b id="mAmt2"></b>, add the reference in the note, and pay.</li>
-          <li>Come back here and tap <b>I have paid</b>.</li>
-        </ol>
+        <details>
+          <summary>Add a note for the centre (optional)</summary>
+          <label for="optApp">UPI app used</label>
+          <select id="optApp"><option value="">Not sure</option><option value="GPAY">Google Pay</option><option value="PHONEPE">PhonePe</option><option value="PAYTM">Paytm</option><option value="OTHER_UPI">Other UPI app</option><option value="QR">Scanned QR</option></select>
+          <label for="optTime">Approximate payment time</label>
+          <input id="optTime" type="time">
+          <label for="optNote">Note</label>
+          <input id="optNote" maxlength="300" placeholder="e.g. paid from my husband's account">
+        </details>
       </div>
-
-      <!-- 2. QR code -->
-      <div id="qrBlock" class="panel hidden">
-        <div class="qr">
-          <img id="qrImg" alt="UPI QR code for this fee">
-          <p class="muted small">Scan with any UPI app &middot; pays <b id="qrPayee"></b> (<span id="vpa"></span>)</p>
-          <p class="banner warn small hidden" id="qrAmountNote">Enter <b id="qrAmtText"></b> in your UPI app and add
-            reference <b id="qrRefText"></b> in the note.</p>
-          <div class="actions" style="justify-content:center">
-            <a class="btn secondary sm" id="qrSave" download>Save QR</a>
-            <a class="btn ghost sm" id="qrSaveHi" download>High-resolution QR</a>
-          </div>
-          <p class="muted small" style="margin-top:8px">On this phone: save the QR, then in your UPI app tap <b>Scan QR</b>
-            &rarr; gallery/photo icon &rarr; choose the saved image.</p>
-        </div>
-      </div>
-
-      <div class="actions" id="choiceRow">
-        <button class="btn secondary" style="flex:1" id="showQrBtn">Show QR Code</button>
-        <button class="btn secondary" style="flex:1" id="showManualBtn">Copy UPI ID</button>
-      </div>
-    </div>
-    <p class="muted small">Never share your UPI PIN or OTP with anyone. FeeFlow will never ask for it.</p>
+    </details>
+    <p class="err" id="askErr"></p>
   </section>
 
-  <!-- Post-payment question -->
-  <section class="card hidden" id="askSection">
-    <h2>Have you completed your payment?</h2>
-    <div class="stack">
-      <label class="check"><input type="checkbox" id="partialChk"> I paid only part of the amount</label>
-      <div id="partialBox" class="hidden">
-        <label for="partialAmt">Amount you actually paid (Rs.)</label>
-        <input id="partialAmt" type="number" inputmode="decimal" min="1" step="0.01" placeholder="e.g. 1000">
-      </div>
-      <details>
-        <summary>Add optional details</summary>
-        <label for="optApp">UPI app used</label>
-        <select id="optApp"><option value="">Not sure</option><option value="GPAY">Google Pay</option><option value="PHONEPE">PhonePe</option><option value="PAYTM">Paytm</option><option value="OTHER_UPI">Other UPI app</option><option value="QR">Scanned QR</option></select>
-        <label for="optTime">Approximate payment time</label>
-        <input id="optTime" type="time">
-        <label for="optNote">Note for the tuition centre</label>
-        <input id="optNote" maxlength="300" placeholder="e.g. paid from my husband's account">
-      </details>
-      <button class="btn ok" id="paidBtn">I have paid</button>
-      <div class="actions">
-        <button class="btn secondary" style="flex:1" id="processingBtn">Payment is processing</button>
-        <button class="btn ghost" style="flex:1" id="failedBtn">Payment failed</button>
-      </div>
-      <p class="err" id="askErr"></p>
+  <!-- Pay -->
+  <section class="card hidden" id="paySection">
+    <h2 class="pay-title">Pay <span id="payAmt"></span></h2>
+    <p class="muted small" style="margin:0 0 14px">to <b id="payPayee"></b></p>
+
+    <p class="banner info hidden" id="desktopNote">You're on a computer. Scan this QR with any UPI app on your phone,
+      or open this payment link on your phone.</p>
+
+    <!-- Merchant UPI: true one-tap -->
+    <div id="oneTapBlock" class="hidden">
+      <button class="btn big-btn" id="payUpiBtn">Pay</button>
+      <p class="muted small" style="text-align:center;margin:6px 0 0">Opens your UPI app with everything filled in.</p>
+      <p class="banner hidden" id="intentMsg" style="margin-top:10px"></p>
     </div>
+
+    <!-- Personal UPI: pick your app - the UPI ID is copied and the app opens -->
+    <div id="appButtons" class="hidden stack">
+      <button class="appbtn" data-pay="GPAY"><span class="ico" style="background:#1a73e8">G</span>Pay with Google Pay</button>
+      <button class="appbtn" data-pay="PHONEPE"><span class="ico" style="background:#5f259f">Pe</span>Pay with PhonePe</button>
+      <button class="appbtn" data-pay="PAYTM"><span class="ico" style="background:#00baf2">P</span>Pay with Paytm</button>
+      <button class="appbtn" data-pay="OTHER"><span class="ico" style="background:#374151">UPI</span>Other UPI app</button>
+    </div>
+    <div id="guideCard" class="banner ok hidden" style="margin-top:12px">
+      <b id="guideTitle"></b>
+      <p id="guideText" style="margin:6px 0 0;font-weight:500"></p>
+      <button class="btn secondary sm hidden" id="guideOpenAgain" style="margin-top:8px">Open again</button>
+    </div>
+
+
+    <!-- QR -->
+    <div id="qrBlock" class="panel hidden">
+      <div class="qr">
+        <img id="qrImg" alt="UPI QR code for this fee">
+        <p class="muted small">Scan with any UPI app &middot; pays <b id="qrPayee"></b> (<span id="vpa"></span>)</p>
+        <p class="banner warn small hidden" id="qrAmountNote">Enter <b id="qrAmtText"></b> in your UPI app
+          (reference <b id="qrRefText"></b>).</p>
+        <div class="actions" style="justify-content:center">
+          <a class="btn secondary sm" id="qrSave" download>Save QR</a>
+          <a class="btn ghost sm" id="qrSaveHi" download>High-resolution QR</a>
+        </div>
+        <p class="muted small" style="margin-top:8px">On this phone: save the QR, then in your UPI app tap <b>Scan QR</b>
+          &rarr; gallery icon &rarr; choose the saved image.</p>
+      </div>
+    </div>
+
+    <!-- Manual details -->
+    <div id="manualBlock" class="panel hidden">
+      <div class="copyrow"><span class="muted small">Pay to</span><b id="mPayee"></b></div>
+      <div class="copyrow"><span class="muted small">UPI ID</span><b id="mVpa"></b><button class="btn secondary sm copy" data-copy="vpa" data-label="Copy">Copy</button></div>
+      <div class="copyrow hidden" id="mMobileRow"><span class="muted small">Or mobile</span><b id="mMobile"></b><button class="btn secondary sm copy" data-copy="mobile" data-label="Copy">Copy</button></div>
+      <div class="copyrow"><span class="muted small">Amount</span><b id="mAmt"></b><button class="btn secondary sm copy" data-copy="amount" data-label="Copy">Copy</button></div>
+      <div class="copyrow"><span class="muted small">Reference</span><b id="mRef"></b><button class="btn secondary sm copy" data-copy="reference" data-label="Copy">Copy</button></div>
+      <button class="btn ghost sm copy" data-copy="all" data-label="Copy all details" style="margin-top:8px">Copy all details</button>
+      <p class="small muted" style="margin:8px 0 0">In your UPI app choose <b>Pay to UPI ID</b>, paste, check the name is
+        <b id="mPayee2"></b>, enter <b id="mAmt2"></b> and pay. Then come back and tap <b>Yes, I have paid</b>.</p>
+    </div>
+
+    <div class="pay-links" id="payLinks">
+      <a href="#" id="showQrLink">Scan QR instead</a>
+      <a href="#" id="showManualLink">Copy details manually</a>
+    </div>
+
+    <p class="muted small" style="margin-top:14px">Never share your UPI PIN or OTP with anyone. FeeFlow will never ask for it.</p>
   </section>
 
   <!-- Awaiting verification -->
